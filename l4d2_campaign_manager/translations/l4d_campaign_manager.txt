@@ -1,0 +1,1040 @@
+"Phrases"
+{
+	"CM_Title"
+	{
+		"en"	"Campaign Manager"
+		"ru"	"Менеджер кампании"
+	}
+
+	"CM_GameMode_Coop"
+	{
+		"en"	"Coop"
+		"ru"	"Кампания"
+	}
+
+	"CM_GameMode_Versus"
+	{
+		"en"	"Versus"
+		"ru"	"Сражение"
+	}
+
+	"CM_GameMode_Survival"
+	{
+		"en"	"Survival"
+		"ru"	"Выживание"
+	}
+
+	"CM_GameMode_Realism"
+	{
+		"en"	"Realism"
+		"ru"	"Реализм"
+	}
+
+	"CM_GameMode_Scavenge"
+	{
+		"en"	"Scavenge"
+		"ru"	"Сбор"
+	}
+
+	"CM_GameMode_Mutation"
+	{
+		"en"	"Mutation"
+		"ru"	"Мутация"
+	}
+
+	"#L4D360UI_Campaign_Airport"
+	{
+		"en"	"Dead Air"
+		"ru"	"Смерть в воздухе"
+	}
+	"#L4D360UI_Chapter_Greenhouse"
+	{
+		"en"	"The Greenhouse"
+		"ru"	"Теплица"
+	}
+	"#L4D360UI_Chapter_Offices"
+	{
+		"en"	"The Crane"
+		"ru"	"Кран"
+	}
+	"#L4D360UI_Holdout_Chapter_Offices"
+	{
+		"en"	"The Crane"
+		"ru"	"Кран"
+	}
+	"#L4D360UI_Chapter_Garage"
+	{
+		"en"	"The Construction Site"
+		"ru"	"Стройка"
+	}
+	"#L4D360UI_Holdout_Chapter_Garage"
+	{
+		"en"	"The Construction Site"
+		"ru"	"Стройка"
+	}
+	"#L4D360UI_Chapter_Airport"
+	{
+		"en"	"The Terminal"
+		"ru"	"Терминал"
+	}
+	"#L4D360UI_Holdout_Chapter_Airport"
+	{
+		"en"	"The Terminal"
+		"ru"	"Терминал"
+	}
+	"#L4D360UI_Chapter_Runway"
+	{
+		"en"	"Runway Finale"
+		"ru"	"Взлётная полоса"
+	}
+	"#L4D360UI_Holdout_Chapter_Runway"
+	{
+		"en"	"Runway Finale"
+		"ru"	"Взлётная полоса"
+	}
+
+	"#L4D360UI_Campaign_Farm"
+	{
+		"en"	"Blood Harvest"
+		"ru"	"Кровавая жатва"
+	}
+	"#L4D360UI_Chapter_Hilltop"
+	{
+		"en"	"The Woods"
+		"ru"	"Леса"
+	}
+	"#L4D360UI_Chapter_TrainTunnel"
+	{
+		"en"	"The Tunnel"
+		"ru"	"Тоннель"
+	}
+	"#L4D360UI_Holdout_Chapter_TrainTunnel"
+	{
+		"en"	"The Tunnel"
+		"ru"	"Тоннель"
+	}
+	"#L4D360UI_Chapter_Bridge"
+	{
+		"en"	"The Bridge"
+		"ru"	"Мост"
+	}
+	"#L4D360UI_Holdout_Chapter_Bridge"
+	{
+		"en"	"The Bridge"
+		"ru"	"Мост"
+	}
+	"#L4D360UI_Chapter_Barn"
+	{
+		"en"	"The Train Station"
+		"ru"	"Ж/д станция"
+	}
+	"#L4D360UI_Chapter_Farm"
+	{
+		"en"	"Farmhouse Finale"
+		"ru"	"Ферма"
+	}
+	"#L4D360UI_Holdout_Chapter_Farm"
+	{
+		"en"	"Farmhouse Finale"
+		"ru"	"Ферма"
+	}
+
+	"#L4D360UI_Campaign_Garage"
+	{
+		"en"	"Crash Course"
+		"ru"	"Crash-Kurs"
+	}
+	"#L4D360UI_Chapter_Alleys"
+	{
+		"en"	"The Alleys"
+		"ru"	"Переулки"
+	}
+	"#L4D360UI_Holdout_Chapter_Alleys"
+	{
+		"en"	"The Alleys"
+		"ru"	"Переулки"
+	}
+	"#L4D360UI_Chapter_Depot"
+	{
+		"en"	"The Truck Depot Finale"
+		"ru"	"Гараж"
+	}
+	"#L4D360UI_Holdout_Chapter_Depot"
+	{
+		"en"	"The Truck Depot Finale"
+		"ru"	"Гараж"
+	}
+
+	"#L4D360UI_Campaign_Hospital"
+	{
+		"en"	"No Mercy"
+		"ru"	"Нет милосердию"
+	}
+	"#L4D360UI_Chapter_Apartment"
+	{
+		"en"	"The Apartments"
+		"ru"	"Апартаменты"
+	}
+	"#L4D360UI_Chapter_Subway"
+	{
+		"en"	"The Subway"
+		"ru"	"Метро"
+	}
+	"#L4D360UI_Holdout_Chapter_Subway"
+	{
+		"en"	"The Subway"
+		"ru"	"Метро"
+	}
+	"#L4D360UI_Chapter_Sewers"
+	{
+		"en"	"The Sewer"
+		"ru"	"Канализация"
+	}
+	"#L4D360UI_Holdout_Chapter_Sewers"
+	{
+		"en"	"The Sewer"
+		"ru"	"Канализация"
+	}
+	"#L4D360UI_Chapter_Hospital"
+	{
+		"en"	"The Hospital"
+		"ru"	"Госпиталь"
+	}
+	"#L4D360UI_Holdout_Chapter_Hospital"
+	{
+		"en"	"The Hospital"
+		"ru"	"Госпиталь"
+	}
+	"#L4D360UI_Chapter_Rooftop"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+	"#L4D360UI_Holdout_Chapter_Rooftop"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+
+	"#L4D360UI_Campaign_Lighthouse"
+	{
+		"en"	"The Last Stand"
+		"ru"	"Последний рубеж"
+	}
+	"#L4D360UI_Holdout_Chapter_Lighthouse"
+	{
+		"en"	"The Lighthouse"
+		"ru"	"Маяк"
+	}
+
+	"#L4D360UI_Campaign_Smalltown"
+	{
+		"en"	"Death Toll"
+		"ru"	"Похоронный звон"
+	}
+	"#L4D360UI_Chapter_Caves"
+	{
+		"en"	"The Turnpike"
+		"ru"	"Ограждение"
+	}
+	"#L4D360UI_Chapter_Drainage"
+	{
+		"en"	"The Drains"
+		"ru"	"Водосток"
+	}
+	"#L4D360UI_Holdout_Chapter_Drainage"
+	{
+		"en"	"The Drains"
+		"ru"	"Водосток"
+	}
+	"#L4D360UI_Chapter_Smalltown"
+	{
+		"en"	"The Church"
+		"ru"	"Церковь"
+	}
+	"#L4D360UI_Holdout_Chapter_Smalltown"
+	{
+		"en"	"The Church"
+		"ru"	"Церковь"
+	}
+	"#L4D360UI_Chapter_MainStreet"
+	{
+		"en"	"The Town"
+		"ru"	"Город"
+	}
+	"#L4D360UI_Holdout_Chapter_MainStreet"
+	{
+		"en"	"The Town"
+		"ru"	"Город"
+	}
+	"#L4D360UI_Chapter_Boat"
+	{
+		"en"	"Boathouse Finale"
+		"ru"	"Лодочная станция"
+	}
+	"#L4D360UI_Holdout_Chapter_Boat"
+	{
+		"en"	"Boathouse Finale"
+		"ru"	"Лодочная станция"
+	}
+
+	"#L4D360UI_CampaignName_C1"
+	{
+		"en"	"Dead Center"
+		"ru"	"Вымерший центр"
+	}
+	"#L4D360UI_LevelName_COOP_C1M1"
+	{
+		"en"	"The Hotel"
+		"ru"	"Отель"
+	}
+	#L4D360UI_LevelName_VERSUS_C1M1
+	{
+		"en"	"The Hotel"
+		"ru"	"Отель"
+	}
+	"#L4D360UI_LevelName_COOP_C1M2"
+	{
+		"en"	"The Streets"
+		"ru"	"Улицы"
+	}
+	"#L4D360UI_LevelName_VERSUS_C1M2"
+	{
+		"en"	"The Streets"
+		"ru"	"Улицы"
+	}
+	"#L4D360UI_LevelName_COOP_C1M3"
+	{
+		"en"	"The Mall"
+		"ru"	"Торговый центр"
+	}
+	"#L4D360UI_LevelName_VERSUS_C1M3"
+	{
+		"en"	"The Mall"
+		"ru"	"Торговый центр"
+	}
+	"#L4D360UI_LevelName_COOP_C1M4"
+	{
+		"en"	"Atrium Finale"
+		"ru"	"Атриум"
+	}
+	"#L4D360UI_LevelName_VERSUS_C1M4"
+	{
+		"en"	"Atrium Finale"
+		"ru"	"Атриум"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C1M4"
+	{
+		"en"	"Atrium Finale"
+		"ru"	"Атриум"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C1M4"
+	{
+		"en"	"Atrium Finale"
+		"ru"	"Атриум"
+	}
+
+	"#L4D360UI_CampaignName_C2"
+	{
+		"en"	"Dark Carnival"
+		"ru"	"Мрачный карнавал"
+	}
+	"#L4D360UI_LevelName_COOP_C2M1"
+	{
+		"en"	"The Highway"
+		"ru"	"Автострада"
+	}
+	"#L4D360UI_LevelName_VERSUS_C2M1"
+	{
+		"en"	"The Highway"
+		"ru"	"Автострада"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C2M1"
+	{
+		"en"	"The Highway"
+		"ru"	"Автострада"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C2M1"
+	{
+		"en"	"The Highway"
+		"ru"	"Автострада"
+	}
+	"#L4D360UI_LevelName_COOP_C2M2"
+	{
+		"en"	"The Fairgrounds"
+		"ru"	"Базарная площадь"
+	}
+	"#L4D360UI_LevelName_VERSUS_C2M2"
+	{
+		"en"	"The Fairgrounds"
+		"ru"	"Базарная площадь"
+	}
+	"#L4D360UI_LevelName_COOP_C2M3"
+	{
+		"en"	"The Coaster"
+		"ru"	"Американские горки"
+	}
+	"#L4D360UI_LevelName_VERSUS_C2M3"
+	{
+		"en"	"The Coaster"
+		"ru"	"Американские горки"
+	}
+	"#L4D360UI_LevelName_COOP_C2M4"
+	{
+		"en"	"The Barns"
+		"ru"	"Сараи"
+	}
+	"#L4D360UI_LevelName_VERSUS_C2M4"
+	{
+		"en"	"The Barns"
+		"ru"	"Сараи"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C2M4"
+	{
+		"en"	"The Barns"
+		"ru"	"Сараи"
+	}
+	"#L4D360UI_LevelName_COOP_C2M5"
+	{
+		"en"	"The Concert"
+		"ru"	"Концерт"
+	}
+	"#L4D360UI_LevelName_VERSUS_C2M5"
+	{
+		"en"	"The Concert"
+		"ru"	"Концерт"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C2M5"
+	{
+		"en"	"The Concert"
+		"ru"	"Концерт"
+	}
+
+	"#L4D360UI_CampaignName_C3"
+	{
+		"en"	"Swamp Fever"
+		"ru"	"Болотная лихорадка"
+	}
+	"#L4D360UI_LevelName_COOP_C3M1"
+	{
+		"en"	"Plank Country"
+		"ru"	"Дощатые задворки"
+	}
+	"#L4D360UI_LevelName_VERSUS_C3M1"
+	{
+		"en"	"Plank Country"
+		"ru"	"Дощатые задворки"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C3M1"
+	{
+		"en"	"Plank Country"
+		"ru"	"Дощатые задворки"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C3M1"
+	{
+		"en"	"Plank Country"
+		"ru"	"Дощатые задворки"
+	}
+	"#L4D360UI_LevelName_COOP_C3M2"
+	{
+		"en"	"The Swamp"
+		"ru"	"Болото"
+	}
+	"#L4D360UI_LevelName_VERSUS_C3M2"
+	{
+		"en"	"The Swamp"
+		"ru"	"Болото"
+	}
+	"#L4D360UI_LevelName_COOP_C3M3"
+	{
+		"en"	"The Shantytown"
+		"ru"	"Трущобы"
+	}
+	"#L4D360UI_LevelName_VERSUS_C3M3"
+	{
+		"en"	"Shantytown"
+		"ru"	"Трущобы"
+	}
+	"#L4D360UI_LevelName_COOP_C3M4"
+	{
+		"en"	"The Plantation"
+		"ru"	"Плантация"
+	}
+	"#L4D360UI_LevelName_VERSUS_C3M4"
+	{
+		"en"	"The Plantation"
+		"ru"	"Плантация"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C3M4"
+	{
+		"en"	"The Plantation"
+		"ru"	"Плантация"
+	}
+
+	"#L4D360UI_CampaignName_C4"
+	{
+		"en"	"Hard Rain"
+		"ru"	"Ужасный ливень"
+	}
+	"#L4D360UI_LevelName_COOP_C4M1"
+	{
+		"en"	"The Milltown"
+		"ru"	"Городишко при заводе"
+	}
+	"#L4D360UI_LevelName_VERSUS_C4M1"
+	{
+		"en"	"The Milltown"
+		"ru"	"Городишко при заводе"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C4M1"
+	{
+		"en"	"The Milltown"
+		"ru"	"Городишко при заводе"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C4M1"
+	{
+		"en"	"The Milltown"
+		"ru"	"Городишко при заводе"
+	}
+	"#L4D360UI_LevelName_COOP_C4M2"
+	{
+		"en"	"The Sugar Mill"
+		"ru"	"Сахарный завод"
+	}
+	"#L4D360UI_LevelName_VERSUS_C4M2"
+	{
+		"en"	"The Sugar Mill"
+		"ru"	"Сахарный завод"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C4M2"
+	{
+		"en"	"The Sugar Mill"
+		"ru"	"Сахарный завод"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C4M2"
+	{
+		"en"	"The Sugar Mill"
+		"ru"	"Сахарный завод"
+	}
+	"#L4D360UI_LevelName_COOP_C4M3"
+	{
+		"en"	"Mill Escape"
+		"ru"	"Бегство с завода"
+	}
+	"#L4D360UI_LevelName_VERSUS_C4M3"
+	{
+		"en"	"Mill Escape"
+		"ru"	"Бегство с завода"
+	}
+	"#L4D360UI_LevelName_COOP_C4M4"
+	{
+		"en"	"Return to Town"
+		"ru"	"Возвращение в город"
+	}
+	"#L4D360UI_LevelName_VERSUS_C4M4"
+	{
+		"en"	"Return to Town"
+		"ru"	"Возвращение в город"
+	}
+	"#L4D360UI_LevelName_COOP_C4M5"
+	{
+		"en"	"Town Escape"
+		"ru"	"Бегство из города"
+	}
+	"#L4D360UI_LevelName_VERSUS_C4M5"
+	{
+		"en"	"Town Escape"
+		"ru"	"Бегство из города"
+	}
+
+	"#L4D360UI_CampaignName_C5"
+	{
+		"en"	"The Parish"
+		"ru"	"Приход"
+	}
+	"#L4D360UI_LevelName_COOP_C5M1"
+	{
+		"en"	"The Waterfront"
+		"ru"	"Берег"
+	}
+	"#L4D360UI_LevelName_VERSUS_C5M1"
+	{
+		"en"	"The Waterfront"
+		"ru"	"Берег"
+	}
+	"#L4D360UI_LevelName_COOP_C5M2"
+	{
+		"en"	"The Park"
+		"ru"	"Парк"
+	}
+	"#L4D360UI_LevelName_VERSUS_C5M2"
+	{
+		"en"	"The Park"
+		"ru"	"Парк"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C5M2"
+	{
+		"en"	"The Park"
+		"ru"	"Парк"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C5M2"
+	{
+		"en"	"The Park"
+		"ru"	"Парк"
+	}
+	"#L4D360UI_LevelName_COOP_C5M3"
+	{
+		"en"	"The Cemetery"
+		"ru"	"Кладбище"
+	}
+	"#L4D360UI_LevelName_VERSUS_C5M3"
+	{
+		"en"	"The Cemetery"
+		"ru"	"Кладбище"
+	}
+	"#L4D360UI_LevelName_COOP_C5M4"
+	{
+		"en"	"The Quarter"
+		"ru"	"Квартал"
+	}
+	"#L4D360UI_LevelName_VERSUS_C5M4"
+	{
+		"en"	"The Quarter"
+		"ru"	"Квартал"
+	}
+	"#L4D360UI_LevelName_COOP_C5M5"
+	{
+		"en"	"The Bridge"
+		"ru"	"Мост"
+	}
+	"#L4D360UI_LevelName_VERSUS_C5M5"
+	{
+		"en"	"The Bridge"
+		"ru"	"Мост"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C5M5"
+	{
+		"en"	"The Bridge"
+		"ru"	"Мост"
+	}
+
+	"#L4D360UI_CampaignName_C6"
+	{
+		"en"	"The Passing"
+		"ru"	"Переход"
+	}
+	"#L4D360UI_LevelName_COOP_C6M1"
+	{
+		"en"	"The Riverbank"
+		"ru"	"Берег реки"
+	}
+	"#L4D360UI_LevelName_COOP_C6M2"
+	{
+		"en"	"The Underground"
+		"ru"	"Подземелье"
+	}
+	"#L4D360UI_LevelName_COOP_C6M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_VERSUS_C6M1"
+	{
+		"en"	"The Riverbank"
+		"ru"	"Берег реки"
+	}
+	"#L4D360UI_LevelName_VERSUS_C6M2"
+	{
+		"en"	"The Underground"
+		"ru"	"Подземелье"
+	}
+	"#L4D360UI_LevelName_VERSUS_C6M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C6M1"
+	{
+		"en"	"The Riverbank"
+		"ru"	"Берег реки"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C6M2"
+	{
+		"en"	"The Underground"
+		"ru"	"Подземелье"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C6M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C6M1"
+	{
+		"en"	"The Riverbank"
+		"ru"	"Берег реки"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C6M2"
+	{
+		"en"	"The Underground"
+		"ru"	"Подземелье"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C6M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+
+	"#L4D360UI_CampaignName_C7"
+	{
+		"en"	"The Sacrifice"
+		"ru"	"Жертва"
+	}
+	"#L4D360UI_LevelName_COOP_C7M1"
+	{
+		"en"	"The Docks"
+		"ru"	"Доки"
+	}
+	"#L4D360UI_LevelName_COOP_C7M2"
+	{
+		"en"	"The Barge"
+		"ru"	"Баржа"
+	}
+	"#L4D360UI_LevelName_COOP_C7M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_VERSUS_C7M1"
+	{
+		"en"	"The Docks"
+		"ru"	"Доки"
+	}
+	"#L4D360UI_LevelName_VERSUS_C7M2"
+	{
+		"en"	"The Barge"
+		"ru"	"Баржа"
+	}
+	"#L4D360UI_LevelName_VERSUS_C7M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C7M1"
+	{
+		"en"	"The Docks"
+		"ru"	"Доки"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C7M3"
+	{
+		"en"	"The Port"
+		"ru"	"Порт"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C7M1"
+	{
+		"en"	"The Docks"
+		"ru"	"Доки"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C7M2"
+	{
+		"en"	"The Barge"
+		"ru"	"Баржа"
+	}
+
+	"#L4D360UI_CampaignName_C8"
+	{
+		"en"	"No Mercy"
+		"ru"	"Нет милосердию"
+	}
+	"#L4D360UI_LevelName_COOP_C8M1"
+	{
+		"en"	"The Apartments"
+		"ru"	"Апартаменты"
+	}
+	"#L4D360UI_LevelName_COOP_C8M2"
+	{
+		"en"	"The Subway"
+		"ru"	"Метро"
+	}
+	"#L4D360UI_LevelName_COOP_C8M3"
+	{
+		"en"	"The Sewer"
+		"ru"	"Канализация"
+	}
+	"#L4D360UI_LevelName_COOP_C8M4"
+	{
+		"en"	"The Hospital"
+		"ru"	"Госпиталь"
+	}
+	"#L4D360UI_LevelName_COOP_C8M5"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+	"#L4D360UI_LevelName_VERSUS_C8M1"
+	{
+		"en"	"The Apartments"
+		"ru"	"Апартаменты"
+	}
+	"#L4D360UI_LevelName_VERSUS_C8M2"
+	{
+		"en"	"The Subway"
+		"ru"	"Метро"
+	}
+	"#L4D360UI_LevelName_VERSUS_C8M3"
+	{
+		"en"	"The Sewer"
+		"ru"	"Канализация"
+	}
+	"#L4D360UI_LevelName_VERSUS_C8M4"
+	{
+		"en"	"The Hospital"
+		"ru"	"Госпиталь"
+	}
+	"#L4D360UI_LevelName_VERSUS_C8M5"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C8M2"
+	{
+		"en"	"The Subway"
+		"ru"	"Метро"
+	}
+	"#L4D360UI_LevelName_SURVIVAL_C8M5"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C8M1"
+	{
+		"en"	"The Apartments"
+		"ru"	"Апартаменты"
+	}
+	"#L4D360UI_LevelName_SCAVENGE_C8M5"
+	{
+		"en"	"Rooftop Finale"
+		"ru"	"Крыша"
+	}
+	
+	"#L4D360UI_CampaignName_C10"
+	{
+		"en"	"Death Toll"
+		"ru"	"Похоронный звон"
+	}
+
+	"#L4D360UI_LevelName_COOP_C10M1"
+	{
+		"en"	"The Turnpike"
+		"ru"	"Ограждение"
+	}
+
+	"#L4D360UI_LevelName_COOP_C10M2"
+	{
+		"en"    "The Drains"
+		"ru"	"Водосток"
+	}
+
+	"#L4D360UI_LevelName_COOP_C10M3"
+	{
+		"en"    "The Church"
+		"ru"	"Церковь"
+	}
+
+	"#L4D360UI_LevelName_COOP_C10M4"
+	{
+		"en"    "The Town"
+		"ru"	"Город"
+	}
+
+	"#L4D360UI_LevelName_COOP_C10M5"
+	{
+		"en"    "Boathouse Finale"
+		"ru"	"Лодочная станция"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C10M1"
+	{
+		"en"	"The Turnpike"
+		"ru"	"Ограждение"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C10M2"
+	{
+		"en"    "The Drains"
+		"ru"	"Водосток"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C10M3"
+	{
+		"en"    "The Church"
+		"ru"	"Церковь"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C10M4"
+	{
+		"en"    "The Town"
+		"ru"	"Город"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C10M5"
+	{
+		"en"    "Boathouse Finale"
+		"ru"	"Лодочная станция"
+	}
+
+	"#L4D360UI_LevelName_SCAVENGE_C10M3"
+	{
+		"en"	"The Church"
+		"ru"	"Церковь"
+	}
+
+	"#L4D360UI_CampaignName_C12"
+	{
+		"en"    "Blood Harvest"
+		"ru"	"Кровавая жатва"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C12M1"
+	{
+		"en"	"The Woods"
+		"ru"	"Леса"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C12M2"
+	{
+		"en"    "The Tunnel"
+		"ru"	"Тоннель"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C12M3"
+	{
+		"en"    "The Bridge"
+		"ru"	"Мост"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C12M4"
+	{
+		"en"    "The Train Station"
+		"ru"	"Ж/д станция"
+	}
+
+	"#L4D360UI_LevelName_COOP_C12M5"
+	{
+		"en"    "Farmhouse Finale"
+		"ru"	"Ферма"
+	}
+
+	"#L4D360UI_LevelName_SCAVENGE_C12M5"
+	{
+		"en"    "Farmhouse Finale"
+		"ru"	"Ферма"
+	}
+
+	"#L4D360UI_CampaignName_C13"
+	{
+		"en"	"Cold Stream"
+		"ru"	"Холодный ручей"
+	}
+
+	"#L4D360UI_LevelName_COOP_C13M1"
+	{
+		"en"	"Alpine Creek"
+		"ru"	"Альпийский ручей"
+	}
+
+	"#L4D360UI_LevelName_COOP_C13M2"
+	{
+		"en"    "South Pine Stream"
+		"ru"	"Южный хвойный ручей"
+	}
+
+	"#L4D360UI_LevelName_COOP_C13M3"
+	{
+		"en"    "Memorial Bridge"
+		"ru"	"Памятный мост"
+	}
+
+	"#L4D360UI_LevelName_COOP_C13M4"
+	{
+		"en"    "Cut-throat Creek"
+		"ru"	"Узкий пролив"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C13M1"
+	{
+		"en"	"Alpine Creek"
+		"ru"	"Альпийский ручей"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C13M2"
+	{
+		"en"    "South Pine Stream"
+		"ru"	"Южный хвойный ручей"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C13M3"
+	{
+		"en"    "Memorial Bridge"
+		"ru"	"Памятный мост"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C13M4"
+	{
+		"en"    "Cut-throat Creek"
+		"ru"	"Узкий пролив"
+	}
+
+	"#L4D360UI_CampaignName_C14"
+	{
+		"en"	"The Last Stand (L4D2)"
+		"ru"	"Последний рубеж (L4D2)"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C14M1"
+	{
+		"en"	"The Junkyard"
+		"ru"	"Свалка"
+	}
+	
+	"#L4D360UI_LevelName_COOP_C14M2"
+	{
+		"en"    "Lighthouse Finale"
+		"ru"	"Маяк"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C14M1"
+	{
+		"en"	"The Junkyard"
+		"ru"	"Свалка"
+	}
+
+	"#L4D360UI_LevelName_VERSUS_C14M2"
+	{
+		"en"    "Lighthouse Finale"
+		"ru"	"Маяк"
+	}
+
+	"#L4D360UI_LevelName_SURVIVAL_C14M1"
+	{
+		"en"	"The Junkyard"
+		"ru"	"Свалка"
+	}
+
+	"#L4D360UI_LevelName_SURVIVAL_C14M2"
+	{
+		"en"    "Lighthouse Finale"
+		"ru"	"Маяк"
+	}
+
+	"#L4D360UI_LevelName_SCAVENGE_C14M1"
+	{
+		"en"	"The Junkyard"
+		"ru"	"Свалка"
+	}
+
+	"#L4D360UI_LevelName_SCAVENGE_C14M2"
+	{
+			"en"    "Lighthouse Finale"
+			"ru"	"Маяк"
+	}
+}
