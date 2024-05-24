@@ -1,0 +1,520 @@
+﻿"Phrases"
+{
+	"WelcomeMessageHint"
+	{
+		"fr"	"Bienvenue a Perkmod!"
+	}
+
+	"WelcomeMessageChat"
+	{
+		"fr"	"Bienvenue a Perkmod! Si le menu n'apparaits pas, tapez !perks pour afficher le menu."
+	}
+
+	"BonusDamageText"
+	{
+		"fr"	"plus degats"
+	}
+
+	"SpritSuccessMessage"
+	{
+		"fr"	"Vous vous avez relance!"
+	}
+
+	"SpiritTimerFinishedMessage"
+	{
+		"fr"	"Vous pouvez vous relancer maintenant!"
+	}
+
+	"UnbreakableHint"
+	{
+		"fr"	"plus sante"
+	}
+
+	"GrenadierCarryHint"
+	{
+		"fr"	"Vous avez"
+	}
+
+	"GrenadierCantTake2Grenades_A"
+	{
+		"fr"	"Vous avez seulement un"
+	}
+
+	"GrenadierCantTake2Grenades_B"
+	{
+		"fr"	"Lancez votre grenade seconde avant de prenez d'autre."
+	}
+
+	"GrenadierCounter_A"
+	{
+		"fr"	"Vous avez"
+	}
+
+	"GrenadierCounter_B"
+	{
+		"fr"	"restant"
+	}
+
+	"HelpingHandDonorHint"
+	{
+		"fr"	"vous avez donne plus de sante temporaire a"
+	}
+
+	"HelpingHandReceiverHint"
+	{
+		"fr"	"a vous donne plus de sante temporaire!"
+	}
+
+	"BarfBaggedMobHint"
+	{
+		"fr"	"Plus de zombies viennent!"
+	}
+
+	"JuggernautHint"
+	{
+		"fr"	"Vous avez plus de sante!"
+	}
+
+	"MetabolicHint"
+	{
+		"fr"	"Vous etes plus vite!"
+	}
+
+	"StormCallerHint"
+	{
+		"fr"	"Une horde vient maintenant!"
+	}
+
+	"MapPerksPanel"
+	{
+		"fr"	"Votre perks pour cette ronde"
+	}
+
+	"PyroDescriptionPanel"
+	{
+		"fr"	"porter 2 grenades au lieu d'un"
+	}
+
+	"SpiritDescriptionPanel"
+	{
+		"fr"	"se relancer quand un ami tombe, temps de recharge"
+	}
+
+	"DoubleTapDescriptionPanel"
+	{
+		"fr"	"tirer plus vite"
+	}
+
+	"SleighOfHandDescriptionPanel"
+	{
+		"fr"	"recharger plus vite"
+	}
+
+	"NotSet"
+	{
+		"fr"	"Pas fixe"
+	}
+	"ChemReliantDescriptionPanel"
+	{
+		"fr"	"plus de sante temporaire avec des pilules"
+	}
+
+	"HelpingHandDescriptionPanel"
+	{
+		"fr"	"donner plus sante temporaire"
+	}
+
+	"PackRatDescriptionPanel"
+	{
+		"fr"	"porter plus de ammunition"
+	}
+
+	"MartialArtistDescriptionPanelCoop"
+	{
+		"fr"	"courir plus vite"
+	}
+
+	"HardToKillDescriptionPanel"
+	{
+		"fr"	"plus de sante quand on tombe"
+	}
+
+	"BarfBaggedDescriptionPanel"
+	{
+		"fr"	"vomi appele plus de zombies"
+	}
+
+	"DeadWreckeningDescriptionPanel"
+	{
+		"fr"	"vomi-appele zombies font plus de degats"
+	}
+
+	"MotionSicknessDescriptionPanel"
+	{
+		"fr"	"courir plus vite, courir pendant de vomissement"
+	}
+
+	"BodySlamDescriptionPanel"
+	{
+		"fr"	"minimum de pounce-degats"
+	}
+
+	"EfficientKillerDescriptionPanel"
+	{
+		"fr"	"plus de dechiqueter-degats"
+	}
+
+	"GrasshopperDescriptionPanel"
+	{
+		"fr"	"bondir plus loin"
+	}
+
+	"OldSchoolDescriptionPanel"
+	{
+		"fr"	"plus de gratter-degats"
+	}
+
+	"StormCallerDescriptionPanel"
+	{
+		"fr"	"une horde quand on fraye"
+	}
+
+	"InitialMenuPanel1"
+	{
+		"fr"	"Ce serveur utilise Perkmod"
+	}
+
+	"InitialMenuPanel2"
+	{
+		"fr"	"Choisissez l'option 1 pour personnaliser des perks"
+	}
+
+	"InitialMenuPanel3"
+	{
+		"fr"	"Personnaliser des Perks"
+	}
+
+	"InitialMenuPanel4"
+	{
+		"fr"	"Vous pouvez randomiser des perks"
+	}
+
+	"InitialMenuPanel5"
+	{
+		"fr"	"mais on ne peut pas changer pour la reste de la ronde"
+	}
+
+	"InitialMenuPanel6"
+	{
+		"fr"	"Randomiser des Perks"
+	}
+
+	"InitialMenuPanel7"
+	{
+		"fr"	"Ou vous pouvez utiliser"
+	}
+
+	"InitialMenuPanel8"
+	{
+		"fr"	"les perks qui vous avez choissise"
+	}
+
+	"InitialMenuPanel9"
+	{
+		"fr"	"avec l'option 3"
+	}
+
+	"InitialMenuPanel10"
+	{
+		"fr"	"JOUER MAINTENANT!"
+	}
+
+	"ThanksForChoosingMessage"
+	{
+		"fr"	"Merci!"
+	}
+
+	"ChooseSubMenuPanel"
+	{
+		"fr"	"Selectionnez un sous-menu pour choisir un perk"
+	}
+
+	"DoneNagPanel1"
+	{
+		"fr"	"Pour utiliser des perks"
+	}
+
+	"DoneNagPanel2"
+	{
+		"fr"	"on doit selectionner 'FINI'"
+	}
+
+	"DoneNagPanel3"
+	{
+		"fr"	"FINI"
+	}
+
+	"ConfirmNagPanel1"
+	{
+		"fr"	"Etes-vous sur?"
+	}
+
+	"ConfirmNagPanel2"
+	{
+		"fr"	"Quand on confirme on ne pas change"
+	}
+
+	"ConfirmNagPanel3"
+	{
+		"fr"	"des perks avant de ronde prochaine!"
+	}
+
+	"ConfirmNagPanel4"
+	{
+		"fr"	"CONFIRMER"
+	}
+
+	"ConfirmNagPanel5"
+	{
+		"fr"	"Si on annule on doit se revenir que"
+	}
+
+	"ConfirmNagPanel6"
+	{
+		"fr"	"on ne peut pas utiliser des perks avant"
+	}
+
+	"ConfirmNagPanel7"
+	{
+		"fr"	"de confirmer!"
+	}
+
+	"ConfirmNagPanel8"
+	{
+		"fr"	"ANNULER"
+	}
+
+	"ConfirmedMessage"
+	{
+		"fr"	"Vous avez confirme des Perks; des Perks fonctionnera maintenant. Vous ne pouvez pas changer des Perks avant de ronde prochaine. \n\n Pour voir des perks, tapez !perks"
+	}
+
+	"YourPerksPanel"
+	{
+		"fr"	"tPoncho's Perkmod: Votre perks pour cette ronde"
+	}
+
+	"DoubleTapDescriptionText"
+	{
+		"fr"	"tirer plus vite (pas pour miniguns)"
+	}
+
+	"DisplayDisabledText"
+	{
+		"fr"	"desactivee"
+	}
+
+	"PyroDescriptionText1"
+	{
+		"fr"	"Prenant une grenade vous donne deux"
+	}
+
+	"PyroDescriptionText2"
+	{
+		"fr"	"et vous commencez la ronde avec deux grenades"
+	}
+
+	"SpiritDescriptionText"
+	{
+		"fr"	"Quand un ami tombe vous vous relancerez"
+	}
+
+	"SpritDescriptionText2"
+	{
+		"fr"	"plus de sante temporaire, temps de recharge"
+	}
+
+	"ChemReliantDescriptionText"
+	{
+		"fr"	"Vous recevez plus sante temporaire avec des pilules"
+	}
+
+	"ChemReliantDescriptionText2"
+	{
+		"fr"	"et vous commencez la ronde avec des pilules"
+	}
+
+	"HardToKillDescriptionText"
+	{
+		"fr"	"Quand vous tombez vous avez"
+	}
+
+	"HardToKillDescriptionText2"
+	{
+		"fr"	"plus sante"
+	}
+
+	"SqueezerDescriptionText"
+	{
+		"fr"	"Votre langue fait plus degats"
+	}
+
+
+	"AdrenalGlandsHint"
+	{
+		"fr"	"vous pouvez attaquer plus vite!"
+	}
+
+	"DoubleTroubleHint1"
+	{
+		"fr"	"vous avez moins de sante, et un autre tank est fraye!"
+	}
+
+	"DoubleTroubleHint2"
+	{
+		"fr"	"Vous avez moins de sante, et des tank perks ne fonctionnent pas!"
+	}
+
+	"MartialArtistDescriptionPanel"
+	{
+		"fr"	"triple swing, demi de melee fatigue"
+	}
+
+	"MartialArtistDescriptionPanel1"
+	{
+		"fr"	"Vous pouvez balancer trois temps tres vites avec un arme de melee"
+	}
+
+	"MartialArtistDescriptionPanel2"
+	{
+		"fr"	"et vous avez moins de peine de pousser"
+	}
+
+	"HelpingHandDescriptionPanel2"
+	{
+		"fr"	"donner l'aide plus vite et plus de sante temporaire"
+	}
+
+	"AcidVomitDescriptionPanel"
+	{
+		"fr"	"les survivants deviennent aveugles avec vomi, recharge plus vite"
+	}
+
+	"TongueTwisterDescriptionPanel"
+	{
+		"fr"	"la langue est plus vite et plus longue"
+	}
+
+	"TongueTwisterDescriptionPanel1"
+	{
+		"fr"	"la langue vole plus vite"
+	}
+
+	"TongueTwisterDescriptionPanel2"
+	{
+		"fr"	"la langue est plus longue"
+	}
+
+	"TongueTwisterDescriptionPanel3"
+	{
+		"fr"	"la langue tire plus vite"
+	}
+
+	"DragAndDropDescriptionPanel"
+	{
+		"fr"	"recharge tres vite et pouvez libérer manuellement avec MELEE"
+	}
+
+	"SpeedDemonDescriptionPanel"
+	{
+		"fr"	"plus vite"
+	}
+
+	"AdrenalGlandsDescriptionPanelShort"
+	{
+		"fr"	"attaque plus rapidement"
+	}
+
+	"AdrenalGlandsDescriptionPanel1"
+	{
+		"fr"	"poincon plus rapidement"
+	}
+
+	"AdrenalGlandsDescriptionPanel2"
+	{
+		"fr"	"jet roches plus rapidement"
+	}
+
+	"AdrenalGlandsDescriptionPanel3"
+	{
+		"fr"	"devenir pas frustrant"
+	}
+
+	"DoubleTroubleDescriptionPanel"
+	{
+		"fr"	"deuxieme tank"
+	}
+
+	"DoubleTroubleDescriptionPanel2"
+	{
+		"fr"	"moins de sante pour tous les tanks"
+	}
+
+	"RideLikeTheWindDescriptionPanel"
+	{
+		"fr"	"monter plus vite"
+	}
+
+	"FroggerDescriptionPanel"
+	{
+		"fr"	"sauter plus loin et"
+	}
+
+	"GhostRiderDescriptionPanel"
+	{
+		"fr"	"invisibilité"
+	}
+
+	"TwinSpitfireDescriptionPanel"
+	{
+		"fr"	"crache deux fois"
+	}
+
+	"ScatteringRamDescriptionPanel"
+	{
+		"fr"	"plus sante et coup les survivants plus loin"
+	}
+
+	"SpeedingBulletDescriptionPanel"
+	{
+		"fr"	"charge plus vite"
+	}
+	"LittleLeaguerDescriptionPanel"
+	{
+		"it"	"recois un batte de baseball"
+	}
+	"MegaAdhesiveDescriptionPanel"
+	{
+		"fr"	"ralentir les survivants"
+	}
+	"SmokeItDescriptionPanel"
+	{
+		"fr"	"pouvez marcher quand vous tenez les survivants"
+	}
+
+
+
+	"DoubleTapRestrictionWarning"
+	{
+		"en"	"SEMI AUTO ONLY"
+	}
+	
+	"MartialArtistDescriptionPanel_noreduc"
+	{
+		"en"	"triple swing"
+	}
+	"SpiritBWWarning"
+	{
+		"en"	"Warning: You are now in BLACK AND WHITE health!!!"
+	}
+}

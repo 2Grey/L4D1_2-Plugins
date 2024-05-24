@@ -1,0 +1,523 @@
+﻿"Phrases"
+{
+	"WelcomeMessageHint"
+	{
+        "it"	"Benvenuto in Perkmod:"
+	}
+
+	"WelcomeMessageChat"
+	{
+		"it"	"Benvenuto in Perkmod! Se il menu non appare, scrivi !perks per mostrarlo."
+	}
+
+	"BonusDamageText"
+	{
+		"it"	"Danno extra"
+	}
+
+	"SpritSuccessMessage"
+	{
+		"it"	"Ti sei rialzato da solo!"
+	}
+
+	"SpiritTimerFinishedMessage"
+	{
+		"it"	"Ti senti abbastanza forte per rialzarti da solo di nuovo!"
+	}
+
+	"UnbreakableHint"
+	{
+		"it"	"Salute extra"
+	}
+
+	"GrenadierCarryHint"
+	{
+		"it"	"Hai"
+	}
+
+	"GrenadierCantTake2Grenades_A"
+	{
+		"it"	"Hai preso solo una"
+	}
+
+	"GrenadierCantTake2Grenades_B"
+	{
+	 	"it"	"Lancia la tua seconda granata prima di prenderne un'altra."
+	}
+
+	"GrenadierCounter_A"
+	{
+		"it"	"Hai"
+	}
+
+	"GrenadierCounter_B"
+	{
+		"it"	"rimaste"
+	}
+
+	"HelpingHandDonorHint"
+	{
+		"it"	"ha dato salute extra temporanea a"
+	}
+
+	"HelpingHandReceiverHint"
+	{
+		"it"	"ti ha dato salute extra temporanea!"
+	}
+
+	"BarfBaggedMobHint"
+	{
+		"it"	"Un'orda più grossa sta arrivando!"
+	}
+
+	"JuggernautHint"
+	{
+		"it"	"La tua salute è aumentata!"
+	}
+
+	"MetabolicHint"
+	{
+		"it"	"La tua velocità è aumentata!"
+	}
+
+	"StormCallerHint"
+	{
+		"it"	"Un'orda di zombie è stata richiamata!"
+	}
+	
+	"MapPerksPanel"
+	{
+		"it"	"I tuoi bonus per questo round"
+	}
+
+	"PyroDescriptionPanel"
+	{
+		"it"	"Puoi portare 2 granate invece di una."
+	}
+
+	"SpiritDescriptionPanel"
+	{
+		"it"	"Puoi rialzarti da terra quando un compagno viene incapacitato, si ricarica nel tempo."
+	}
+
+	"DoubleTapDescriptionPanel"
+	{
+		"it"	"Maggior velocità di fuoco."
+	}
+
+	"SleighOfHandDescriptionPanel"
+	{
+		"it"	"Ricarica più velocemente."
+	}
+
+	"NotSet"
+	{
+		"it"	"Non definito."
+	}
+	
+	"ChemReliantDescriptionPanel"
+	{
+		"it"	"Salute extra usando le pillole."
+	}
+
+	"HelpingHandDescriptionPanel"
+	{
+		"it"	"Dà più salute temporanea."
+	}
+
+	"PackRatDescriptionPanel"
+	{
+		"it"	"Puoi portare più munizioni."
+	}
+
+	"MartialArtistDescriptionPanelCoop"
+	{
+		"it"	"Corsa più veloce."
+	}
+
+	"HardToKillDescriptionPanel"
+	{
+		"it"	"Più salute quando si è a terra."
+	}
+	
+	"BarfBaggedDescriptionPanel"
+	{
+		"it"	"Il vomito attrae più zombie."
+	}
+
+	"AcidVomitDescriptionPanel"
+	{
+		"it"	"I bersagli del vomito perdono l'HUD (informazioni in sovraimpressione) e il vomito causa danno diretto."
+	}
+
+	"DeadWreckeningDescriptionPanel"
+	{
+		"it"	"Gli zombie richiamati dal vomito fanno più danno."
+	}
+
+	"MotionSicknessDescriptionPanel"
+	{
+		"it"	"Corsa più veloce e corsa mentre si vomita."
+	}
+	
+	"BodySlamDescriptionPanel"
+	{
+		"it"	"Danni minimi atterrando su un sopravvissuto."
+	}
+
+	"EfficientKillerDescriptionPanel"
+	{
+		"it"	"Danni extra dilaniando i sopravvissuti."
+	}
+
+	"GrasshopperDescriptionPanel"
+	{
+		"it"	"Balzi più lunghi."
+	}
+
+	"OldSchoolDescriptionPanel"
+	{
+		"it"	"Danni extra con gli artigli."
+	}
+
+	"StormCallerDescriptionPanel"
+	{
+		"it"	"Orda di zombie all'arrivo del Tank."
+	}
+
+	"InitialMenuPanel1"
+	{
+		"it"	"Questo server usa Perkmod."
+	}
+	
+	"InitialMenuPanel2"
+	{
+		"it"	"Seleziona 1 per scegliere i bonus."
+	}
+	
+	"InitialMenuPanel3"
+	{
+		"it"	"Scegli i bonus."
+	}
+	
+	"InitialMenuPanel4"
+	{
+		"it"	"Puoi assegnare casualmente i bonus"
+	}
+	
+	"InitialMenuPanel5"
+	{
+		"it"	"ma non potrai cambiarli fino alla fine del round."
+	}
+	
+	"InitialMenuPanel6"
+	{
+		"it"	"Assegna casualmente i bonus"
+	}
+	
+	"InitialMenuPanel7"
+	{
+		"it"	"oppure, puoi usare i bonus"
+	}
+	
+	"InitialMenuPanel8"
+	{
+		"it"	"che hai gia selezionato l'ultimo round"
+	}
+	
+	"InitialMenuPanel9"
+	{
+		"it"	"premendo 3."
+	}
+	
+	"InitialMenuPanel10"
+	{
+		"it"	"GIOCA ADESSO!"
+	}
+	
+	"ThanksForChoosingMessage"
+	{
+		"it"	"Grazie e buon divertimento!"
+	}
+
+	"ChooseSubMenuPanel"
+	{
+		"it"	"Seleziona un sottomenu per scegliere i bonus."
+	}
+
+	"DoneNagPanel1"
+	{
+		"it"	"Affinchè i tuoi bonus funzionino"
+	}
+
+	"DoneNagPanel2"
+	{
+		"it"	"DEVI selezionare fine."
+	}
+
+	"DoneNagPanel3"
+	{
+		"it"	"FINE"
+	}
+
+	"ConfirmNagPanel1"
+	{
+		"it"	"Sei sicuro?"
+	}
+	
+	"ConfirmNagPanel2"
+	{
+		"it"	"Dopo che avrai confermato, non potrai cambiare"
+	}
+	
+	"ConfirmNagPanel3"
+	{
+		"it"	"i tuoi bonus fino al prossimo round."
+	}
+	
+	"ConfirmNagPanel4"
+	{
+		"it"	"CONFERMA"
+	}
+	
+	"ConfirmNagPanel5"
+	{
+		"it"	"Se esci adesso, ricorda che i tuoi"
+	}
+	
+	"ConfirmNagPanel6"
+	{
+		"it"	"bonus non saranno attivi finchè"
+	}
+	
+	"ConfirmNagPanel7"
+	{
+		"it"	"non avrai selezionato conferma!"
+	}
+	
+	"ConfirmNagPanel8"
+	{
+		"it"	"CANCELLA"
+	}
+
+	"ConfirmedMessage"
+	{
+		"it"	"Hai confermato la scelta dei tuoi bonus; ora sono attivati. Non puoi cambiare i tuoi bonus fino al prossimo round. \n\n Per controllare i tuoi bonus, scrivi !perks."
+	}
+
+	"YourPerksPanel"
+	{
+		"it"	"tPoncho's Perkmod: I tuoi bonus per questo round"
+	}
+	
+	"DoubleTapDescriptionText"
+	{
+		"it"	"Maggior velocità di fuoco (non sulle Minigun)"
+	}
+
+	"DisplayDisabledText"
+	{
+		"it"	"disattivato"
+	}
+
+	"PyroDescriptionText1"
+	{
+		"it"	"Raccogliere una granata te ne dà 2"
+	}
+
+	"PyroDescriptionText2"
+	{
+		"it"	"e cominci il round con 2 granate."
+	}
+	
+	"SpiritDescriptionText"
+	{
+		"it"	"Quando un compagno cade a terra, ti rialzerai da solo."
+	}
+	
+	"SpritDescriptionText2"
+	{
+		"it"	"Salute extra temporanea, si ricarica nel tempo."
+	}
+	
+	"ChemReliantDescriptionText"
+	{
+		"it"	"Ottieni più salute temporanea usando le pillole"
+	}
+	
+	"ChemReliantDescriptionText2"
+	{
+		"it"	"e cominci il round con le pillole."
+	}
+	
+	"HardToKillDescriptionText"
+	{
+		"it"	"Quando sei a terra, hai"
+	}
+	
+	"HardToKillDescriptionText2"
+	{
+		"it"	"più salute."
+	}	
+	
+	"SqueezerDescriptionText"
+	{
+		"it"	"La tua lingua infligge danno extra mentre strangoli."
+	}
+
+
+
+	"AdrenalGlandsHint"
+	{
+		"it"	"Puoi attaccare più velocemente!"
+	}
+
+	"DoubleTroubleHint1"
+	{
+		"it"	"La tua vita è diminuita e un altro tank è stato spawnato!"
+	}
+
+	"DoubleTroubleHint2"
+	{
+		"it"	"Hai meno vita e nessuno dei tuoi perk funzionerà!"
+	}
+
+	"MartialArtistDescriptionPanel"
+	{
+		"it"	"Doppio swing, metа dell'affaticamento da mischia."
+	}
+
+	"MartialArtistDescriptionPanel1"
+	{
+		"it"	"Puoi colpire due volte in rapida successione con un'arma da corpo a corpo"
+	}
+
+	"MartialArtistDescriptionPanel2"
+	{
+		"it"	"ed hai una penalità ridotta di affaticamento."
+	}
+
+	"HelpingHandDescriptionPanel2"
+	{
+		"it"	"Revitalizzare gli altri ti darà un bonus in salute."
+	}
+
+	"AcidVomitDescriptionPanel"
+	{
+		"it"	"Ricarica più breve e i bersagli del vomito perdono l'HUD (visione in sovraimpressione)."
+	}
+
+	"TongueTwisterDescriptionPanel"
+	{
+		"it"	"Lingua più veloce e forte."
+	}
+
+	"TongueTwisterDescriptionPanel1"
+	{
+		"it"	"La lingua viene sparata più velocemente."
+	}
+
+	"TongueTwisterDescriptionPanel2"
+	{
+		"it"	"Il raggio della lingua è stato esteso."
+	}
+
+	"TongueTwisterDescriptionPanel3"
+	{
+		"it"	"La lingua attrae più velocemente."
+	}
+
+	"DragAndDropDescriptionPanel"
+	{
+		"it"	"Ricarica più breve e rilascio manuale con il tasto di MELEE."
+	}
+
+	"SpeedDemonDescriptionPanel"
+	{
+		"it"	"Bonus velocità."
+	}
+
+	"AdrenalGlandsDescriptionPanelShort"
+	{
+		"it"	"Attacca più velocemente."
+	}
+
+	"AdrenalGlandsDescriptionPanel1"
+	{
+		"it"	"Sferra pugni più velocemente."
+	}
+
+	"AdrenalGlandsDescriptionPanel2"
+	{
+		"it"	"Lancia rocce più velocemente."
+	}
+
+	"AdrenalGlandsDescriptionPanel3"
+	{
+		"it"	"Non puoi diventare frustrato."
+	}
+
+	"DoubleTroubleDescriptionPanel"
+	{
+		"it"	"Secondo tank in spawn."
+	}
+
+	"DoubleTroubleDescriptionPanel2"
+	{
+		"it"	"Vita ridotta per entrambi."
+	}
+
+	"RideLikeTheWindDescriptionPanel"
+	{
+		"it"	"Cavalca più velocemente."
+	}
+
+	"FroggerDescriptionPanel"
+	{
+		"it"	"Salta da lontano."
+	}
+
+	"GhostRiderDescriptionPanel"
+	{
+		"it"	"Invisibilità."
+	}
+
+	"TwinSpitfireDescriptionPanel"
+	{
+		"it"	"Sputa due volte di fila."
+	}
+
+	"ScatteringRamDescriptionPanel"
+	{
+		"it"	"Bonus vita e trascina i survivor knock più lontano."
+	}
+
+	"SpeedingBulletDescriptionPanel"
+	{
+		"it"	"Carica più velocemente."
+	}
+	"MegaAdhesiveDescriptionPanel"
+	{
+		"it"	"Rallenta i survivors."
+	}
+	"SmokeItDescriptionPanel"
+	{
+		"it"	"Puoi camminare mentre trascini i sopravvissuti."
+	}
+
+
+
+	"DoubleTapRestrictionWarning"
+	{
+		"en"	"SEMI AUTO ONLY"
+	}
+	
+	"MartialArtistDescriptionPanel_noreduc"
+	{
+		"en"	"triple swing"
+	}
+	"SpiritBWWarning"
+	{
+		"en"	"Warning: You are now in BLACK AND WHITE health!!!"
+	}
+}
