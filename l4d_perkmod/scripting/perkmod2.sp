@@ -33,36 +33,16 @@
 #include <sourcemod>
 #include <sdktools>
 
+#include <baseenums>
+#include <perkenums>
+#include <perkstructs>
+
 #define PLUGIN_NAME "PerkMod"
 #define PLUGIN_VERSION "2.2.2"
-// #define PM_DEBUG
+// #define PM_DEBUG 1
 
-// MARK: - Enums
+#define PM_PLAYERS_COUNT (1 + MAXPLAYERS)
 
-enum ClientTeamType {
-	ClientTeam_Unknown		= 0,
-	ClientTeam_Spectator	= 1,
-	ClientTeam_Survivor		= 2,
-	ClientTeam_Infected		= 3,
-}
-
-enum InfectedType {
-	Infected_Unknown	= 0,
-	Infected_Smoker 	= 1,
-	Infected_Boomer 	= 2,
-	Infected_Hunter 	= 3,
-	Infected_Spitter 	= 4,
-	Infected_Jockey 	= 5, // Tank in L4D1
-	Infected_Charger	= 6,
-	Infected_Witch		= 7,
-	Infected_Tank		= 8,
-}
-
-enum GameModeType {
-	GameMode_Campaign	= 0, // campaign, realism
-	GameMode_Survival 	= 1, // survival
-	GameMode_Versus 	= 2, // versus, scavenge, team variants
-}
 
 // MARK: - Plugin Info
 
@@ -79,19 +59,9 @@ public Plugin myinfo=
 
 // MARK: Player perk vars
 
-int g_iSur1[MAXPLAYERS+1] = {0};	//survivors, primary
-int g_iSur2[MAXPLAYERS+1] = {0};	//survivors, secondary
-int g_iSur3[MAXPLAYERS+1] = {0};	//survivors, tertiary
-
-int g_iInf1[MAXPLAYERS+1] = {0};	//boomer
-int g_iInf2[MAXPLAYERS+1] = {0};	//tank
-int g_iInf3[MAXPLAYERS+1] = {0};	//smoker
-int g_iInf4[MAXPLAYERS+1] = {0};	//hunter
-int g_iInf5[MAXPLAYERS+1] = {0};	//jockey
-int g_iInf6[MAXPLAYERS+1] = {0};	//spitter
-int g_iInf7[MAXPLAYERS+1] = {0};	//charger
-
-bool g_bConfirm[MAXPLAYERS+1] = {false};	//check if perks are confirmed, to prevent mid-game changing abuses
+SurvivorPerks g_spSur[PM_PLAYERS_COUNT];
+InfectedPerks g_ipInf[PM_PLAYERS_COUNT];
+bool g_bConfirm[PM_PLAYERS_COUNT] = {false};
 
 //timer perks handle
 Handle g_hTimerPerks = INVALID_HANDLE;
@@ -296,7 +266,6 @@ bool g_bIsL4D2 = false;
 //prevents certain functions from spamming too often
 bool g_bIsRoundStart	 = false;
 bool g_bIsLoading		 = false;
-
 
 //=============================
 // Declare Variables Related to
@@ -1923,26 +1892,26 @@ void CreateConvars()
 	//bot preferences for perks
 	g_hBot_Sur1 = CreateConVar(
 		"l4d_perkmod_bot_survivor1" ,
-		"1, 2, 3" ,
-		"Bot preferences for Survivor 1 perks: 1 = stopping power, 2 = double tap, 3 = sleight of hand" ,
+		"1, 2, 3, 4" ,
+		"Bot preferences for Survivor 1 perks: 1 = stopping power, 2 = double tap, 3 = sleight of hand, 4 = pyrotechnician" ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_hBot_Sur2 = CreateConVar(
 		"l4d_perkmod_bot_survivor2" ,
-		"1, 2, 3" ,
+		"1, 2, 3, 4" ,
 		"Bot preferences for Survivor 2 perks: 1 = unbreakable, 2 = spirit, 3 = helping hand, 4 = martial artist" ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_hBot_Sur3 = CreateConVar(
 		"l4d_perkmod_bot_survivor3" ,
 		"1, 2" ,
-		"Bot preferences for Survivor 2 perks: 1 = pack rat, 2 = hard to kill" ,
+		"Bot preferences for Survivor 2 perks: 1 = pack rat, 2 = chem reliant, 3 = hard to kill, 4 = extreme conditioning" ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_hBot_Inf1 = CreateConVar(
 		"l4d_perkmod_bot_boomer" ,
 		"1, 2, 3" ,
-		"Bot preferences for boomer perks: 1 = barf bagged, 2 = blind luck, 3 = dead wreckening (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
+		"Bot preferences for boomer perks: 1 = barf bagged, 2 = blind luck, 3 = dead wreckening, 4 = motion sickness (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_hBot_Inf3 = CreateConVar(
@@ -1953,8 +1922,8 @@ void CreateConvars()
 
 	g_hBot_Inf4 = CreateConVar(
 		"l4d_perkmod_bot_hunter" ,
-		"1" ,
-		"Bot preferences for hunter perks: 1 = efficient killer, 2 = speed demon (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
+		"2" ,
+		"Bot preferences for hunter perks: 1 = body slam, 2 = efficient killer, 3 = grasshopper, 4 = speed demon (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_hBot_Inf2 = CreateConVar(
@@ -2190,8 +2159,9 @@ void CreateConvars()
 		"If set to 1, the perks menu will automatically be shown at the start of every round." ,
 		FCVAR_SPONLY|FCVAR_NOTIFY);
 }
+
 //=============================
-// ConVar Changes
+// MARK: - ConVar Changes
 //=============================
 
 
@@ -3011,12 +2981,12 @@ Action Event_PlayerHurtPre(Event event, const char[] name, bool dontBroadcast)
 
 	if (iAtt == 0) return Plugin_Continue;
 
-	int iTA = GetClientTeam(iAtt);
+	ClientTeamType iTA = SM_GetClientTeamType(iAtt);
 	char stWpn[16];
 	event.GetString("weapon", stWpn, sizeof(stWpn));
 
 	#if defined PM_DEBUG
-	if (iTA == 2) PrintToChatAll("\x03weapon:\x01%s\x03 type:\x01%i", stWpn, iType);
+	if (iTA == ClientTeam_Survivor) PrintToChatAll("\x03weapon:\x01%s\x03 type:\x01%i", stWpn, iType);
 	#endif
 
 	//if damage is from survivors to a non-survivor,
@@ -3060,7 +3030,7 @@ Action Event_Incap(Event event, const char[] name, bool dontBroadcast)
 
 	if (iCid == 0) return Plugin_Continue;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && GetEntData(iCid, g_iIncapO) != 0)
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected && GetEntData(iCid, g_iIncapO) != 0)
 		g_bPIncap[iCid] = true;
 
 	HardToKill_OnIncap(iCid);
@@ -3502,7 +3472,7 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 	SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0, true);
 	TwinSF_ResetShotCount(iCid);
 	
-	ClientTeamType iTeam = GetClientTeamType(iCid);
+	ClientTeamType iTeam = SM_GetClientTeamType(iCid);
 
 	//check survivors for max health
 	//they probably don't have any confirmed perks
@@ -3522,12 +3492,12 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		if (IsFakeClient(iCid))
 		{
 			g_bConfirm[iCid] = true;
-			g_iSur1[iCid] = Bot_Sur1_PickRandom();
-			g_iSur2[iCid] = Bot_Sur2_PickRandom();
-			g_iSur3[iCid] = Bot_Sur3_PickRandom();
+			g_spSur[iCid].firstPerk = BotPickRandomSurvivorFirstPerk();
+			g_spSur[iCid].secondPerk = BotPickRandomSurvivorSecondPerk();
+			g_spSur[iCid].thirdPerk = BotPickRandomSurvivorThirdPerk();
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03survivor bot 1: \x01%i\x03, 2:\x01%i", g_iSur1[iCid], g_iSur2[iCid]);
+			PrintToChatAll("\x03survivor bot 1: \x01%i\x03, 2:\x01%i", g_spSur[iCid].firstPerk, g_spSur[iCid].secondPerk);
 			#endif
 		}
 
@@ -3543,7 +3513,7 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		return Plugin_Continue;
 	}
 
-	InfectedType infectedType = IntToInfectedType(GetEntData(iCid, g_iClassO));
+	InfectedType infectedType = SM_IntToInfectedType(GetEntData(iCid, g_iClassO), g_bIsL4D2);
 
 	if (infectedType == Infected_Smoker)
 	{
@@ -3559,11 +3529,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf3[iCid] = Bot_Inf3_PickRandom();
+			g_ipInf[iCid].smokerPerk = BotPickRandomSmokerPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-smoker bot perk \x01%i", g_iInf3[iCid]);
+			PrintToChatAll("\x03-smoker bot perk \x01%i", g_ipInf[iCid].smokerPerk);
 			#endif
 		}
 
@@ -3586,11 +3556,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf4[iCid] = Bot_Inf4_PickRandom();
+			g_ipInf[iCid].hunterPerk = BotPickRandomHunterPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-hunter bot perk \x01%i", g_iInf4[iCid]);
+			PrintToChatAll("\x03-hunter bot perk \x01%i", g_ipInf[iCid].hunterPerk);
 			#endif
 		}
 
@@ -3612,11 +3582,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf1[iCid] = Bot_Inf1_PickRandom();
+			g_ipInf[iCid].boomerPerk = BotPickRandomBoomerPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-boomer bot perk \x01%i", g_iInf1[iCid]);
+			PrintToChatAll("\x03-boomer bot perk \x01%i", g_ipInf[iCid].boomerPerk);
 			#endif
 		}
 
@@ -3640,11 +3610,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf6[iCid] = Bot_Inf6_PickRandom();
+			g_ipInf[iCid].spitterPerk = BotPickRandomSpitterPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-spitter bot perk \x01%i", g_iInf1[iCid]);
+			PrintToChatAll("\x03-spitter bot perk \x01%i", g_ipInf[iCid].spitterPerk);
 			#endif
 		}
 
@@ -3664,11 +3634,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf5[iCid] = Bot_Inf5_PickRandom();
+			g_ipInf[iCid].jockeyPerk = BotPickRandomJockeyPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-jockey bot perk \x01%i", g_iInf1[iCid]);
+			PrintToChatAll("\x03-jockey bot perk \x01%i", g_ipInf[iCid].jockeyPerk);
 			#endif
 		}
 
@@ -3692,11 +3662,11 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		//set bot perks
 		if (IsFakeClient(iCid))
 		{
-			g_iInf7[iCid] = Bot_Inf7_PickRandom();
+			g_ipInf[iCid].chargerPerk = BotPickRandomChargerPerk();
 			g_bConfirm[iCid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-charger bot perk \x01%i", g_iInf1[iCid]);
+			PrintToChatAll("\x03-charger bot perk \x01%i", g_ipInf[iCid].chargerPerk);
 			#endif
 		}
 
@@ -3741,17 +3711,17 @@ Action Event_PConnect(Event event, const char[] name, bool dontBroadcast)
 	if (iCid == 0) return Plugin_Continue;
 
 	//if any of the perks are set to 0, set default values
-	if (g_iSur1[iCid] == 0) g_iSur1[iCid] = g_iSur1_default;
-	if (g_iSur2[iCid] == 0) g_iSur2[iCid] = g_iSur2_default;
-	if (g_iSur3[iCid] == 0) g_iSur3[iCid] = g_iSur3_default;
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Unknown)	g_spSur[iCid].firstPerk = PM_IntToSurvivorFirstPerkType(g_iSur1_default);
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unknown) g_spSur[iCid].secondPerk = PM_IntToSurvivorSecondPerkType(g_iSur2_default);
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_Unknown)	g_spSur[iCid].thirdPerk = PM_IntToSurvivorThirdPerkType(g_iSur3_default);
 
-	if (g_iInf1[iCid] == 0) g_iInf1[iCid] = g_iInf1_default;
-	if (g_iInf2[iCid] == 0) g_iInf2[iCid] = g_iInf2_default;
-	if (g_iInf3[iCid] == 0) g_iInf3[iCid] = g_iInf3_default;
-	if (g_iInf4[iCid] == 0) g_iInf4[iCid] = g_iInf4_default;
-	if (g_iInf5[iCid] == 0) g_iInf5[iCid] = g_iInf5_default;
-	if (g_iInf6[iCid] == 0) g_iInf6[iCid] = g_iInf6_default;
-	if (g_iInf7[iCid] == 0) g_iInf7[iCid] = g_iInf7_default;
+	if (g_ipInf[iCid].boomerPerk == InfectedBoomerPerk_Unknown) 	g_ipInf[iCid].boomerPerk = PM_IntToInfectedBoomerPerkType(g_iInf1_default);
+	if (g_ipInf[iCid].tankPerk == InfectedTankPerk_Unknown)			g_ipInf[iCid].tankPerk = PM_IntToInfectedTankPerkType(g_iInf2_default);
+	if (g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_Unknown)		g_ipInf[iCid].smokerPerk = PM_IntToInfectedSmokerPerkType(g_iInf3_default);
+	if (g_ipInf[iCid].hunterPerk == InfectedHunterPerk_Unknown)		g_ipInf[iCid].hunterPerk = PM_IntToInfectedHunterPerkType(g_iInf4_default);
+	if (g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Unknown)		g_ipInf[iCid].jockeyPerk = PM_IntToInfectedJockeyPerkType(g_iInf5_default);
+	if (g_ipInf[iCid].spitterPerk == InfectedSpitterPerk_Unknown)	g_ipInf[iCid].spitterPerk = PM_IntToInfectedSpitterPerkType(g_iInf6_default);
+	if (g_ipInf[iCid].chargerPerk == InfectedChargerPerk_Unknown)	g_ipInf[iCid].chargerPerk = PM_IntToInfectedChargerPerkType(g_iInf7_default);
 
 	g_bConfirm[iCid] = true;
 	g_iMyDisabler[iCid] = -1;
@@ -3777,19 +3747,10 @@ Action Event_PDisconnect(Event event, const char[] name, bool dontBroadcast)
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
 	if (iCid == 0) return Plugin_Continue;
 
-	g_iSur1[iCid] = 0;
-	g_iSur2[iCid] = 0;
-	g_iSur3[iCid] = 0;
-
-	g_iInf1[iCid] = 0;
-	g_iInf2[iCid] = 0;
-	g_iInf3[iCid] = 0;
-	g_iInf4[iCid] = 0;
-	g_iInf5[iCid] = 0;
-	g_iInf6[iCid] = 0;
-	g_iInf7[iCid] = 0;
-
+	g_spSur[iCid].ResetState();
+	g_ipInf[iCid].ResetState();
 	g_bConfirm[iCid] = true;
+
 	g_iGren[iCid] = 0;
 	g_iGrenThrow[iCid] = 0;
 	g_iGrenType[iCid] = 0;
@@ -4051,7 +4012,7 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 	//Tank Routine
 	//------------
-	InfectedType infectedType = IntToInfectedType(GetEntData(iCid, g_iClassO));
+	InfectedType infectedType = SM_IntToInfectedType(GetEntData(iCid, g_iClassO), g_bIsL4D2);
 
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03player model: %s", infectedType);
@@ -4065,9 +4026,9 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		//...and count up
 		for (int iI = 1; iI<=MaxClients; iI++)
 		{
-			if (IsClientInGame(iI) && IsPlayerAlive(iI) && GetClientTeamType(iI) == ClientTeam_Infected)
+			if (IsClientInGame(iI) && IsPlayerAlive(iI) && SM_GetClientTeamType(iI) == ClientTeam_Infected)
 			{
-				infectedType = IntToInfectedType(GetEntData(iI, g_iClassO));
+				infectedType = SM_IntToInfectedType(GetEntData(iI, g_iClassO), g_bIsL4D2);
 				if (infectedType == Infected_Tank)
 					g_iTankCount++;
 
@@ -4234,7 +4195,7 @@ Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 
 	//only allow changes of perks if team change was
 	//to or from the infected team (implying it's versus)
-	if (IntToClientTeam(event.GetInt("team")) == ClientTeam_Infected || IntToClientTeam(event.GetInt("oldteam")) == ClientTeam_Infected)
+	if (PM_IntToClientTeam(event.GetInt("team")) == ClientTeam_Infected || PM_IntToClientTeam(event.GetInt("oldteam")) == ClientTeam_Infected)
 	{
 		g_bConfirm[iCid] = false;
 		CreateTimer(1.0, Timer_ShowTopMenu, iCid);
@@ -4580,7 +4541,7 @@ Action Timer_ShowTopMenu(Handle timer, any iCid)
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03showing menu to \x01%i", iCid);
 	#endif
-	ClientTeamType clientTeam = GetClientTeamType(iCid);
+	ClientTeamType clientTeam = SM_GetClientTeamType(iCid);
 
 	//don't show menu if perks are disabled
 	if ((g_bSurAll_enable == false && clientTeam == ClientTeam_Survivor) || (g_bInfAll_enable == false && clientTeam == ClientTeam_Infected))
@@ -4609,7 +4570,7 @@ Action Delayed_PerkChecks(Handle timer, any iCid)
 	if (IsServerProcessing() == false)
 		return Plugin_Stop;
 
-	if (IsClientConnected(iCid) == false || IsClientInGame(iCid) == false || GetClientTeamType(iCid) != ClientTeam_Survivor)
+	if (IsClientConnected(iCid) == false || IsClientInGame(iCid) == false || SM_GetClientTeamType(iCid) != ClientTeam_Survivor)
 		return Plugin_Stop;
 
 	Event_Confirm_Unbreakable(iCid);
@@ -4658,350 +4619,361 @@ void AssignRandomPerks(int iCid)
 	if (iCid > MaxClients || iCid <= 0 || g_bConfirm[iCid])
 		return;
 
-	//we track which perks are randomizable
-	//in this array
-	int iPerkType[10];
-	//and keep track of which perk we're on
 	int iPerkCount;
 
 	//SUR1 PERK
 	//---------
+	SurvivorFirstPerkType firstPerkType[SurvivorFirstPerk_Count];
 	iPerkCount = 0;
 
 	//1 stopping power
 	if (GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		firstPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
 	}
 
 	//2 double tap
 	if (GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		firstPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
 	}	
 
 	//3 sleight of hand
 	if (GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		firstPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
 	}
 
 	//4 pyrotechnician
 	if (GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		firstPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iSur1[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
-
+		g_spSur[iCid].firstPerk = firstPerkType[GetRandomInt(1, iPerkCount)];
 
 	//SUR2 PERK
 	//---------
+	SurvivorSecondPerkType secondPerkType[SurvivorSecondPerk_Count];
 	iPerkCount = 0;
 
 	//1 unbreakable
 	if (GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		secondPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
 	}
 
 	//2 spirit
 	if (GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		secondPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
 	}
 
 	//3 helping hand
 	if (GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		secondPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
 	}
 
 	//4 martial artist
 	if (GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		secondPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iSur2[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
-
+		g_spSur[iCid].secondPerk = secondPerkType[GetRandomInt(1, iPerkCount)];
 
 	//SUR3 PERK
 	//------------------
-
+	SurvivorThirdPerkType thirdPerkType[SurvivorThirdPerk_Count];
 	iPerkCount = 0;
 
 	//1 pack rat
 	if (GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		thirdPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
 	}
 
 	//2 chem reliant
 	if (GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
 	}
 
 	//3 hard to kill
 	if (GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		thirdPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
 	}
 
 	//4 extreme conditioning
 	if (GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
+	}
+
+	if (GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	{
+		iPerkCount++;
+		thirdPerkType[iPerkCount] = SurvivorThirdPerk_LittleLeaguer;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iSur3[iCid] = iPerkType[ GetRandomInt(1, iPerkCount)];
-
+		g_spSur[iCid].thirdPerk = thirdPerkType[ GetRandomInt(1, iPerkCount)];
 
 	//INF1 (BOOMER) PERK
 	//------------------
+	InfectedBoomerPerkType boomerPerkType[InfectedBoomerPerk_Count];
 	iPerkCount = 0;
 
 	//1 barf bagged
 	if (g_bBarf_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
 	}
 
 	//2 blind luck
 	if (g_bBlind_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
 	}
 
 	//3 dead wreckening
 	if (g_bDead_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		boomerPerkType[iPerkCount] = InfectedBoomerPerk_DeadWreckening;
 	}
 
 	//4 motion sickness
 	if (g_bMotion_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		boomerPerkType[iPerkCount] = InfectedBoomerPerk_MotionSickness;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf1[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
-
+		g_ipInf[iCid].boomerPerk = boomerPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF3 (SMOKER) PERK
 	//------------------
+	InfectedSmokerPerkType smokerPerkType[InfectedSmokerPerk_Count];
 	iPerkCount = 0;
 
 	//1 tongue twister
 	if (g_bTongue_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		smokerPerkType[iPerkCount] = InfectedSmokerPerk_TongueTwister;
 	}
 
 	//2 squeezer
 	if (g_bSqueezer_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		smokerPerkType[iPerkCount] = InfectedSmokerPerk_Squeezer;
 	}
 
 	//3 drag and drop
 	if (g_bDrag_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		smokerPerkType[iPerkCount] = InfectedSmokerPerk_DragAndDrop;
+	}
+
+	if (g_bSmokeIt_enable)
+	{
+		iPerkCount++;
+		smokerPerkType[iPerkCount] = InfectedSmokerPerk_SmokeIt;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf3[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
-
+		g_ipInf[iCid].smokerPerk = smokerPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF4 (HUNTER) PERK
 	//------------------
+	InfectedHunterPerkType hunterPerkType[InfectedHunterPerk_Count];
 	iPerkCount = 0;
 
 	//1 body slam
 	if (g_bBody_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		hunterPerkType[iPerkCount] = InfectedHunterPerk_BodySlam;
 	}
 
 	//2 efficient killer
 	if (g_bEfficient_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		hunterPerkType[iPerkCount] = InfectedHunterPerk_EfficientKiller;
 	}
 
 	//3 grasshopper
 	if (g_bGrass_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		hunterPerkType[iPerkCount] = InfectedHunterPerk_Grasshopper;
 	}
 
 	//4 speed demon
 	if (g_bSpeedDemon_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		hunterPerkType[iPerkCount] = InfectedHunterPerk_SpeedDemon;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf4[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
+		g_ipInf[iCid].hunterPerk = hunterPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF5 (JOCKEY) PERK
 	//------------------
+	InfectedJockeyPerkType jockeyPerkType[InfectedJockeyPerk_Count];
 	iPerkCount = 0;
 
 	//1 wind
 	if (g_bWind_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Wind;
 	}
 
 	//2 cavalier
 	if (g_bCavalier_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Cavalier;
 	}
 
 	//3 frogger
 	if (g_bFrogger_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Frogger;
 	}
 
 	//4 ghost
 	if (g_bGhost_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Ghost;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf5[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
+		g_ipInf[iCid].jockeyPerk = jockeyPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF6 (SPITTER) PERK
 	//------------------
+	InfectedSpitterPerkType spitterPerkType[InfectedSpitterPerk_Count];
 	iPerkCount = 0;
 
 	//1 twin spitfire
 	if (g_bTwinSF_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		spitterPerkType[iPerkCount] = InfectedSpitterPerk_TwinSpitfire;
 	}
 
-	//1 mega adhesive
+	//2 mega adhesive
 	if (g_bMegaAd_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		spitterPerkType[iPerkCount] = InfectedSpitterPerk_MegaAdhesive;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf6[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
+		g_ipInf[iCid].spitterPerk = spitterPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF7 (CHARGER) PERK
 	//------------------
+	InfectedChargerPerkType chargerPerkType[InfectedChargerPerk_Count];
 	iPerkCount = 0;
 
 	//1 scatter
 	if (g_bScatter_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		chargerPerkType[iPerkCount] = InfectedChargerPerk_Scatter;
 	}
 
-	//1 bullet
+	//2 bullet
 	if (g_bBullet_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		chargerPerkType[iPerkCount] = InfectedChargerPerk_Bullet;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf7[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
+		g_ipInf[iCid].chargerPerk = chargerPerkType[GetRandomInt(1, iPerkCount)];
 
 	//INF2 (TANK) PERK
 	//----------------
+	InfectedTankPerkType tankPerkType[InfectedTankPerk_Count];
 	iPerkCount = 0;
 
 	//1 adrenal glands
 	if (g_bAdrenal_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		tankPerkType[iPerkCount] = InfectedTankPerk_AdrenalGlands;
 	}
 
 	//2 Juggernaut
 	if (g_bJuggernaut_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		tankPerkType[iPerkCount] = InfectedTankPerk_Juggernaut;
 	}
 
 	//3 metabolic boost
 	if (g_bMetabolic_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		tankPerkType[iPerkCount] = InfectedTankPerk_MetabolicBoost;
 	}
 
 	//4 stormcaller
 	if (g_bStorm_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		tankPerkType[iPerkCount] = InfectedTankPerk_Stormcaller;
 	}
 
 	//5 double the trouble
 	if (g_bDouble_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 5;
+		tankPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
 	}
 
 	//randomize a perk
 	if (iPerkCount > 0)
-		g_iInf2[iCid] = iPerkType[GetRandomInt(1, iPerkCount)];
-
+		g_ipInf[iCid].tankPerk = tankPerkType[GetRandomInt(1, iPerkCount)];
 
 	//finally, confirm perks
 	//and run the necessary functions
@@ -5021,12 +4993,12 @@ void AssignRandomPerks(int iCid)
 }
 
 //picks a random perk for bots
-int Bot_Sur1_PickRandom()
+SurvivorFirstPerkType BotPickRandomSurvivorFirstPerk()
 {
 	//stop if sur1 perks are disabled
-	if (g_bSur1_enable == false) return 0;
+	if (g_bSur1_enable == false) return SurvivorFirstPerk_Unknown;
 
-	int iPerkType[12];
+	SurvivorFirstPerkType iPerkType[SurvivorFirstPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
@@ -5035,40 +5007,42 @@ int Bot_Sur1_PickRandom()
 	else
 		stPerk = "1, 2, 3";
 
-	//stopping power
 	if (StringInsensitiveContains(stPerk, "1") && g_bStopping_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
 	}
 
-	//double tap
 	if (StringInsensitiveContains(stPerk, "2") && g_bDT_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		iPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
 	}
 
-	//sleight of hand
 	if (StringInsensitiveContains(stPerk, "3") && g_bSoH_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		iPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
+	}
+
+	if (StringInsensitiveContains(stPerk, "4") && g_hPyro_enable) {
+		iPerkCount++;
+		iPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return SurvivorFirstPerk_Unknown;
 }
 
-int Bot_Sur2_PickRandom()
+SurvivorSecondPerkType BotPickRandomSurvivorSecondPerk()
 {
 	//stop if sur2 perks are disabled
-	if (g_bSur2_enable == false) return 0;
+	if (g_bSur2_enable == false) return SurvivorSecondPerk_Unknown;
 
-	int iPerkType[12];
+	SurvivorSecondPerkType iPerkType[SurvivorSecondPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
@@ -5077,86 +5051,141 @@ int Bot_Sur2_PickRandom()
 	else
 		stPerk = "1, 2, 3";
 
-	//unbreakable
 	if (StringInsensitiveContains(stPerk, "1") && g_bUnbreak_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
 	}
 
-	//spirit
 	if (StringInsensitiveContains(stPerk, "2") && g_bSpirit_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		iPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
 	}
 
 	//helping hand
 	if (StringInsensitiveContains(stPerk, "3") && g_bHelpHand_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		iPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
 	}
 
 	//martial artist
 	if (StringInsensitiveContains(stPerk, "4") && g_bMA_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		iPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return SurvivorSecondPerk_Unknown;
 }
 
-int Bot_Sur3_PickRandom()
+SurvivorThirdPerkType BotPickRandomSurvivorThirdPerk()
 {
 	//stop if sur2 perks are disabled
-	if (g_bSur3_enable == false) return 0;
+	if (g_bSur3_enable == false) return SurvivorThirdPerk_Unknown;
 
-	int iPerkType[12];
+	SurvivorThirdPerkType iPerkType[SurvivorThirdPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
 	if (g_hBot_Sur3 != INVALID_HANDLE)
 		GetConVarString(g_hBot_Sur3, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1, 2";
+		stPerk = "1, 3";
 
-	//pack rat
 	if (StringInsensitiveContains(stPerk, "1") && g_bPack_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
 	}
 
-	//hard to kill
-	if (StringInsensitiveContains(stPerk, "2") && g_bHard_enable)
+	if (StringInsensitiveContains(stPerk, "2") && g_hChem_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		iPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
+	}
+
+	if (StringInsensitiveContains(stPerk, "3") && g_bHard_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
+	}
+
+	if (StringInsensitiveContains(stPerk, "4") && g_hExtreme_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return SurvivorThirdPerk_Unknown;
 }
 
-int Bot_Inf1_PickRandom()
+// MARK: - Random infected perks
+
+InfectedSmokerPerkType BotPickRandomSmokerPerk()
+{
+	//stop if smoker perks are disabled
+	if (g_bInf3_enable == false) return InfectedSmokerPerk_Unknown;
+
+	InfectedSmokerPerkType iPerkType[InfectedSmokerPerk_Count];
+	int iPerkCount = 0;
+
+	char stPerk[24];
+	if (g_hBot_Inf3 != INVALID_HANDLE)
+		GetConVarString(g_hBot_Inf3, stPerk, sizeof(stPerk));
+	else
+		stPerk = "1, 2, 3";
+
+	if (StringInsensitiveContains(stPerk, "1") && g_bTongue_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedSmokerPerk_TongueTwister;
+	}
+
+	if (StringInsensitiveContains(stPerk, "2") && g_bSqueezer_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedSmokerPerk_Squeezer;
+	}
+
+	if (StringInsensitiveContains(stPerk, "3") && g_bDrag_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedSmokerPerk_DragAndDrop;
+	}
+
+	if (StringInsensitiveContains(stPerk, "4") && g_hSmokeIt_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedSmokerPerk_SmokeIt;
+	}
+
+	//randomize
+	if (iPerkCount > 0)
+		return iPerkType[GetRandomInt(1, iPerkCount)];
+	else
+		return InfectedSmokerPerk_Unknown;
+}
+
+InfectedBoomerPerkType BotPickRandomBoomerPerk()
 {
 	//stop if boomer perks are disabled
-	if (g_bInf1_enable == false) return 0;
+	if (g_bInf1_enable == false) return InfectedBoomerPerk_Unknown;
 
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03begin random perk for boomer");
 	#endif
 	
-	int iPerkType[12];
+	InfectedBoomerPerkType iPerkType[InfectedBoomerPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
@@ -5168,22 +5197,21 @@ int Bot_Inf1_PickRandom()
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03-stPerk: \x01%s", stPerk);
 	#endif
-	//barf bagged
+
 	if (StringInsensitiveContains(stPerk, "1") && g_bBarf_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
 		#endif
 	}
 
-	//blind luck
 	if (StringInsensitiveContains(stPerk, "2") && g_bBlind_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		iPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
@@ -5194,19 +5222,25 @@ int Bot_Inf1_PickRandom()
 	if (StringInsensitiveContains(stPerk, "3") && g_bDead_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
+		iPerkType[iPerkCount] = InfectedBoomerPerk_DeadWreckening;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
 		#endif
 	}
 
+	if (StringInsensitiveContains(stPerk, "4") && g_hMotion_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedBoomerPerk_MotionSickness;
+	}
+
 	//randomize
-	int iReturn;
+	InfectedBoomerPerkType iReturn;
 	if (iPerkCount > 0)
 		iReturn = iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		iReturn = 0;
+		iReturn = InfectedBoomerPerk_Unknown;
 
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03-returning \x01%i", iReturn);
@@ -5215,194 +5249,57 @@ int Bot_Inf1_PickRandom()
 	return iReturn;
 }
 
-int Bot_Inf2_PickRandom()
-{
-	//stop if tank perks are disabled
-	if (g_bInf2_enable == false) return 0;
-
-	int iPerkType[12];
-	int iPerkCount = 0;
-
-	char stPerk[24];
-	if (g_hBot_Inf2 != INVALID_HANDLE)
-		GetConVarString(g_hBot_Inf2, stPerk, sizeof(stPerk));
-	else
-		stPerk = "1, 2, 3, 4, 5";
-
-	//adrenal glands
-	if (StringInsensitiveContains(stPerk, "1") && g_bAdrenal_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
-	}
-
-	//juggernaut
-	if (StringInsensitiveContains(stPerk, "2") && g_bJuggernaut_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
-	}
-
-	//metabolic boost
-	if (StringInsensitiveContains(stPerk, "3") && g_bMetabolic_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
-	}
-
-	//storm caller
-	if (StringInsensitiveContains(stPerk, "4") && g_bStorm_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
-	}
-
-	//double trouble
-	if (StringInsensitiveContains(stPerk, "5") && g_bDouble_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 5;
-	}
-
-	//randomize
-	if (iPerkCount > 0)
-		return iPerkType[GetRandomInt(1, iPerkCount)];
-	else
-		return 0;
-}
-
-int Bot_Inf3_PickRandom()
-{
-	//stop if smoker perks are disabled
-	if (g_bInf3_enable == false) return 0;
-
-	int iPerkType[12];
-	int iPerkCount = 0;
-
-	char stPerk[24];
-	if (g_hBot_Inf3 != INVALID_HANDLE)
-		GetConVarString(g_hBot_Inf3, stPerk, sizeof(stPerk));
-	else
-		stPerk = "1, 2, 3";
-
-	//tongue twister
-	if (StringInsensitiveContains(stPerk, "1") && g_bTongue_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
-	}
-
-	//squeezer
-	if (StringInsensitiveContains(stPerk, "2") && g_bSqueezer_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
-	}
-
-	//drag and drop
-	if (StringInsensitiveContains(stPerk, "3") && g_bDrag_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
-	}
-
-	//randomize
-	if (iPerkCount > 0)
-		return iPerkType[GetRandomInt(1, iPerkCount)];
-	else
-		return 0;
-}
-
-int Bot_Inf4_PickRandom()
+InfectedHunterPerkType BotPickRandomHunterPerk()
 {
 	//stop if hunter perks are disabled
-	if (g_bInf4_enable == false) return 0;
+	if (g_bInf4_enable == false) return InfectedHunterPerk_Unknown;
 
-	int iPerkType[12];
+	InfectedHunterPerkType iPerkType[InfectedHunterPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
 	if (g_hBot_Inf4 != INVALID_HANDLE)
 		GetConVarString(g_hBot_Inf4, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1, 2";
+		stPerk = "2, 4";
 
-	//efficient killer
-	if (StringInsensitiveContains(stPerk, "1") && g_bEfficient_enable)
+	if (StringInsensitiveContains(stPerk, "1") && g_hBody_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = InfectedHunterPerk_BodySlam;
 	}
 
-	//speed demon
-	if (StringInsensitiveContains(stPerk, "2") && g_bSpeedDemon_enable)
+	if (StringInsensitiveContains(stPerk, "2") && g_bEfficient_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		iPerkType[iPerkCount] = InfectedHunterPerk_EfficientKiller;
 	}
 
-	//randomize
-	if (iPerkCount > 0)
-		return iPerkType[GetRandomInt(1, iPerkCount)];
-	else
-		return 0;
-}
-
-int Bot_Inf5_PickRandom()
-{
-	//stop if jockey perks are disabled
-	if (g_bInf5_enable == false) return 0;
-
-	int iPerkType[12];
-	int iPerkCount = 0;
-
-	char stPerk[24];
-	if (g_hBot_Inf5 != INVALID_HANDLE)
-		GetConVarString(g_hBot_Inf5, stPerk, sizeof(stPerk));
-	else
-		stPerk = "1, 2, 3, 4";
-
-	//ride like the wind
-	if (StringInsensitiveContains(stPerk, "1") && g_bWind_enable)
+	if (StringInsensitiveContains(stPerk, "3") && g_hGrass_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = InfectedHunterPerk_Grasshopper;
 	}
 
-	//cavalier
-	if (StringInsensitiveContains(stPerk, "2") && g_bCavalier_enable)
+	if (StringInsensitiveContains(stPerk, "4") && g_bSpeedDemon_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
-	}
-
-	//frogger
-	if (StringInsensitiveContains(stPerk, "3") && g_bFrogger_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 3;
-	}
-
-	//ghost
-	if (StringInsensitiveContains(stPerk, "4") && g_bGhost_enable)
-	{
-		iPerkCount++;
-		iPerkType[iPerkCount] = 4;
+		iPerkType[iPerkCount] = InfectedHunterPerk_SpeedDemon;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return InfectedHunterPerk_Unknown;
 }
 
-int Bot_Inf6_PickRandom()
+InfectedSpitterPerkType BotPickRandomSpitterPerk()
 {
 	//stop if spitter perks are disabled
-	if (g_bInf6_enable == false) return 0;
+	if (g_bInf6_enable == false) return InfectedSpitterPerk_Unknown;
 
-	int iPerkType[12];
+	InfectedSpitterPerkType iPerkType[InfectedSpitterPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
@@ -5411,33 +5308,76 @@ int Bot_Inf6_PickRandom()
 	else
 		stPerk = "1";
 
-	//twin spitfire
 	if (StringInsensitiveContains(stPerk, "1") && g_bTwinSF_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = InfectedSpitterPerk_TwinSpitfire;
 	}
 
-	//mega adhesive
 	if (StringInsensitiveContains(stPerk, "2") && g_bMegaAd_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		iPerkType[iPerkCount] = InfectedSpitterPerk_MegaAdhesive;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return InfectedSpitterPerk_Unknown;
 }
 
-int Bot_Inf7_PickRandom()
+InfectedJockeyPerkType BotPickRandomJockeyPerk()
+{
+	//stop if jockey perks are disabled
+	if (g_bInf5_enable == false) return InfectedJockeyPerk_Unknown;
+
+	InfectedJockeyPerkType iPerkType[InfectedJockeyPerk_Count];
+	int iPerkCount = 0;
+
+	char stPerk[24];
+	if (g_hBot_Inf5 != INVALID_HANDLE)
+		GetConVarString(g_hBot_Inf5, stPerk, sizeof(stPerk));
+	else
+		stPerk = "1, 2, 3, 4";
+
+	if (StringInsensitiveContains(stPerk, "1") && g_bWind_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedJockeyPerk_Wind;
+	}
+
+	if (StringInsensitiveContains(stPerk, "2") && g_bCavalier_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedJockeyPerk_Cavalier;
+	}
+
+	if (StringInsensitiveContains(stPerk, "3") && g_bFrogger_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedJockeyPerk_Frogger;
+	}
+
+	if (StringInsensitiveContains(stPerk, "4") && g_bGhost_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedJockeyPerk_Ghost;
+	}
+
+	//randomize
+	if (iPerkCount > 0)
+		return iPerkType[GetRandomInt(1, iPerkCount)];
+	else
+		return InfectedJockeyPerk_Unknown;
+}
+
+InfectedChargerPerkType BotPickRandomChargerPerk()
 {
 	//stop if charger perks are disabled
-	if (g_bInf7_enable == false) return 0;
+	if (g_bInf7_enable == false) return InfectedChargerPerk_Unknown;
 
-	int iPerkType[12];
+	InfectedChargerPerkType iPerkType[InfectedChargerPerk_Count];
 	int iPerkCount = 0;
 
 	char stPerk[24];
@@ -5446,27 +5386,77 @@ int Bot_Inf7_PickRandom()
 	else
 		stPerk = "1, 2";
 
-	//scattering ram
 	if (StringInsensitiveContains(stPerk, "1") && g_bScatter_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 1;
+		iPerkType[iPerkCount] = InfectedChargerPerk_Scatter;
 	}
 
-	//scattering ram
 	if (StringInsensitiveContains(stPerk, "2") && g_bBullet_enable)
 	{
 		iPerkCount++;
-		iPerkType[iPerkCount] = 2;
+		iPerkType[iPerkCount] = InfectedChargerPerk_Bullet;
 	}
 
 	//randomize
 	if (iPerkCount > 0)
 		return iPerkType[GetRandomInt(1, iPerkCount)];
 	else
-		return 0;
+		return InfectedChargerPerk_Unknown;
 }
 
+InfectedTankPerkType BotPickRandomTankPerk()
+{
+	//stop if tank perks are disabled
+	if (g_bInf2_enable == false) return InfectedTankPerk_Unknown;
+
+	InfectedTankPerkType iPerkType[InfectedTankPerk_Count];
+	int iPerkCount = 0;
+
+	char stPerk[24];
+	if (g_hBot_Inf2 != INVALID_HANDLE)
+		GetConVarString(g_hBot_Inf2, stPerk, sizeof(stPerk));
+	else
+		stPerk = "1, 2, 3, 4, 5";
+
+	if (StringInsensitiveContains(stPerk, "1") && g_bAdrenal_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedTankPerk_AdrenalGlands;
+	}
+
+	if (StringInsensitiveContains(stPerk, "2") && g_bJuggernaut_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedTankPerk_Juggernaut;
+	}
+
+	if (StringInsensitiveContains(stPerk, "3") && g_bMetabolic_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedTankPerk_MetabolicBoost;
+	}
+
+	//storm caller
+	if (StringInsensitiveContains(stPerk, "4") && g_bStorm_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedTankPerk_Stormcaller;
+	}
+
+	//double trouble
+	if (StringInsensitiveContains(stPerk, "5") && g_bDouble_enable)
+	{
+		iPerkCount++;
+		iPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
+	}
+
+	//randomize
+	if (iPerkCount > 0)
+		return iPerkType[GetRandomInt(1, iPerkCount)];
+	else
+		return InfectedTankPerk_Unknown;
+}
 
 //=============================
 // Sur1: Stopping Power
@@ -5480,12 +5470,15 @@ void Stopping_RunChecks()
 }
 
 //main damage add function
-bool Stopping_DamageAdd(int iAtt, int iVic, int iTA, int iDmgOrig, const char[] stWpn)
+bool Stopping_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iDmgOrig, const char[] stWpn)
 {
 	//check if perk is disabled
 	if (!g_bStopping_meta_enable) return true;
 
-	if (iTA==2 && g_iSur1[iAtt] == 1 && g_bConfirm[iAtt] && GetClientTeamType(iVic) != ClientTeam_Survivor)
+	if (iTA == ClientTeam_Survivor 
+		&& g_spSur[iAtt].firstPerk == SurvivorFirstPerk_StoppingPower
+		&& g_bConfirm[iAtt] 
+		&& SM_GetClientTeamType(iVic) != ClientTeam_Survivor)
 	{
 		if (StrEqual(stWpn, "melee", false))
 		{
@@ -5531,7 +5524,7 @@ Action Event_InfectedHurtPre(Event event, const char[] name, bool dontBroadcast)
 	if (!g_bStopping_meta_enable)
 		return Plugin_Continue;
 
-	if (g_iSur1[iCid] == 1 && GetClientTeamType(iCid) == ClientTeam_Survivor)
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_StoppingPower && SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		int iEntid = event.GetInt("entityid");
 		int i_odmg = event.GetInt("amount");
@@ -5567,13 +5560,13 @@ void DT_RunChecks()
 //simply adds player to registry of DT users
 void Event_Confirm_DT(int iCid)
 {
-	if (g_iDTRegisterCount < 0)
-		g_iDTRegisterCount = 0;
+	if (g_iDTRegisterCount < 0) g_iDTRegisterCount = 0;
+	
 	if (IsClientInGame(iCid)
 		&& IsPlayerAlive(iCid)
-		&& g_iSur1[iCid] == 2
+		&& g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap
 		&& g_bConfirm[iCid] == true
-		&& GetClientTeamType(iCid) == ClientTeam_Survivor)
+		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		g_iDTRegisterCount++;
 		g_iDTRegisterIndex[g_iDTRegisterCount] = iCid;
@@ -5605,9 +5598,9 @@ void DT_Rebuild()
 	{
 		if (IsClientInGame(iI)
 			&& IsPlayerAlive(iI)
-			&& g_iSur1[iI] == 2
+			&& g_spSur[iI].firstPerk == SurvivorFirstPerk_DoubleTap
 			&& g_bConfirm[iI]
-			&& GetClientTeamType(iI) == ClientTeam_Survivor)
+			&& SM_GetClientTeamType(iI) == ClientTeam_Survivor)
 		{
 			g_iDTRegisterCount++;
 			g_iDTRegisterIndex[g_iDTRegisterCount]=iI;
@@ -5849,10 +5842,10 @@ void SoH_OnReload(int iCid)
 		|| g_bSoH_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
 		return;
 
-	int iSur1 = g_iSur1[iCid];
-	if ((iSur1 == 3 || iSur1 == 2)
+	SurvivorFirstPerkType iSur1 = g_spSur[iCid].firstPerk;
+	if ((iSur1 == SurvivorFirstPerk_DoubleTap || iSur1 == SurvivorFirstPerk_SleightOfHand)
 		&& g_bConfirm[iCid]
-		&& GetClientTeam(iCid) == 2)
+		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03SoH client \x01%i\x03; start of reload detected", iCid );
@@ -5864,10 +5857,8 @@ void SoH_OnReload(int iCid)
 		GetEntityNetClass(iEntid, stClass, sizeof(stClass));
 
 		float flRate = 0.0;
-		if (iSur1 == 2)
+		if (iSur1 == SurvivorFirstPerk_DoubleTap)
 		{
-			//if (g_bDTsemiauto[iCid] == false) return;
-
 			#if defined PM_DEBUG
 			PrintToChatAll("\x03 - using DT values");
 			#endif
@@ -6345,7 +6336,8 @@ Action SoH_ShotgunEndCock (Handle timer, DataPack hPack)
 //on pickup
 void Pyro_Pickup(int iCid, const char[] stWpn)
 {
-	if (g_iSur1[iCid] == 4 && GameModeCheck(g_bSur1_enable, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician 
+		&& GameModeCheck(g_bSur1_enable, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
 	{
 		//only bother with checks if they aren't throwing
 		if (g_iGrenThrow[iCid] == 0)
@@ -6393,7 +6385,7 @@ void Pyro_OnWeaponFire(int iCid, const char[] stWpn)
 		|| g_bPyro_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
 		return;
 
-	if (g_bConfirm[iCid] == false || g_iSur1[iCid] !=4 ) return;
+	if (g_bConfirm[iCid] == false || g_spSur[iCid].firstPerk != SurvivorFirstPerk_Pyrotechnician) return;
 
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03 weapon fired: \x01%s", stWpn);
@@ -6440,7 +6432,7 @@ Action Grenadier_DelayedGive (Handle timer, int iCid)
 	if (IsServerProcessing() == false)
 		return Plugin_Stop;
 
-	if (iCid==0 || g_bConfirm[iCid] == false || g_iSur1[iCid]!=4)
+	if (iCid == 0 || g_bConfirm[iCid] == false || g_spSur[iCid].firstPerk != SurvivorFirstPerk_Pyrotechnician)
 		return Plugin_Continue;
 
 	int iflags = GetCommandFlags("give");
@@ -6468,10 +6460,10 @@ Action Grenadier_DelayedGive (Handle timer, int iCid)
 void Event_Confirm_Grenadier(int iCid)
 {
 	if (iCid==0
-		|| GetClientTeam(iCid) != 2
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Survivor
 		|| IsPlayerAlive(iCid) == false
 		|| g_bConfirm[iCid] == false
-		|| g_iSur1[iCid] != 4)
+		|| g_spSur[iCid].firstPerk != SurvivorFirstPerk_Pyrotechnician)
 		return;
 
 	//check if perk is enabled
@@ -6600,9 +6592,9 @@ void Pyro_Rebuild()
 	{
 		if (IsClientInGame(iI)
 			&& IsPlayerAlive(iI)
-			&& g_iSur1[iI] == 4
+			&& g_spSur[iI].firstPerk == SurvivorFirstPerk_Pyrotechnician
 			&& g_bConfirm[iI]
-			&& GetClientTeam(iI) == 2)
+			&& SM_GetClientTeamType(iI) == ClientTeam_Survivor)
 		{
 			g_iPyroRegisterCount++;
 			g_iPyroRegisterIndex[g_iPyroRegisterCount] = iI;
@@ -6656,9 +6648,9 @@ void Event_Confirm_MA(int iCid)
 
 	if (IsClientInGame(iCid)
 		&& IsPlayerAlive(iCid)
-		&& g_iSur2[iCid] == 4
+		&& g_spSur[iCid].secondPerk == SurvivorSecondPerk_MartialArtist
 		&& g_bConfirm[iCid] == true
-		&& GetClientTeamType(iCid) == ClientTeam_Survivor)
+		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		g_iMARegisterCount++;
 		g_iMARegisterIndex[g_iMARegisterCount] = iCid;
@@ -6698,9 +6690,9 @@ void MA_Rebuild()
 	{
 		if (IsClientInGame(iI)
 			&& IsPlayerAlive(iI)
-			&& g_iSur2[iI] == 4
+			&& g_spSur[iI].secondPerk == SurvivorSecondPerk_MartialArtist
 			&& g_bConfirm[iI]
-			&& GetClientTeamType(iI) == ClientTeam_Survivor)
+			&& SM_GetClientTeamType(iI) == ClientTeam_Survivor)
 		{
 			g_iMARegisterCount++;
 			g_iMARegisterIndex[g_iMARegisterCount] = iI;
@@ -6952,7 +6944,7 @@ void Unbreakable_OnHeal(int iCid)
 		|| !g_bUnbreak_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
 		return;
 
-	if (g_iSur2[iCid]==1)
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable)
 	{
 		CreateTimer(0.5, Unbreakable_Delayed_Heal, iCid);
 		//SetEntProp(iCid, Prop_Data,"m_iHealth", GetEntProp(iCid, Prop_Data,"m_iHealth")+(g_iUnbreak_hp*8/10) );
@@ -6976,7 +6968,7 @@ void Event_Confirm_Unbreakable(int iCid)
 	int iHP = GetEntProp(iCid, Prop_Data, "m_iHealth");
 	if (iCid == 0 || g_bConfirm[iCid] == false) return;
 	
-	ClientTeamType TC = GetClientTeamType(iCid);
+	ClientTeamType TC = SM_GetClientTeamType(iCid);
 
 	//check if perk is enabled
 	if (!g_bSur2_enable
@@ -6997,7 +6989,7 @@ void Event_Confirm_Unbreakable(int iCid)
 	}
 
 	//if we've gotten up to this point, the perk is enabled
-	if (g_iSur2[iCid] == 1 && TC == ClientTeam_Survivor)
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && TC == ClientTeam_Survivor)
 	{
 		if (iHP>100 && iHP < (100+g_iUnbreak_hp) )
 			CreateTimer(0.5, Unbreakable_Delayed_Max, iCid);
@@ -7013,7 +7005,7 @@ void Event_Confirm_Unbreakable(int iCid)
 			CreateTimer(0.5, Unbreakable_Delayed_SetHigh, iCid);
 	}
 	//if not, check if hp is higher than it should be
-	else if (g_iSur2[iCid] != 1 && iHP>100 && TC == ClientTeam_Survivor)
+	else if (g_spSur[iCid].secondPerk != SurvivorSecondPerk_Unbreakable && iHP > 100 && TC == ClientTeam_Survivor)
 	{
 		//if it IS higher, reduce hp to 100
 		//otherwise, no way to know whether previous owner
@@ -7026,7 +7018,7 @@ void Event_Confirm_Unbreakable(int iCid)
 //on rescue; gives 50% of bonus hp
 void Unbreakable_OnRescue(int iCid)
 {
-	if (g_iSur2[iCid] == 1)
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable)
 	{
 		//check if perk is enabled
 		if (!g_bSur2_enable
@@ -7052,7 +7044,7 @@ void Unbreakable_OnRevive(int iSub, int iLedge)
 {
 	//check for unbreakable for the subject
 	//only fires if they were NOT hanging from a ledge
-	if (g_iSur2[iSub] == 1 && g_bConfirm[iSub] && iLedge == 0)
+	if (g_spSur[iSub].secondPerk == SurvivorSecondPerk_Unbreakable && g_bConfirm[iSub] && iLedge == 0)
 	{
 		//check if perk is enabled
 		if (GameModeCheck(g_bSur1_enable, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
@@ -7159,7 +7151,7 @@ void Spirit_Timer()
 	//the spirit perk, this function will return
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (g_iSur2[iI] == 2)
+		if (g_spSur[iI].secondPerk == SurvivorSecondPerk_Spirit)
 		{
 			iCount++;
 			break;
@@ -7178,7 +7170,7 @@ void Spirit_Timer()
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
 		//fill array with whoever's incapped
-		if (IsClientInGame(iI) && GetClientTeamType(iI) == ClientTeam_Survivor && GetEntData(iI, g_iIncapO) != 0)
+		if (IsClientInGame(iI) && SM_GetClientTeamType(iI) == ClientTeam_Survivor && GetEntData(iI, g_iIncapO) != 0)
 		{
 			iCount++;
 			iCid[iCount] = iI;
@@ -7207,12 +7199,12 @@ void Spirit_Timer()
 		//in the array iCid[], and iI increases per tick, hence this mess =P
 		//in short, here we use iCid[iI], NOT iI!
 		if (g_bConfirm[iCid[iI]] 
-			&& g_iSur2[iCid[iI]] == 2
+			&& g_spSur[iCid[iI]].secondPerk == SurvivorSecondPerk_Spirit
 			&& g_iMyDisabler[iCid[iI]] == -1
 			&& g_iSpiritCooldown[iCid[iI]] == 0
 			&& IsClientInGame(iCid[iI])
 			&& IsPlayerAlive(iCid[iI])
-			&& GetClientTeamType(iCid[iI]) == ClientTeam_Survivor)
+			&& SM_GetClientTeamType(iCid[iI]) == ClientTeam_Survivor)
 		{
 			#if defined PM_DEBUG
 			PrintToChatAll("\x03-reviving \x01%i", iCid[iI]);
@@ -7294,7 +7286,7 @@ Action Spirit_CooldownTimer(Handle timer, int iCid)
 	//and this sends the client a hint message
 	if (IsClientInGame(iCid)
 		&& IsPlayerAlive(iCid)
-		&& GetClientTeamType(iCid) == ClientTeam_Survivor
+		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor
 		&& IsFakeClient(iCid) == false)
 		PrintHintText(iCid,"%t", "SpiritTimerFinishedMessage");
 
@@ -7321,7 +7313,7 @@ Action Spirit_ChangeHP(Handle timer, DataPack hPack)
 		&& IsClientInGame(iCid)
 		&& GetEntData(iCid, g_iIncapO) == 0
 		&& IsPlayerAlive(iCid)
-		&& GetClientTeamType(iCid) == ClientTeam_Survivor)
+		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x05spirit\x03 checks passed");
@@ -7398,7 +7390,7 @@ void HelpHand_OnReviveBegin(int iCid)
 		return;
 
 	//check for helping hand
-	if (g_iSur2[iCid] == 3 && g_bConfirm[iCid])
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && g_bConfirm[iCid])
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-perk present, setting revive time to \x01%f", g_flReviveTime/2);
@@ -7424,7 +7416,9 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 	PrintToChatAll("\x05helphand\x03 reviver: \x01%i\x03, subject: \x01%i", iCid, iSub);
 	#endif
 	//then check for helping hand
-	if (g_iSur2[iCid] == 3 && g_bConfirm[iCid] && GameModeCheck(g_bSur2_enable, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand 
+		&& g_bConfirm[iCid] 
+		&& GameModeCheck(g_bSur2_enable, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
 	{
 		switch (iLedge)
 		{
@@ -7500,7 +7494,7 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 
 Action HelpHand_Delayed(Handle timer, int iCid)
 {
-	if (IsServerProcessing() && IsValidEntity(iCid) && IsClientInGame(iCid) && GetClientTeamType(iCid) == ClientTeam_Survivor)
+	if (IsServerProcessing() && IsValidEntity(iCid) && IsClientInGame(iCid) && SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x05helphand\x03 attempting to give reviver bonus to \x01%i", iCid);
@@ -7527,7 +7521,7 @@ Action HelpHand_Delayed(Handle timer, int iCid)
 //on gun pickup
 void PR_Pickup(int iCid, const char[] stWpn)
 {
-	if (g_iSur3[iCid] == 1 && GameModeCheck(g_bSur2_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(g_bSur2_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
 	{
 		if (StringInsensitiveContains(stWpn, "smg")
 			|| StringInsensitiveContains(stWpn, "rifle")
@@ -7545,7 +7539,7 @@ Action Event_AmmoPickup(Event event, const char[] name, bool dontBroadcast)
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
 	if (iCid == 0) return Plugin_Continue;
 
-	if (g_iSur3[iCid] == 1 && g_bConfirm[iCid] && GameModeCheck(g_bSur3_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && g_bConfirm[iCid] && GameModeCheck(g_bSur3_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
 	{
 		PR_GiveFullAmmo(iCid);
 	}
@@ -7603,7 +7597,7 @@ Action PR_GiveFullAmmo_delayed (Handle timer, int iCid)
 		|| IsValidEntity(iCid) == false
 		|| IsClientInGame(iCid) == false
 		|| IsPlayerAlive(iCid) == false
-		|| GetClientTeamType(iCid) != ClientTeam_Survivor)
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Survivor)
 		return Plugin_Stop;
 
 	int iAmmoO = FindDataMapInfo(iCid, "m_iAmmo");
@@ -7685,8 +7679,6 @@ Action PR_GiveFullAmmo_delayed (Handle timer, int iCid)
 	return Plugin_Stop;
 }
 
-
-
 //=============================
 // Sur3: Chem Reliant
 //=============================
@@ -7704,7 +7696,7 @@ void Chem_OnDrugUsed(int iCid)
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03Pill user: \x01%i", iCid);
 	#endif
-	if (g_iSur3[iCid] == 2 && g_bConfirm[iCid])
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ChemReliant && g_bConfirm[iCid])
 	{
 		float flBuff = GetEntDataFloat(iCid, g_iHPBuffO);
 		int iHP = GetEntProp(iCid, Prop_Data, "m_iHealth");
@@ -7715,7 +7707,7 @@ void Chem_OnDrugUsed(int iCid)
 		//they have unbreakable or not
 
 		//CASE 1: HAS UNBREAKABLE
-		if (g_iSur2[iCid] == 1 && GameModeCheck(g_bSur3_enable, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+		if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(g_bSur3_enable, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
 		{
 			//CASE 1A:
 			//combined health + chem reliant < max health possible
@@ -7755,10 +7747,10 @@ void Chem_OnDrugUsed(int iCid)
 void Event_Confirm_ChemReliant(int iCid)
 {
 	if (iCid==0
-		|| GetClientTeamType(iCid) != ClientTeam_Survivor
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Survivor
 		|| IsPlayerAlive(iCid) == false
 		|| g_bConfirm[iCid] == false
-		|| g_iSur3[iCid] != 2)
+		|| g_spSur[iCid].thirdPerk != SurvivorThirdPerk_ChemReliant)
 		return;
 
 	//check if perk is enabled
@@ -7785,7 +7777,7 @@ void Event_Confirm_ChemReliant(int iCid)
 
 void HardToKill_OnIncap(int iCid)
 {
-	if (GetClientTeamType(iCid) != ClientTeam_Survivor || g_bConfirm[iCid] == false)
+	if (SM_GetClientTeamType(iCid) != ClientTeam_Survivor || g_bConfirm[iCid] == false)
 		return;
 
 	if (!g_bSur3_enable
@@ -7794,7 +7786,7 @@ void HardToKill_OnIncap(int iCid)
 		|| !g_bHard_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
 		return;
 
-	if (g_iSur3[iCid] == 3)
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill)
 	{
 		CreateTimer(0.5, HardToKill_Delayed, iCid);
 
@@ -7806,7 +7798,7 @@ void HardToKill_OnIncap(int iCid)
 
 Action HardToKill_Delayed(Handle timer, int iCid)
 {
-	if (IsServerProcessing() && IsValidEntity(iCid) && IsClientInGame(iCid) && GetClientTeamType(iCid) == ClientTeam_Survivor)
+	if (IsServerProcessing() && IsValidEntity(iCid) && IsClientInGame(iCid) && SM_GetClientTeamType(iCid) == ClientTeam_Survivor)
 	{
 		int iHP = GetEntProp(iCid, Prop_Data, "m_iHealth");
 
@@ -7828,10 +7820,10 @@ Action HardToKill_Delayed(Handle timer, int iCid)
 void Event_Confirm_LittleLeaguer(int iCid)
 {
 	if (iCid == 0 
-		|| GetClientTeamType(iCid) != ClientTeam_Survivor
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Survivor
 		|| IsPlayerAlive(iCid) == false
 		|| g_bConfirm[iCid] == false
-		|| g_iSur3[iCid] != 5)
+		|| g_spSur[iCid].thirdPerk != SurvivorThirdPerk_LittleLeaguer)
 		return;
 
 	//check if perk is enabled
@@ -7871,7 +7863,11 @@ void Extreme_Rebuild()
 	#endif
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) && IsPlayerAlive(iI) && g_iSur3[iI] == 4 && g_bConfirm[iI] && GetClientTeamType(iI) == ClientTeam_Survivor)
+		if (IsClientInGame(iI) 
+			&& IsPlayerAlive(iI) 
+			&& g_spSur[iI].thirdPerk == SurvivorThirdPerk_ExtremeConditioning
+			&& g_bConfirm[iI] 
+			&& SM_GetClientTeamType(iI) == ClientTeam_Survivor)
 		{
 			SetEntDataFloat(iI, g_iLaggedMovementO, 1.0 * g_flExtreme_rate, true);
 
@@ -7889,7 +7885,9 @@ void Extreme_Rebuild()
 void BlindLuck_OnIt(int iAtt, int iVic)
 {
 	//don't blind bots as per grandwaziri's plugin, they suck enough anyways
-	if (g_iInf1[iAtt] == 2 && g_bConfirm[iAtt] && IsFakeClient(iVic) == false)
+	if (g_ipInf[iAtt].boomerPerk == InfectedBoomerPerk_BlindLuck
+		&& g_bConfirm[iAtt] 
+		&& IsFakeClient(iVic) == false)
 	{
 		//check if perk is enabled
 		if (g_bInf1_enable == false || g_bBlind_enable == false) return;
@@ -7908,7 +7906,7 @@ void BlindLuck_OnSpawn(int iCid)
 	//stop if convar changes are disallowed for this perk
 	if (g_bBlind_enable == false || g_bInf1_enable == false) return;
 
-	if (g_iInf1[iCid] == 2)
+	if (g_ipInf[iCid].boomerPerk == InfectedBoomerPerk_BlindLuck)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x05drag\x03 creating timer");
@@ -8005,7 +8003,10 @@ void BarfBagged_OnIt(int iAtt)
 {
 	//only spawn a mob if one guy got slimed
 	//or if all four got slimed (max 2 extra mobs)
-	if (g_iInf1[iAtt] == 1 && g_bConfirm[iAtt] && (g_iSlimed == 1 || g_iSlimed == 4) && GetClientTeamType(iAtt) == ClientTeam_Infected)
+	if (g_ipInf[iAtt].boomerPerk == InfectedBoomerPerk_BarfBagged
+		&& g_bConfirm[iAtt] 
+		&& (g_iSlimed == 1 || g_iSlimed == 4) 
+		&& SM_GetClientTeamType(iAtt) == ClientTeam_Infected)
 	{
 		//check if perk is enabled
 		if (g_bInf1_enable == false || g_bBarf_enable == false) return;
@@ -8034,7 +8035,7 @@ bool DeadWreckening_DamageAdd(int iAtt, int iVic, int iType, int iDmgOrig)
 		&& iType == 128
 		&& g_iSlimed > 0
 		&& g_bConfirm[g_iSlimerLast]
-		&& g_iInf1[g_iSlimerLast] == 3)
+		&& g_ipInf[g_iSlimerLast].boomerPerk == InfectedBoomerPerk_DeadWreckening)
 	{
 		//check if perk is enabled
 		if (!g_bInf1_enable || !g_bDead_enable) return true;
@@ -8064,7 +8065,7 @@ void Motion_OnSpawn(int iCid)
 	if (!g_bMotion_enable || !g_bInf1_enable) return;
 
 	//check for motion sickness
-	if (g_iInf1[iCid] == 4 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].boomerPerk == InfectedBoomerPerk_MotionSickness && g_bConfirm[iCid])
 	{
 		SetConVarFloat(FindConVar("z_vomit_fatigue"), 0.0, false, false);
 		SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0*g_flMotion_rate, true);
@@ -8086,7 +8087,7 @@ void TongueTwister_OnAbilityUse(int iCid, const char[] stAb)
 		if (!g_bTongue_enable) return;
 
 		//check for twister
-		if (g_iInf3[iCid] == 1)
+		if (g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_TongueTwister)
 			SetConVarFloat(FindConVar("tongue_fly_speed"), g_flTongueFlySpeed*g_flTongue_speedmult, false, false);
 		else
 			SetConVarFloat(FindConVar("tongue_fly_speed"), g_flTongueFlySpeed, false, false);
@@ -8102,7 +8103,7 @@ void TongueTwister_OnTongueGrab(int iCid)
 	PrintToChatAll("\x03yoink grab fired, client: \x01%i", iCid);
 	#endif
 
-	if (g_bConfirm[iCid] && g_iInf3[iCid] == 1)
+	if (g_bConfirm[iCid] && g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_TongueTwister)
 		SetConVarFloat(FindConVar("tongue_victim_max_speed"), g_flTongueSpeed*g_flTongue_pullmult, false, false);
 	else
 		SetConVarFloat(FindConVar("tongue_victim_max_speed"), g_flTongueSpeed, false, false);
@@ -8133,7 +8134,7 @@ void TongueTwister_OnSpawn(int iCid)
 	if (!g_bInf3_enable || !g_bTongue_enable) return;
 
 	//check for tongue twister
-	if (g_iInf3[iCid] == 1 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_TongueTwister && g_bConfirm[iCid])
 	{
 
 		SetConVarFloat(FindConVar("tongue_range"), g_flTongueRange*g_flTongue_rangemult, false, false);
@@ -8158,12 +8159,12 @@ void TongueTwister_OnSpawn(int iCid)
 //=============================
 
 //damage add function
-bool Squeezer_DamageAdd(int iAtt, int iVic, int iTA, const char[] stWpn, int iDmgOrig)
+bool Squeezer_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA==3
+	if (iTA == ClientTeam_Infected
 		&& g_bConfirm[iAtt]
 		&& StrEqual(stWpn, "smoker_claw")
-		&& g_iInf3[iAtt] == 2
+		&& g_ipInf[iAtt].smokerPerk == InfectedSmokerPerk_Squeezer
 		&& g_iMyDisableTarget[iAtt] == iVic)
 	{
 		//stop if perk is disabled
@@ -8200,7 +8201,7 @@ void Drag_OnTongueGrab(int iCid)
 	}
 
 	//check for drag and drop
-	if (g_iInf3[iCid] == 3 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bConfirm[iCid])
 	{
 		SetConVarInt(FindConVar("tongue_allow_voluntary_release"), 1, false, false);
 		SetConVarFloat(FindConVar("tongue_player_dropping_to_ground_time"), 0.2, false, false);
@@ -8221,7 +8222,9 @@ bool Drag_OnSpawn(int iCid)
 	//stop if grasshopper is disabled
 	if (!g_bInf3_enable || !g_bDrag_enable) return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf3[iCid] == 3 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_DragAndDrop 
+		&& g_bConfirm[iCid])
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x05drag\x03 creating timer");
@@ -8331,12 +8334,11 @@ Action Timer_DragChecks(Handle timer, int iCid)
 
 Action SmokeIt_OnTongueGrab(int smoker, int victim)
 {
-	if (!g_bInf3_enable || !g_bSmokeIt_enable || g_iInf3[smoker] != 4 || !g_bConfirm[smoker]) 
+	if (!g_bInf3_enable || !g_bSmokeIt_enable || g_ipInf[smoker].smokerPerk != InfectedSmokerPerk_SmokeIt || !g_bConfirm[smoker]) 
 		return Plugin_Continue;
 
 	//new Smoker = GetClientOfUserId(event.GetInt("userid"));
 	if (IsFakeClient(smoker)) return Plugin_Continue;
-	
 	
 	g_bSmokeItGrabbed[smoker] = true;
 	SetEntityMoveType(smoker, MOVETYPE_ISOMETRIC);
@@ -8355,7 +8357,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 	pack.Reset();
 	
 	int smoker = pack.ReadCell();
-	if (!IsValidClient(smoker) || IsFakeClient(smoker) || (GetClientTeamType(smoker) != ClientTeam_Infected) || (g_bSmokeItGrabbed[smoker] = false))
+	if (!IsValidClient(smoker) || IsFakeClient(smoker) || (SM_GetClientTeamType(smoker) != ClientTeam_Infected) || (g_bSmokeItGrabbed[smoker] = false))
 	{
 		g_hSmokeItTimer[smoker] = INVALID_HANDLE;
 		CloseHandle(pack);
@@ -8363,7 +8365,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 	}
 			
 	int victim = pack.ReadCell();
-	if (!IsValidClient(victim) || (GetClientTeamType(victim) != ClientTeam_Survivor) || (g_bSmokeItGrabbed[smoker] = false))
+	if (!IsValidClient(victim) || (SM_GetClientTeamType(victim) != ClientTeam_Survivor) || (g_bSmokeItGrabbed[smoker] = false))
 	{
 		g_hSmokeItTimer[smoker] = INVALID_HANDLE;
 		CloseHandle(pack);
@@ -8424,13 +8426,13 @@ bool IsValidClient(int client)
 //=============================
 
 //damage function
-bool BodySlam_DamageAdd(int iAtt, int iVic, int iTA, int iType, const char[] stWpn, int iDmgOrig)
+bool BodySlam_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA==3
+	if (iTA == ClientTeam_Infected
 		&& g_bConfirm[iAtt]
 		&& StrEqual(stWpn, "hunter_claw")
 		&& iType == 1
-		&& g_iInf4[iAtt] == 1)
+		&& g_ipInf[iAtt].hunterPerk == InfectedHunterPerk_BodySlam)
 	{
 		//stop if body slam is disabled
 		if (!g_bInf4_enable || !g_bBody_enable) return true;
@@ -8569,13 +8571,13 @@ bool BodySlam_DamageAdd(int iAtt, int iVic, int iTA, int iType, const char[] stW
 //=============================
 
 //damage function
-bool EfficientKiller_DamageAdd(int iAtt, int iVic, int iTA, int iType, const char[] stWpn, int iDmgOrig)
+bool EfficientKiller_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA == 3
+	if (iTA == ClientTeam_Infected
 		&& g_bConfirm[iAtt]
 		&& StrEqual(stWpn, "hunter_claw")
 		&& iType == 128
-		&& g_iInf4[iAtt] == 2)
+		&& g_ipInf[iAtt].hunterPerk == InfectedHunterPerk_EfficientKiller)
 	{
 		//stop if eff.killer is disabled
 		if (!g_bInf4_enable || g_bEfficient_enable) return true;
@@ -8595,13 +8597,13 @@ bool EfficientKiller_DamageAdd(int iAtt, int iVic, int iTA, int iType, const cha
 //=============================
 
 //damage function
-bool SpeedDemon_DamageAdd(int iAtt, int iVic, int iTA, int iType, const char[] stWpn, int iDmgOrig)
+bool SpeedDemon_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA == 3
+	if (iTA == ClientTeam_Infected
 		&& g_bConfirm[iAtt]
 		&& StrEqual(stWpn,"hunter_claw")
 		&& iType == 128
-		&& g_iInf4[iAtt] == 4
+		&& g_ipInf[iAtt].hunterPerk == InfectedHunterPerk_SpeedDemon
 		&& g_iMyDisableTarget[iAtt] == -1)
 	{
 		//stop if eff.killer is disabled
@@ -8628,7 +8630,7 @@ bool SpeedDemon_OnSpawn(int iCid)
 		return false;
 
 	//check for motion sickness
-	if (g_iInf4[iCid] == 4 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].hunterPerk == InfectedHunterPerk_SpeedDemon && g_bConfirm[iCid])
 	{
 		SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0*g_flSpeedDemon_rate, true);
 		return true;
@@ -8649,7 +8651,9 @@ bool Grass_OnAbilityUse(int iCid, const char[] stAb)
 	if (!g_bInf4_enable || !g_bGrass_enable)
 		return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf4[iCid] == 3 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].hunterPerk == InfectedHunterPerk_Grasshopper
+		&& g_bConfirm[iCid])
 	{
 		//check if it's a pounce/lunge
 		if (StrEqual(stAb, "ability_lunge", false))
@@ -8692,7 +8696,10 @@ Action Grasshopper_DelayedVel(Handle timer, int iCid)
 //for wind to work, must change VICTIM's speed
 void Wind_OnRideStart(int iAtt, int iVic)
 {
-	if (g_iInf5[iAtt] == 1 && g_bConfirm[iAtt] && g_bInf5_enable && g_bWind_enable)
+	if (g_ipInf[iAtt].jockeyPerk == InfectedJockeyPerk_Wind
+		&& g_bConfirm[iAtt] 
+		&& g_bInf5_enable 
+		&& g_bWind_enable)
 	{
 		SetEntDataFloat(iVic, g_iLaggedMovementO, 1.0 * g_flWind_rate, true);
 
@@ -8727,7 +8734,7 @@ bool Cavalier_OnSpawn(int iCid)
 	if (!g_bCavalier_enable || !g_bInf5_enable) return false;
 
 	//check for perk
-	if (g_iInf5[iCid] == 2 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Cavalier && g_bConfirm[iCid])
 	{
 		CreateTimer(0.1, Cavalier_ChangeHP, iCid);
 		return true;
@@ -8742,7 +8749,7 @@ Action Cavalier_ChangeHP(Handle timer, int iCid)
 	if (IsServerProcessing() == false
 		|| iCid <= 0
 		|| IsClientInGame(iCid) == false
-		|| GetClientTeamType(iCid) != ClientTeam_Infected)
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return Plugin_Stop;
 
 	SetEntityHealth(iCid, RoundToNearest(GetEntProp(iCid, Prop_Data, "m_iHealth") * (1+g_flCavalier_hpmult) ) );
@@ -8758,9 +8765,12 @@ Action Cavalier_ChangeHP(Handle timer, int iCid)
 // Inf5: Frogger
 //=============================
 
-bool Frogger_DamageAdd(int iAtt, int iVic, int iTA, const char[] stWpn, int iDmgOrig)
+bool Frogger_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA == 3 && g_bConfirm[iAtt] && StrEqual(stWpn, "jockey_claw") && g_iInf5[iAtt] == 3)
+	if (iTA == ClientTeam_Infected 
+		&& g_bConfirm[iAtt] 
+		&& StrEqual(stWpn, "jockey_claw") 
+		&& g_ipInf[iAtt].jockeyPerk == InfectedJockeyPerk_Frogger)
 	{
 		//stop if frogger is disabled
 		if (!g_bInf5_enable || !g_bFrogger_enable) return true;
@@ -8781,9 +8791,11 @@ bool Frogger_DamageAdd(int iAtt, int iVic, int iTA, const char[] stWpn, int iDmg
 bool Frogger_OnJump(int iCid)
 {
 	//stop if frogger is disabled
-	if (!g_bInf5_enable || !g_bFrogger_enable || IntToInfectedType(GetEntData(iCid, g_iClassO)) != Infected_Jockey) return false;
+	if (!g_bInf5_enable || !g_bFrogger_enable || SM_IntToInfectedType(GetEntData(iCid, g_iClassO), g_bIsL4D2) != Infected_Jockey) return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf5[iCid] == 3 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Frogger 
+		&& g_bConfirm[iCid])
 	{
 		CreateTimer(0.1, Frogger_DelayedVel, iCid);
 
@@ -8823,7 +8835,9 @@ bool Ghost_OnSpawn(int iCid)
 	//stop if frogger is disabled
 	if (!g_bInf5_enable || !g_bGhost_enable) return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf5[iCid] == 4 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Ghost
+		&& g_bConfirm[iCid])
 	{
 		SetEntityRenderMode(iCid, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(iCid, 190, 190, 255, g_iGhost_alpha);
@@ -8857,7 +8871,9 @@ bool TwinSF_OnSpawn(int iCid)
 	//stop if grasshopper is disabled
 	if (!g_bInf6_enable || !g_bTwinSF_enable) return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf6[iCid] == 1 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].spitterPerk == InfectedSpitterPerk_TwinSpitfire
+		&& g_bConfirm[iCid])
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03- creating timer");
@@ -8884,7 +8900,7 @@ Action Timer_TwinSFChecks(Handle timer, int iCid)
 		|| iCid <= 0
 		|| IsClientInGame(iCid) == false
 		|| IsPlayerAlive(iCid) == false
-		|| IntToInfectedType(GetEntData(iCid, g_iClassO)) != Infected_Spitter)
+		|| SM_IntToInfectedType(GetEntData(iCid, g_iClassO), g_bIsL4D2) != Infected_Spitter)
 	{
 		g_iTwinSFShotCount[iCid] = 0;
 		KillTimer(timer);
@@ -8989,7 +9005,9 @@ Action Timer_TwinSFChecks(Handle timer, int iCid)
 
 bool MegaAd_SlowEffect(int iAtt, int iVic, const char[] stWpn)
 {
-	if (g_bConfirm[iAtt] && StrEqual(stWpn, "insect_swarm") && g_iInf6[iAtt] == 2)
+	if (g_bConfirm[iAtt] 
+		&& StrEqual(stWpn, "insect_swarm") 
+		&& g_ipInf[iAtt].spitterPerk == InfectedSpitterPerk_MegaAdhesive)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x05megaadhesive\x03 fire, client \x01%i\x03, pre-mod amount \x01%i", iVic, g_iMegaAdCount[iVic]);
@@ -9014,7 +9032,7 @@ bool MegaAd_SlowEffect(int iAtt, int iVic, const char[] stWpn)
 				//don't apply slow for jockeys or smokers
 				else
 				{
-					InfectedType iType = IntToInfectedType(GetEntData(iDisabler, g_iClassO));
+					InfectedType iType = SM_IntToInfectedType(GetEntData(iDisabler, g_iClassO), g_bIsL4D2);
 					if (iType != Infected_Smoker && iType != Infected_Jockey)
 						SetEntDataFloat(iVic, g_iLaggedMovementO, g_flMegaAd_slow, true);
 				}
@@ -9068,7 +9086,7 @@ Action MegaAd_Timer(Handle timer, int iVic)
 			//don't apply slow for jockeys or smokers
 			else
 			{
-				InfectedType iType = IntToInfectedType(GetEntData(iDisabler, g_iClassO));
+				InfectedType iType = SM_IntToInfectedType(GetEntData(iDisabler, g_iClassO), g_bIsL4D2);
 				if (iType != Infected_Smoker && iType != Infected_Jockey)
 					SetEntDataFloat(iVic, g_iLaggedMovementO, g_flMegaAd_slow, true);
 			}
@@ -9102,7 +9120,9 @@ bool Scatter_OnImpact(int iAtt, int iVic)
 	//stop if disabled
 	if (!g_bInf7_enable || !g_bScatter_enable) return false;
 
-	if (GetClientTeamType(iAtt) == ClientTeam_Infected && g_iInf7[iAtt] == 1 && g_bConfirm[iAtt])
+	if (SM_GetClientTeamType(iAtt) == ClientTeam_Infected 
+		&& g_ipInf[iAtt].chargerPerk == InfectedChargerPerk_Scatter 
+		&& g_bConfirm[iAtt])
 	{
 		CreateTimer(0.1, Timer_ScatterForce, iVic);
 
@@ -9121,7 +9141,7 @@ bool Scatter_OnSpawn(int iCid)
 	if (!g_bScatter_enable || !g_bInf7_enable) return false;
 
 	//check for perk
-	if (g_iInf7[iCid] == 1 && g_bConfirm[iCid])
+	if (g_ipInf[iCid].chargerPerk == InfectedChargerPerk_Scatter && g_bConfirm[iCid])
 	{
 		CreateTimer(0.1, Scatter_ChangeHP, iCid);
 		return true;
@@ -9150,7 +9170,7 @@ Action Scatter_ChangeHP(Handle timer, int iCid)
 {
 	KillTimer(timer);
 
-	if (IsServerProcessing() == false || iCid <= 0 || IsClientInGame(iCid) == false || GetClientTeamType(iCid) != ClientTeam_Infected)
+	if (IsServerProcessing() == false || iCid <= 0 || IsClientInGame(iCid) == false || SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return Plugin_Stop;
 
 	SetEntityHealth(iCid, RoundToNearest(GetEntProp(iCid, Prop_Data, "m_iHealth") * (1 + g_flScatter_hpmult) ) );
@@ -9172,7 +9192,9 @@ bool Bullet_OnAbilityUse(int iCid, const char[] stAb)
 	//stop if frogger is disabled
 	if (!g_bInf7_enable || !g_bBullet_enable) return false;
 
-	if (GetClientTeamType(iCid) == ClientTeam_Infected && g_iInf7[iCid] == 2 && g_bConfirm[iCid])
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+		&& g_ipInf[iCid].chargerPerk == InfectedChargerPerk_Bullet
+		&& g_bConfirm[iCid])
 	{
 		//check if it's a pounce/lunge
 		if (StrEqual(stAb, "ability_charge", false))
@@ -9199,7 +9221,7 @@ bool Bullet_OnAbilityUse(int iCid, const char[] stAb)
 Action Event_Tank_Spawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
-	if (iCid == 0 || GetClientTeamType(iCid) != ClientTeam_Infected)
+	if (iCid == 0 || SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return Plugin_Continue;
 
 	#if defined PM_DEBUG
@@ -9237,7 +9259,7 @@ Action Timer_Tank_ApplyPerk(Handle timer, int iCid)
 void Tank_ApplyPerk(int iCid)
 {
 	//why apply tank perks to non-infected?
-	if (IsClientInGame(iCid) == false || GetClientTeamType(iCid) != ClientTeam_Infected)
+	if (IsClientInGame(iCid) == false || SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return;
 	
 	//and make sure we're dealing with a tank
@@ -9252,12 +9274,12 @@ void Tank_ApplyPerk(int iCid)
 	#endif
 
 	//first battery of tests for perks 1-4 (not double trouble)
-	if (g_iTank < 2 && g_bConfirm[iCid] && g_iInf2[iCid] < 5)
+	if (g_iTank < 2 && g_bConfirm[iCid] && g_ipInf[iCid].tankPerk < InfectedTankPerk_DoubleTrouble)
 	{
-		switch (g_iInf2[iCid])
+		switch (g_ipInf[iCid].tankPerk)
 		{
 		//check for adrenal glands
-		case 1:
+		case InfectedTankPerk_AdrenalGlands:
 			{
 				#if defined PM_DEBUG
 				PrintToChatAll("\x03applying adrenal glands");
@@ -9274,7 +9296,7 @@ void Tank_ApplyPerk(int iCid)
 				return;
 			}
 		//check for juggernaut perk
-		case 2:
+		case InfectedTankPerk_Juggernaut:
 			{
 				//at least tell plugin that there's a tank
 				g_iTank = 1;
@@ -9298,7 +9320,7 @@ void Tank_ApplyPerk(int iCid)
 			}
 
 		//check for metabolic boost
-		case 3:
+		case InfectedTankPerk_MetabolicBoost:
 			{
 				#if defined PM_DEBUG
 				PrintToChatAll("\x03applying metabolic boost");
@@ -9312,7 +9334,7 @@ void Tank_ApplyPerk(int iCid)
 			}
 
 		//check for storm caller
-		case 4:
+		case InfectedTankPerk_Stormcaller:
 			{
 				g_iTank = 1;
 
@@ -9341,7 +9363,7 @@ void Tank_ApplyPerk(int iCid)
 	//check for double trouble activation;
 	//must have perk confirmed (g_iConfirm==1)
 	//and double trouble must not be in effect (g_iTank!=3, 4)
-	else if (g_iInf2[iCid] == 5 && g_iTank < 3 && g_bConfirm[iCid])
+	else if (g_ipInf[iCid].tankPerk == InfectedTankPerk_DoubleTrouble && g_iTank < 3 && g_bConfirm[iCid])
 	{
 		g_iTank = 3;
 		g_iTank_MainId = iCid;
@@ -9353,7 +9375,7 @@ void Tank_ApplyPerk(int iCid)
 		g_iTankCount = 0;
 		for (int iI = 1; iI <= MaxClients; iI++)
 		{
-			if (IsClientInGame(iI) && IsPlayerAlive(iI) && GetClientTeamType(iI) == ClientTeam_Infected)
+			if (IsClientInGame(iI) && IsPlayerAlive(iI) && SM_GetClientTeamType(iI) == ClientTeam_Infected)
 			{
 				GetClientModel(iI, st_class, sizeof(st_class));
 				if (StringInsensitiveContains(st_class, "hulk"))
@@ -9390,7 +9412,7 @@ void Tank_ApplyPerk(int iCid)
 		g_iTankCount = 0;
 		for (int iI = 1; iI <= MaxClients; iI++)
 		{
-			if (IsClientInGame(iI) && IsPlayerAlive(iI) && GetClientTeamType(iI) == ClientTeam_Infected)
+			if (IsClientInGame(iI) && IsPlayerAlive(iI) && SM_GetClientTeamType(iI) == ClientTeam_Infected)
 			{
 				GetClientModel(iI, st_class, sizeof(st_class));
 				if (StringInsensitiveContains(st_class, "hulk"))
@@ -9444,7 +9466,7 @@ Action Juggernaut_ChangeHP(Handle timer, int iTankid)
 {
 	KillTimer(timer);
 
-	if (IsServerProcessing() == false || iTankid == 0 || IsClientInGame(iTankid) == false || GetClientTeamType(iTankid) != ClientTeam_Infected)
+	if (IsServerProcessing() == false || iTankid == 0 || IsClientInGame(iTankid) == false || SM_GetClientTeamType(iTankid) != ClientTeam_Infected)
 		return Plugin_Stop;
 
 	SetEntityHealth(iTankid, GetEntProp(iTankid, Prop_Data, "m_iHealth") + g_iJuggernaut_hp);
@@ -9459,7 +9481,7 @@ Action DoubleTrouble_ChangeHP(Handle timer, int iTankid)
 {
 	KillTimer(timer);
 
-	if (IsServerProcessing() == false || iTankid == 0 || IsClientInGame(iTankid) == false || GetClientTeamType(iTankid) != ClientTeam_Infected)
+	if (IsServerProcessing() == false || iTankid == 0 || IsClientInGame(iTankid) == false || SM_GetClientTeamType(iTankid) != ClientTeam_Infected)
 		return Plugin_Stop;
 
 	SetEntityHealth(iTankid, RoundToCeil(GetEntProp(iTankid, Prop_Data, "m_iHealth") * g_flDouble_hpmult));
@@ -9487,7 +9509,7 @@ Action DoubleTrouble_SpawnTank(Handle timer, int iCid)
 	//before we can spawn the tank, need to find a suitable players
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) && IsFakeClient(iI) == false && GetClientTeamType(iI) == ClientTeam_Infected && iI != iCid
+		if (IsClientInGame(iI) && IsFakeClient(iI) == false && SM_GetClientTeamType(iI) == ClientTeam_Infected && iI != iCid
 			//check if client is either dead or a ghost
 			&& ( GetClientHealth(iI)<=1 || GetEntData(iI, g_iIsGhostO) !=0 ))
 		{
@@ -9522,11 +9544,11 @@ Action DoubleTrouble_SpawnTank(Handle timer, int iCid)
 Action DoubleTrouble_KickBotSpawner(Handle timer, int iSpawner)
 {
 	if ((IsServerProcessing() == false
-		&& IsFakeClient(iSpawner))
+		&& IsFakeClient(iSpawner)) 
 		|| (IsClientInGame(iSpawner)
 		&& IsClientInKickQueue(iSpawner) == false
 		&& IsPlayerAlive(iSpawner) == false
-		&& IsFakeClient(iSpawner)==true) )
+		&& IsFakeClient(iSpawner)) )
 	{
 		KickClient(iSpawner);
 		KillTimer(timer);
@@ -9552,7 +9574,11 @@ void Adrenal_Rebuild()
 
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) && IsPlayerAlive(iI) && GetClientTeamType(iI) == ClientTeam_Infected && g_iInf2[iI] == 1 && g_bConfirm[iI])
+		if (IsClientInGame(iI) 
+			&& IsPlayerAlive(iI) 
+			&& SM_GetClientTeamType(iI) == ClientTeam_Infected 
+			&& g_ipInf[iI].tankPerk == InfectedTankPerk_AdrenalGlands
+			&& g_bConfirm[iI])
 		{
 			g_iAdrenalRegisterCount++;
 			g_iAdrenalRegisterIndex[g_iAdrenalRegisterCount] = iI;
@@ -9753,7 +9779,7 @@ Action DoubleTrouble_FrustrationTimer(Handle timer, int iCid)
 
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) && IsPlayerAlive(iI) && GetClientTeamType(iI) == ClientTeam_Infected)
+		if (IsClientInGame(iI) && IsPlayerAlive(iI) && SM_GetClientTeamType(iI) == ClientTeam_Infected)
 		{
 			GetClientModel(iI, st_class, sizeof(st_class));
 			if (StringInsensitiveContains(st_class, "hulk"))
@@ -9775,7 +9801,7 @@ Action DoubleTrouble_FrustrationTimer(Handle timer, int iCid)
 	if (IsClientInGame(iCid) == false
 		|| IsFakeClient(iCid) == true
 		|| IsPlayerAlive(iCid) == false
-		|| GetClientTeamType(iCid) != ClientTeam_Infected
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Infected
 		|| g_iTankCount <= 1
 		|| g_bInf2_enable == false
 		|| g_bDouble_enable == false)
@@ -9810,7 +9836,7 @@ Action Event_Tank_Frustrated(Event event, const char[] name, bool dontBroadcast)
 	if (IsServerProcessing() == false
 		|| iCid == 0
 		|| IsClientInGame(iCid) == false
-		|| GetClientTeamType(iCid) != ClientTeam_Infected)
+		|| SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return Plugin_Continue;
 
 	//if this is a tank spawned under double trouble, it gets no perks
@@ -9857,11 +9883,11 @@ Action Timer_TankBot(Handle timer, int iTankid)
 			#endif
 
 			//set bot perks
-			g_iInf2[iTankid] = Bot_Inf2_PickRandom();
+			g_ipInf[iTankid].tankPerk = BotPickRandomTankPerk();
 			g_bConfirm[iTankid] = true;
 
 			#if defined PM_DEBUG
-			PrintToChatAll("\x03-tank bot perk \x01%i", g_iInf2[iTankid]);
+			PrintToChatAll("\x03-tank bot perk \x01%i", g_ipInf[iTankid].tankPerk);
 			#endif
 
 			Tank_ApplyPerk(iTankid);
@@ -9886,7 +9912,7 @@ Action Timer_TankBot(Handle timer, int iTankid)
 //check chat
 Action MenuOpen_OnSay(int iCid, int args)
 {
-	ClientTeamType clientTeam = GetClientTeamType(iCid);
+	ClientTeamType clientTeam = SM_GetClientTeamType(iCid);
 
 	//don't show the menu if all perks are disabled
 	bool isSurv = clientTeam == ClientTeam_Survivor;
@@ -10058,13 +10084,13 @@ Panel Menu_Top(int iCid)
 	char st_display[MAXPLAYERS+1];
 
 	//set name for sur1 perk
-	if (g_iSur1[iCid] == 1 && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
 		st_perk = "Stopping Power";
-	else if (g_iSur1[iCid] == 2 && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
 		st_perk = "Double Tap";
-	else if (g_iSur1[iCid] == 3 && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
 		st_perk = "Sleight of Hand";
-	else if (g_iSur1[iCid] == 4 && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
 		st_perk = "Pyrotechnician";
 	else
 		st_perk = "Not set";
@@ -10076,13 +10102,13 @@ Panel Menu_Top(int iCid)
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 
 	//set name for sur2 perk
-	if (g_iSur2[iCid] == 1 && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
 		st_perk = "Unbreakable";
-	else if (g_iSur2[iCid] == 2 && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
 		st_perk = "Spirit";
-	else if (g_iSur2[iCid] == 3 && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
 		st_perk = "Helping Hand";
-	else if (g_iSur2[iCid] == 4	&& g_bIsL4D2 && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_MartialArtist	&& g_bIsL4D2 && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
 		st_perk = "Martial Artist";
 	else
 		st_perk = "Not set";
@@ -10094,15 +10120,15 @@ Panel Menu_Top(int iCid)
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 
 	//set name for sur3 perk
-	if (g_iSur3[iCid] == 1 && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
 		st_perk = "Pack Rat";
-	else if (g_iSur3[iCid] == 2 && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
 		st_perk = "Chem Reliant";
-	else if (g_iSur3[iCid] == 3 && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
 		st_perk = "Hard to Kill";
-	else if (g_iSur3[iCid] == 4 && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
 		st_perk = "Extreme Conditioning";
-	else if (g_iSur3[iCid] == 5 && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
 		st_perk = "Little Leaguer";
 	else
 		st_perk = "Not set";
@@ -10170,17 +10196,16 @@ Panel Menu_Top_Inf(int iCid)
 
 	char st_perk[32];
 	char st_display[MAXPLAYERS+1];
-	int iPerk;
 
 	//set name for inf1 perk
-	iPerk = g_iInf1[iCid];
-	if (iPerk == 1 && g_bBarf_enable)
+	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
+	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_bBarf_enable)
 		st_perk = "Barf Bagged";
-	else if (iPerk == 2 && g_bBlind_enable)
+	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_bBlind_enable)
 		st_perk = "Blind Luck";
-	else if (iPerk == 3 && g_bDead_enable)
+	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
 		st_perk = "Dead Wreckening";
-	else if (iPerk == 4 && g_bMotion_enable)
+	else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
 		st_perk = "Motion Sickness";
 	else
 		st_perk = "Not set";
@@ -10192,14 +10217,14 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf3 perk
-	iPerk = g_iInf3[iCid];
-	if (iPerk == 1 && g_bTongue_enable)
+	InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
+	if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
 		st_perk = "Tongue Twister";
-	else if (iPerk == 2 && g_bSqueezer_enable)
+	else if (smokerPerk == InfectedSmokerPerk_Squeezer && g_bSqueezer_enable)
 		st_perk = "Squeezer";
-	else if (iPerk == 3 && g_bDrag_enable)
+	else if (smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bDrag_enable)
 		st_perk = "Drag and Drop";
-	else if (iPerk == 4 && g_bSmokeIt_enable)
+	else if (smokerPerk == InfectedSmokerPerk_SmokeIt && g_bSmokeIt_enable)
 		st_perk = "Smoke IT!";
 	else
 		st_perk = "Not set";
@@ -10211,14 +10236,14 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf4 perk
-	iPerk = g_iInf4[iCid];
-	if (iPerk == 1 && g_bBody_enable)
+	InfectedHunterPerkType hunterPerk = g_ipInf[iCid].hunterPerk;
+	if (hunterPerk == InfectedHunterPerk_BodySlam && g_bBody_enable)
 		st_perk = "Body Slam";
-	else if (iPerk == 2 && g_bEfficient_enable)
+	else if (hunterPerk == InfectedHunterPerk_EfficientKiller && g_bEfficient_enable)
 		st_perk = "Efficient Killer";
-	else if (iPerk == 3 && g_bGrass_enable)
+	else if (hunterPerk == InfectedHunterPerk_Grasshopper && g_bGrass_enable)
 		st_perk = "Grasshopper";
-	else if (iPerk == 4 && g_bSpeedDemon_enable)
+	else if (hunterPerk == InfectedHunterPerk_SpeedDemon && g_bSpeedDemon_enable)
 		st_perk = "Speed Demon";
 	else
 		st_perk = "Not set";
@@ -10230,14 +10255,14 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf5 perk
-	iPerk = g_iInf5[iCid];
-	if (iPerk == 1 && g_bWind_enable)
+	InfectedJockeyPerkType jockeyPerk = g_ipInf[iCid].jockeyPerk;
+	if (jockeyPerk == InfectedJockeyPerk_Wind && g_bWind_enable)
 		st_perk = "Ride Like the Wind";
-	else if (iPerk == 2 && g_bCavalier_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Cavalier && g_bCavalier_enable)
 		st_perk = "Cavalier";
-	else if (iPerk == 3 && g_bFrogger_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Frogger && g_bFrogger_enable)
 		st_perk = "Frogger";
-	else if (iPerk == 4 && g_bGhost_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Ghost && g_bGhost_enable)
 		st_perk = "Ghost Rider";
 	else
 		st_perk = "Not set";
@@ -10249,10 +10274,10 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf6 perk
-	iPerk = g_iInf6[iCid];
-	if (iPerk == 1 && g_bTwinSF_enable)
+	InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
+	if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
 		st_perk = "Twin Spitfire";
-	else if (iPerk == 2 && g_bMegaAd_enable)
+	else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
 		st_perk = "Mega Adhesive";
 	else
 		st_perk = "Not set";
@@ -10264,10 +10289,10 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf7 perk
-	iPerk = g_iInf7[iCid];
-	if (iPerk == 1 && g_bScatter_enable)
+	InfectedChargerPerkType chargerPerk = g_ipInf[iCid].chargerPerk;
+	if (chargerPerk == InfectedChargerPerk_Scatter && g_bScatter_enable)
 		st_perk = "Scattering Ram";
-	else if (iPerk == 2 && g_bBullet_enable)
+	else if (chargerPerk == InfectedChargerPerk_Bullet && g_bBullet_enable)
 		st_perk = "Speeding Bullet";
 	else
 		st_perk = "Not set";
@@ -10279,15 +10304,16 @@ Panel Menu_Top_Inf(int iCid)
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
 	//set name for inf2 perk
-	if (g_iInf2[iCid] == 1 && g_bAdrenal_enable)
+	InfectedTankPerkType tankPerk = g_ipInf[iCid].tankPerk;
+	if (tankPerk == InfectedTankPerk_AdrenalGlands && g_bAdrenal_enable)
 		st_perk = "Adrenal Glands";
-	else if (g_iInf2[iCid] == 2 && g_bJuggernaut_enable)
+	else if (tankPerk == InfectedTankPerk_Juggernaut && g_bJuggernaut_enable)
 		st_perk = "Juggernaut";
-	else if (g_iInf2[iCid] == 3 && g_bMetabolic_enable)
+	else if (tankPerk == InfectedTankPerk_MetabolicBoost && g_bMetabolic_enable)
 		st_perk = "Metabolic";
-	else if (g_iInf2[iCid] == 4 && g_bStorm_enable)
+	else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
 		st_perk = "Storm Caller";
-	else if (g_iInf2[iCid] == 5 && g_bDouble_enable)
+	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_bDouble_enable)
 		st_perk = "Double the Trouble";
 	else
 		st_perk = "Not set";
@@ -10447,20 +10473,19 @@ Panel Menu_ShowChoices(int iCid)
 	menu.SetTitle("tPoncho's Perkmod");
 
 	char st_perk[128];
-	int iPerk;
 
 	//"Your perks for this round:"
 	Format(st_perk, sizeof(st_perk), "%t:", "MapPerksPanel");
 
 	//show sur1 perk
-	iPerk = g_iSur1[iCid];
-	if (iPerk == 1 && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
+	SurvivorFirstPerkType firstPerk = g_spSur[iCid].firstPerk;
+	if (firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
 		Format(st_perk , sizeof(st_perk), "Stopping Power (+%i%% %t)", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText" );
-	else if (iPerk == 2 && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Double Tap (%t, %t, %t)", "DoubleTapDescriptionPanel", "SleighOfHandDescriptionPanel", "DoubleTapRestrictionWarning" ) ;
-	else if (iPerk == 3 && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Sleight of Hand (%t +%i%%)", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) ) ;
-	else if (iPerk == 4 && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Pyrotechnician (%t)", "PyroDescriptionPanel");
 	else
 		Format(st_perk, sizeof(st_perk),"%t", "NotSet");
@@ -10472,10 +10497,10 @@ Panel Menu_ShowChoices(int iCid)
 	}
 
 	//show sur2 perk
-	iPerk = g_iSur2[iCid];
-	if (iPerk == 1 && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+	SurvivorSecondPerkType secondPerk = g_spSur[iCid].secondPerk;
+	if (secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Unbreakable (+%i %t)", g_iUnbreak_hp, "UnbreakableHint");
-	else if (iPerk == 2 && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
 	{
 		int iTime = g_iSpirit_cd;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -10485,7 +10510,7 @@ Panel Menu_ShowChoices(int iCid)
 		
 		Format(st_perk, sizeof(st_perk), "Spirit (%t: %i min)", "SpiritDescriptionPanel", iTime/60);
 	}
-	else if (iPerk == 3 && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
 	{
 		int iBuff = g_iHelpHand_buff;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -10496,7 +10521,7 @@ Panel Menu_ShowChoices(int iCid)
 		else
 			Format(st_perk, sizeof(st_perk), "Helping Hand (%t +%i)", "HelpingHandDescriptionPanel", iBuff);
 	}
-	else if (iPerk == 4 && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_MartialArtist && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
 	{
 		if (g_iMA_maxpenalty < 6)
 			Format(st_perk, sizeof(st_perk), "Martial Artist (%t)", "MartialArtistDescriptionPanel");
@@ -10513,16 +10538,16 @@ Panel Menu_ShowChoices(int iCid)
 	}
 
 	//show sur3 perk
-	iPerk = g_iSur3[iCid];
-	if (iPerk == 1 && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	SurvivorThirdPerkType thirdPerk = g_spSur[iCid].thirdPerk;
+	if (thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Pack Rat (%t +%i%%)", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100) );
-	else if (iPerk == 2 && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Chem Reliant (%t +%i)", "ChemReliantDescriptionPanel", g_iChem_buff);
-	else if (iPerk == 3 && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Hard to Kill (+%i%% %t)", RoundToNearest(g_flHard_hpmult*100), "HardToKillDescriptionPanel");
-	else if (iPerk == 4 && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
 		Format(st_perk, sizeof(st_perk), "Extreme Conditioning (+%i%% %t)", RoundToNearest(g_flExtreme_rate * 100 - 100), "MartialArtistDescriptionPanelCoop" );
-	else if (iPerk == 5 && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
 		Format(st_perk, sizeof(st_perk),"Little Leaguer (%t)", "LittleLeaguerDescriptionPanel" );
 	else
 		Format(st_perk, sizeof(st_perk), "%t", "NotSet");
@@ -10541,29 +10566,28 @@ Panel Menu_ShowChoices_Inf(int iCid)
 {
 	char st_perk[128];
 	char stDesc[128];
-	int iPerk;
 
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod: Your perks for this round");
 
 	//show inf1 perk
-	iPerk = g_iInf1[iCid];
-	if (iPerk == 1 && g_bBarf_enable)
+	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
+	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_bBarf_enable)
 	{
 		st_perk = "Boomer: Barf Bagged";
 		Format(stDesc, sizeof(st_perk), "%t", "BarfBaggedDescriptionPanel");
 	}
-	else if (iPerk == 2 && g_bBlind_enable)
+	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_bBlind_enable)
 	{
 		st_perk = "Boomer: Blind Luck";
 		Format(stDesc, sizeof(st_perk), "%t", "AcidVomitDescriptionPanel");
 	}
-	else if (iPerk == 3 && g_bDead_enable)
+	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
 	{
 		st_perk = "Boomer: Dead Wreckening";
 		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
 	}
-	else if (iPerk == 4 && g_bMotion_enable)
+	else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
 	{
 		st_perk = "Boomer: Motion Sickness";
 		Format(stDesc, sizeof(st_perk), "%t", "MotionSicknessDescriptionPanel");
@@ -10581,23 +10605,23 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 
 	//show inf3 perk
-	iPerk = g_iInf3[iCid];
-	if (iPerk == 1 && g_bTongue_enable)
+	InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
+	if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
 	{
 		st_perk = "Smoker: Tongue Twister";
 		Format(stDesc, sizeof(st_perk), "%t", "TongueTwisterDescriptionPanel");
 	}
-	else if (iPerk == 2 && g_bSqueezer_enable)
+	else if (smokerPerk == InfectedSmokerPerk_Squeezer && g_bSqueezer_enable)
 	{
 		st_perk = "Smoker: Squeezer";
 		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest(g_flSqueezer_dmgmult*100), "BonusDamageText" );
 	}
-	else if (iPerk == 3 && g_bDrag_enable)
+	else if (smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bDrag_enable)
 	{
 		st_perk = "Smoker: Drag and Drop";
 		Format(stDesc, sizeof(st_perk), "%t", "DragAndDropDescriptionPanel");
 	}
-	else if (iPerk == 4 && g_bSmokeIt_enable)
+	else if (smokerPerk == InfectedSmokerPerk_SmokeIt && g_bSmokeIt_enable)
 	{
 		st_perk = "Smoker: Smoke IT!";
 		Format(stDesc, sizeof(st_perk), "%t", "SmokeItDescriptionPanel");
@@ -10615,23 +10639,23 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 
 	//show inf4 perk
-	iPerk = g_iInf4[iCid];
-	if (iPerk == 1 && g_bBody_enable)
+	InfectedHunterPerkType hunterPerk = g_ipInf[iCid].hunterPerk;
+	if (hunterPerk == InfectedHunterPerk_BodySlam && g_bBody_enable)
 	{
 		st_perk = "Hunter: Body Slam";
 		Format(stDesc, sizeof(st_perk), "%i %t", g_iBody_minbound, "BodySlamDescriptionPanel");
 	}
-	else if (iPerk == 2 && g_bEfficient_enable)
+	else if (hunterPerk == InfectedHunterPerk_EfficientKiller && g_bEfficient_enable)
 	{
 		st_perk = "Hunter: Efficient Killer";
 		Format(stDesc, sizeof(st_perk),"+%i%% %t", RoundToNearest(g_flEfficient_dmgmult*100), "BonusDamageText" );
 	}
-	else if (iPerk == 3 && g_bGrass_enable)
+	else if (hunterPerk == InfectedHunterPerk_Grasshopper && g_bGrass_enable)
 	{
 		st_perk = "Hunter: Grasshopper";
 		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "GrasshopperDescriptionPanel", RoundToNearest( (g_flGrass_rate - 1) * 100 ) );
 	}
-	else if (iPerk == 4 && g_bSpeedDemon_enable)
+	else if (hunterPerk == InfectedHunterPerk_SpeedDemon && g_bSpeedDemon_enable)
 	{
 		st_perk = "Hunter: Speed Demon";
 		Format(stDesc, sizeof(st_perk), "+%i%% %t +%i%% %t", RoundToNearest(g_flSpeedDemon_dmgmult*100), "OldSchoolDescriptionPanel", RoundToNearest( (g_flSpeedDemon_rate - 1) * 100 ), "SpeedDemonDescriptionPanel");
@@ -10648,23 +10672,23 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 
 	//show inf5 perk
-	iPerk = g_iInf5[iCid];
-	if (iPerk == 1 && g_bWind_enable)
+	InfectedJockeyPerkType jockeyPerk = g_ipInf[iCid].jockeyPerk;
+	if (jockeyPerk == InfectedJockeyPerk_Wind && g_bWind_enable)
 	{
 		st_perk = "Jockey: Ride Like the Wind";
 		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "RideLikeTheWindDescriptionPanel", RoundToNearest( (g_flWind_rate - 1) * 100 ) );
 	}
-	else if (iPerk == 2 && g_bCavalier_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Cavalier && g_bCavalier_enable)
 	{
 		st_perk = "Jockey: Cavalier";
 		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest( g_flCavalier_hpmult * 100 ), "UnbreakableHint" );
 	}
-	else if (iPerk == 3 && g_bFrogger_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Frogger && g_bFrogger_enable)
 	{
 		st_perk = "Jockey: Frogger";
 		Format(stDesc, sizeof(st_perk), "+%i%% %t +%i%% %t", RoundToNearest( (g_flFrogger_rate - 1) * 100 ), "FroggerDescriptionPanel", RoundToNearest(g_flFrogger_dmgmult*100), "BonusDamageText" );
 	}
-	else if (iPerk == 4 && g_bGhost_enable)
+	else if (jockeyPerk == InfectedJockeyPerk_Ghost && g_bGhost_enable)
 	{
 		st_perk = "Jockey: Ghost Rider";
 		Format(stDesc, sizeof(st_perk), "%i%% %t", RoundToNearest( (1 - (g_iGhost_alpha/255.0)) *100 ), "GhostRiderDescriptionPanel" );
@@ -10682,13 +10706,13 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 
 	//show inf6 perk
-	iPerk = g_iInf6[iCid];
-	if (iPerk == 1 && g_bTwinSF_enable)
+	InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
+	if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
 	{
 		st_perk = "Spitter: Twin Spitfire";
 		Format(stDesc, sizeof(st_perk), "%t", "TwinSpitfireDescriptionPanel" );
 	}
-	else if (iPerk == 2 && g_bMegaAd_enable)
+	else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
 	{
 		st_perk = "Spitter: Mega Adhesive";
 		Format(stDesc, sizeof(st_perk), "%t", "MegaAdhesiveDescriptionPanel" );
@@ -10706,13 +10730,13 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 
 	//show inf7 perk
-	iPerk = g_iInf7[iCid];
-	if (iPerk == 1 && g_bScatter_enable)
+	InfectedChargerPerkType chargerPerk = g_ipInf[iCid].chargerPerk;
+	if (chargerPerk == InfectedChargerPerk_Scatter && g_bScatter_enable)
 	{
 		st_perk = "Charger: Scattering Ram";
 		Format(stDesc, sizeof(st_perk), "%t", "ScatteringRamDescriptionPanel" );
 	}
-	else if (iPerk == 2 && g_bBullet_enable)
+	else if (chargerPerk == InfectedChargerPerk_Bullet && g_bBullet_enable)
 	{
 		st_perk = "Charger: Speeding Bullet";
 		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "SpeedingBulletDescriptionPanel", RoundToNearest(g_flBullet_rate*100 - 100) );
@@ -10729,28 +10753,28 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	}
 	
 	//show inf2 perk
-	iPerk = g_iInf2[iCid];
-	if (iPerk == 1 && g_bAdrenal_enable)
+	InfectedTankPerkType tankPerk = g_ipInf[iCid].tankPerk;
+	if (tankPerk == InfectedTankPerk_AdrenalGlands && g_bAdrenal_enable)
 	{
 		st_perk = "Tank: Adrenal Glands";
 		Format(stDesc, sizeof(st_perk), "%t", "AdrenalGlandsDescriptionPanelShort");
 	}
-	else if (iPerk == 2 && g_bJuggernaut_enable)
+	else if (tankPerk == InfectedTankPerk_Juggernaut && g_bJuggernaut_enable)
 	{
 		st_perk = "Tank: Juggernaut";
 		Format(stDesc, sizeof(st_perk), "+%i %t", g_iJuggernaut_hp, "UnbreakableHint");
 	}
-	else if (iPerk == 3 && g_bMetabolic_enable)
+	else if (tankPerk == InfectedTankPerk_MetabolicBoost && g_bMetabolic_enable)
 	{
 		st_perk = "Tank: Metabolic Boost";
 		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest((g_flMetabolic_speedmult-1)*100), "SpeedDemonDescriptionPanel");
 	}
-	else if (iPerk == 4 && g_bStorm_enable)
+	else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
 	{
 		st_perk = "Tank: Storm Caller";
 		Format(stDesc, sizeof(st_perk), "%t", "StormCallerDescriptionPanel");
 	}
-	else if (iPerk == 5 && g_bDouble_enable)
+	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_bDouble_enable)
 	{
 		st_perk = "Tank: Double the Trouble";
 		Format(stDesc, sizeof(st_perk),"%t", "DoubleTroubleDescriptionPanel");
@@ -10783,6 +10807,8 @@ Panel Menu_Sur1Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Survivor: Primary");
 
+	SurvivorFirstPerkType perkType = g_spSur[client].firstPerk;
+
 	//set name for perk 1
 	if (!g_bStopping_enable			&&	g_L4D_GameMode == GameMode_Campaign
 		|| !g_bStopping_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
@@ -10792,7 +10818,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur1[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_StoppingPower ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Stopping Power %s", st_current);
 		menu.DrawItem(st_display);
@@ -10810,7 +10836,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur1[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_DoubleTap ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Double Tap %s", st_current);
 		menu.DrawItem(st_display);
@@ -10837,7 +10863,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur1[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_SleightOfHand ? "(CURRENT)" : "");
 		
 		Format(st_display, sizeof(st_display), "Sleight of Hand %s", st_current);
 		menu.DrawItem(st_display);
@@ -10855,7 +10881,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur1[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_Pyrotechnician ? "(CURRENT)" : "");
 		
 		Format(st_display, sizeof(st_display), "Pyrotechnician %s", st_current);
 		menu.DrawItem(st_display);
@@ -10875,8 +10901,8 @@ int Menu_ChooseSur1Perk(Menu menu, MenuAction action, int client, int param2)
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iSur1[client] = param2;
+		if (1 <= param2 <= SurvivorFirstPerk_Count) {
+			g_spSur[client].firstPerk = PM_IntToSurvivorFirstPerkType(param2);
 		}
 	}
 
@@ -10899,6 +10925,8 @@ Panel Menu_Sur2Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Survivor: Secondary");
 
+	SurvivorSecondPerkType perkType = g_spSur[client].secondPerk;
+
 	//set name for perk 1
 	if (!g_bUnbreak_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
 		|| !g_bUnbreak_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
@@ -10908,7 +10936,7 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur2[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_Unbreakable ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Unbreakable %s", st_current);
 		menu.DrawItem(st_display);
@@ -10926,7 +10954,7 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur2[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_Spirit ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Spirit %s", st_current);
 		menu.DrawItem(st_display);
@@ -10953,7 +10981,7 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur2[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_HelpingHand ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Helping Hand %s", st_current);
 		menu.DrawItem(st_display);
@@ -10983,7 +11011,7 @@ Panel Menu_Sur2Perk(int client)
 		}
 		else
 		{
-			st_current = (g_iSur2[client] == 4 ? "(CURRENT)" : "");
+			st_current = (perkType == SurvivorSecondPerk_MartialArtist ? "(CURRENT)" : "");
 
 			Format(st_display, sizeof(st_display), "Martial Artist %s", st_current);
 			menu.DrawItem(st_display);
@@ -11008,8 +11036,8 @@ int Menu_ChooseSur2Perk(Menu menu, MenuAction action, int client, int param2)
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iSur2[client] = param2;
+		if (1 <= param2 <= SurvivorSecondPerk_Count) {
+			g_spSur[client].secondPerk = PM_IntToSurvivorSecondPerkType(param2);
 		}
 	}
 
@@ -11032,6 +11060,8 @@ Panel Menu_Sur3Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Survivor: Tertiary");
 
+	SurvivorThirdPerkType perkType = g_spSur[client].thirdPerk;
+
 	//set name for perk 1
 	if (!g_bPack_enable 		&&	g_L4D_GameMode == GameMode_Campaign
 		|| !g_bPack_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
@@ -11041,7 +11071,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur3[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_PackRat ? "(CURRENT)" : "");
 		
 		Format(st_display, sizeof(st_display), "Pack Rat %s", st_current);
 		menu.DrawItem(st_display);
@@ -11059,7 +11089,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur3[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_ChemReliant ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Chem Reliant %s", st_current);
 		menu.DrawItem(st_display);
@@ -11082,7 +11112,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur3[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_HardToKill ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Hard to Kill %s", st_current);
 		menu.DrawItem(st_display);
@@ -11103,7 +11133,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur3[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_ExtremeConditioning ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Extreme Conditioning %s", st_current);
 		menu.DrawItem(st_display);
@@ -11122,7 +11152,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iSur3[client] == 5 ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_LittleLeaguer ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Little Leaguer %s", st_current);
 		menu.DrawItem(st_display);
@@ -11141,8 +11171,8 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 5) {
-			g_iSur3[client] = param2;
+		if (1 <= param2 <= SurvivorThirdPerk_Count) {
+			g_spSur[client].thirdPerk = PM_IntToSurvivorThirdPerkType(param2);
 		}
 	}
 
@@ -11166,6 +11196,8 @@ Panel Menu_Inf1Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Boomer");
 
+	InfectedBoomerPerkType perkType = g_ipInf[client].boomerPerk;
+
 	//set name for perk 1
 	if (!g_bBarf_enable)
 	{
@@ -11173,7 +11205,7 @@ Panel Menu_Inf1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf1[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_BarfBagged ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Barf Bagged %s", st_current);
 		menu.DrawItem(st_display);
@@ -11189,7 +11221,7 @@ Panel Menu_Inf1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf1[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_BlindLuck ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Blind Luck %s", st_current);
 		menu.DrawItem(st_display);
@@ -11205,7 +11237,7 @@ Panel Menu_Inf1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf1[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_DeadWreckening ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Dead Wreckening %s", st_current);
 		menu.DrawItem(st_display);
@@ -11222,7 +11254,7 @@ Panel Menu_Inf1Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf1[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_MotionSickness ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Motion Sickness %s", st_current);
 		menu.DrawItem(st_display);
@@ -11240,8 +11272,8 @@ int Menu_ChooseInf1Perk(Menu menu, MenuAction action, int client, int param2)
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iInf1[client] = param2;
+		if (1 <= param2 <= InfectedBoomerPerk_Count) {
+			g_ipInf[client].boomerPerk = PM_IntToInfectedBoomerPerkType(param2);
 		}
 	}
 
@@ -11264,6 +11296,8 @@ Panel Menu_Inf2Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Tank");
 
+	InfectedTankPerkType perkType = g_ipInf[client].tankPerk;
+
 	//set name for perk 1
 	if (!g_bAdrenal_enable)
 	{
@@ -11271,7 +11305,7 @@ Panel Menu_Inf2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf2[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedTankPerk_AdrenalGlands ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Adrenal Glands %s", st_current);
 		menu.DrawItem(st_display);
@@ -11293,7 +11327,7 @@ Panel Menu_Inf2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf2[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedTankPerk_Juggernaut ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Juggernaut %s", st_current);
 		menu.DrawItem(st_display);
@@ -11309,7 +11343,7 @@ Panel Menu_Inf2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf2[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedTankPerk_MetabolicBoost ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Metabolic Boost %s", st_current);
 		menu.DrawItem(st_display);
@@ -11325,7 +11359,7 @@ Panel Menu_Inf2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf2[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedTankPerk_Stormcaller ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Storm Caller %s", st_current);
 		menu.DrawItem(st_display);
@@ -11341,7 +11375,7 @@ Panel Menu_Inf2Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf2[client] == 5 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedTankPerk_DoubleTrouble ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Double the Trouble %s", st_current);
 		menu.DrawItem(st_display);
@@ -11363,8 +11397,8 @@ int Menu_ChooseInf2Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 5) {
-			g_iInf2[client] = param2;
+		if (1 <= param2 <= InfectedTankPerk_Count) {
+			g_ipInf[client].tankPerk = PM_IntToInfectedTankPerkType(param2);
 		}
 	}
 
@@ -11387,6 +11421,8 @@ Panel Menu_Inf3Perk(int client)
 	Panel menu = CreatePanel();
 	SetPanelTitle(menu, "tPoncho's Perkmod - Smoker");
 
+	InfectedSmokerPerkType perkType = g_ipInf[client].smokerPerk;
+
 	//set name for perk 1
 	if (!g_bTongue_enable)
 	{
@@ -11394,7 +11430,7 @@ Panel Menu_Inf3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf3[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedSmokerPerk_TongueTwister ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Tongue Twister %s", st_current);
 		menu.DrawItem(st_display);
@@ -11416,7 +11452,7 @@ Panel Menu_Inf3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf3[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedSmokerPerk_Squeezer ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Squeezer %s", st_current);
 		menu.DrawItem(st_display);
@@ -11432,7 +11468,7 @@ Panel Menu_Inf3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf3[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedSmokerPerk_DragAndDrop ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Drag and Drop %s", st_current);
 		menu.DrawItem(st_display);
@@ -11448,7 +11484,7 @@ Panel Menu_Inf3Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf3[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedSmokerPerk_SmokeIt ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Olj's Smoke IT! %s", st_current);
 		menu.DrawItem(st_display);
@@ -11466,8 +11502,8 @@ int Menu_ChooseInf3Perk(Menu menu, MenuAction action, int client, int param2)
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iInf3[client] = param2;
+		if (1 <= param2 <= InfectedSmokerPerk_Count) {
+			g_ipInf[client].smokerPerk = PM_IntToInfectedSmokerPerkType(param2);
 		}
 	}
 
@@ -11490,6 +11526,8 @@ Panel Menu_Inf4Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Hunter");
 
+	InfectedHunterPerkType perkType = g_ipInf[client].hunterPerk;
+
 	//set name for perk 1
 	if (!g_bBody_enable)
 	{
@@ -11497,7 +11535,7 @@ Panel Menu_Inf4Perk(int client)
 	}
 	else
 	{	
-		st_current = (g_iInf4[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_BodySlam ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Body Slam %s", st_current);
 		menu.DrawItem(st_display);
@@ -11513,7 +11551,7 @@ Panel Menu_Inf4Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf4[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_EfficientKiller ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Efficient Killer %s", st_current);
 		menu.DrawItem(st_display);
@@ -11529,7 +11567,7 @@ Panel Menu_Inf4Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf4[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_Grasshopper ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Grasshopper %s", st_current);
 		menu.DrawItem(st_display);
@@ -11545,7 +11583,7 @@ Panel Menu_Inf4Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf4[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_SpeedDemon ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Speed Demon %s", st_current);
 		menu.DrawItem(st_display);
@@ -11564,8 +11602,8 @@ int Menu_ChooseInf4Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iInf4[client] = param2;
+		if (1 <= param2 <= InfectedHunterPerk_Count) {
+			g_ipInf[client].hunterPerk = PM_IntToInfectedHunterPerkType(param2);
 		}
 	}
 
@@ -11588,6 +11626,8 @@ Panel Menu_Inf5Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Jockey");
 
+	InfectedJockeyPerkType perkType = g_ipInf[client].jockeyPerk;
+
 	//set name for perk 1
 	if (!g_bWind_enable)
 	{
@@ -11595,7 +11635,7 @@ Panel Menu_Inf5Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf5[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedJockeyPerk_Wind ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Ride Like the Wind %s", st_current);
 		menu.DrawItem(st_display);
@@ -11611,7 +11651,7 @@ Panel Menu_Inf5Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf5[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedJockeyPerk_Cavalier ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Cavalier %s", st_current);
 		menu.DrawItem(st_display);
@@ -11627,7 +11667,7 @@ Panel Menu_Inf5Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf5[client] == 3 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedJockeyPerk_Frogger ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Frogger %s", st_current);
 		menu.DrawItem(st_display);
@@ -11643,7 +11683,7 @@ Panel Menu_Inf5Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf5[client] == 4 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedJockeyPerk_Ghost ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Ghost Rider %s", st_current);
 		menu.DrawItem(st_display);
@@ -11662,8 +11702,8 @@ int Menu_ChooseInf5Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 4) {
-			g_iInf5[client] = param2;
+		if (1 <= param2 <= InfectedJockeyPerk_Count) {
+			g_ipInf[client].jockeyPerk = PM_IntToInfectedJockeyPerkType(param2);
 		}
 	}
 
@@ -11686,6 +11726,8 @@ Panel Menu_Inf6Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Spitter");
 
+	InfectedSpitterPerkType perkType = g_ipInf[client].spitterPerk;
+
 	//set name for perk 1
 	if (!g_bTwinSF_enable)
 	{
@@ -11693,7 +11735,7 @@ Panel Menu_Inf6Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf6[client] == 1 ? "(CURRENT)": "");
+		st_current = (perkType == InfectedSpitterPerk_TwinSpitfire ? "(CURRENT)": "");
 
 		Format(st_display, sizeof(st_display), "Twin Spitfire %s", st_current);
 		menu.DrawItem(st_display);
@@ -11709,7 +11751,7 @@ Panel Menu_Inf6Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf6[client] == 2 ? "(CURRENT)": "");
+		st_current = (perkType == InfectedSpitterPerk_MegaAdhesive ? "(CURRENT)": "");
 
 		Format(st_display, sizeof(st_display), "Mega Adhesive %s", st_current);
 		menu.DrawItem(st_display);
@@ -11728,8 +11770,8 @@ int Menu_ChooseInf6Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 2) {
-			g_iInf6[client] = param2;
+		if (1 <= param2 <= InfectedSpitterPerk_Count) {
+			g_ipInf[client].spitterPerk = PM_IntToInfectedSpitterPerkType(param2);
 		}
 	}
 
@@ -11752,6 +11794,8 @@ Panel Menu_Inf7Perk(int client)
 	Panel menu = CreatePanel();
 	menu.SetTitle("tPoncho's Perkmod - Charger");
 
+	InfectedChargerPerkType perkType = g_ipInf[client].chargerPerk;
+
 	//set name for perk 1
 	if (!g_bScatter_enable)
 	{
@@ -11759,7 +11803,7 @@ Panel Menu_Inf7Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf7[client] == 1 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedChargerPerk_Scatter ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Scattering Ram %s", st_current);
 		menu.DrawItem(st_display);
@@ -11775,7 +11819,7 @@ Panel Menu_Inf7Perk(int client)
 	}
 	else
 	{
-		st_current = (g_iInf7[client] == 2 ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedChargerPerk_Bullet ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Speeding Bullet %s", st_current);
 		menu.DrawItem(st_display);
@@ -11794,8 +11838,8 @@ int Menu_ChooseInf7Perk(Menu menu, MenuAction action, int client, int param2)
 	
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= 2) {
-			g_iInf7[client] = param2;
+		if (1 <= param2 <= InfectedChargerPerk_Count) {
+			g_ipInf[client].chargerPerk = PM_IntToInfectedChargerPerkType(param2);
 		}
 	}
 
@@ -11811,7 +11855,7 @@ int Menu_ChooseInf7Perk(Menu menu, MenuAction action, int client, int param2)
 
 Action SS_SetPerks(int iCid, int args)
 {
-	ClientTeamType iT = GetClientTeamType(iCid);
+	ClientTeamType iT = SM_GetClientTeamType(iCid);
 
 	//don't show the menu if all perks are disabled
 	if ((!g_bSurAll_enable && iT == ClientTeam_Survivor) || (!g_bInfAll_enable && iT == ClientTeam_Infected))
@@ -11820,9 +11864,9 @@ Action SS_SetPerks(int iCid, int args)
 		return Plugin_Continue;
 	}
 	
-	g_iSur1[iCid] = 1;
-	g_iSur2[iCid] = 2;
-	g_iSur3[iCid] = 3;
+	g_spSur[iCid].firstPerk = SurvivorFirstPerk_StoppingPower;
+	g_spSur[iCid].secondPerk = SurvivorSecondPerk_Unbreakable;
+	g_spSur[iCid].thirdPerk = SurvivorThirdPerk_HardToKill;
 	g_bConfirm[iCid] = true;
 
 	if (iT == ClientTeam_Survivor)
@@ -11884,36 +11928,6 @@ bool GameModeCheck(bool main, bool campaign, bool survival, bool versus)
 		&& (campaign 	&& g_L4D_GameMode == GameMode_Campaign)
 		|| (survival 	&& g_L4D_GameMode == GameMode_Survival)
 		|| (versus 		&& g_L4D_GameMode == GameMode_Versus));
-}
-
-ClientTeamType IntToClientTeam(int value)
-{
-	if (value == 1)	return ClientTeam_Spectator;
-	if (value == 2)	return ClientTeam_Survivor;
-	if (value == 3)	return ClientTeam_Infected;
-	return ClientTeam_Unknown;
-}
-
-ClientTeamType GetClientTeamType(int clientId)
-{
-	int clientTeam = GetClientTeam(clientId);
-	return IntToClientTeam(clientTeam);
-}
-
-InfectedType IntToInfectedType(int value)
-{
-	bool isL4D2 = g_bIsL4D2;
-
-	if (value == 1) return Infected_Smoker;
-	if (value == 2) return Infected_Boomer;
-	if (value == 3)	return Infected_Hunter;
-	if (value == 4)	return isL4D2 ? Infected_Spitter : Infected_Unknown;
-	if (value == 5) return isL4D2 ? Infected_Jockey	: Infected_Tank;
-	if (value == 6)	return isL4D2 ? Infected_Charger : Infected_Unknown;
-	if (value == 7)	return isL4D2 ? Infected_Witch : Infected_Unknown;
-	if (value == 8)	return isL4D2 ? Infected_Tank : Infected_Unknown;
-
-	return Infected_Unknown;
 }
 
 // MARK: - Debug
@@ -12070,4 +12084,5 @@ Action Debug_StaminaTimer(Handle timer, int iCid)
 
 	return Plugin_Continue;
 }
+
 #endif
