@@ -226,7 +226,7 @@ int g_iIncapO			= -1;
 int g_iIsGhostO			= -1;
 
 //these offsets refuse to be searched for (these netprops
-//have unique names, but the SENDTABLE names are not unique - 
+//have unique names, but the SENDTABLE names are not unique -
 //usually DT_CountdownTimer, making it impossible to search
 //for AFAIK...), so we'll just declare them here and hope
 //Valve doesn't change them...
@@ -802,7 +802,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		SetFailState("Perkmod only supports L4D 1 or 2.");
 		return APLRes_Failure;
 	}
-	
+
 	return APLRes_Success;
 }
 
@@ -810,7 +810,7 @@ public void OnPluginStart()
 {
 	//Plugin version for online tracking
 	CreateConVar("l4d_perkmod_version", PLUGIN_VERSION, "Version of Perkmod2 for L4D2", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
-	
+
 	//PERK FUNCTIONS
 	//anything here that pertains to the actual
 	//workings of the perks (ie, events and timers)
@@ -909,7 +909,7 @@ public void OnPluginStart()
 	g_iIncapO			=	FindSendPropInfo("CTerrorPlayer","m_isIncapacitated");
 	g_iIsGhostO			=	FindSendPropInfo("CTerrorPlayer","m_isGhost");
 	//g_iClipO			=	FindSendPropInfo("CTerrorGun","m_iClip1");
-	
+
 	g_iNextActO			=	FindSendPropInfo("CBaseAbility","m_nextActivationTimer");
 	LogMessage("Retrieved g_iNextActO = %i", g_iNextActO);
 	g_iAttackTimerO		=	FindSendPropInfo("CClaw","m_attackTimer");
@@ -3082,8 +3082,8 @@ public void OnGameFrame()
 	//if frames aren't being processed,
 	//don't bother - otherwise we get LAG
 	//or even disconnects on map changes, etc...
-	
-	if (IsServerProcessing() == false || g_bIsLoading || g_bIsRoundStart) 
+
+	if (IsServerProcessing() == false || g_bIsLoading || g_bIsRoundStart)
 		return;
 
 	DT_OnGameFrame();
@@ -3474,7 +3474,7 @@ Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 
 	SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0, true);
 	TwinSF_ResetShotCount(iCid);
-	
+
 	ClientTeamType iTeam = SM_GetClientTeamType(iCid);
 
 	//check survivors for max health
@@ -3918,7 +3918,7 @@ Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 	}
 
 	if (g_bInfSmoker_enable && g_bDrag_enable)
-	{	
+	{
 		FindConVar("tongue_allow_voluntary_release").RestoreDefault(false, false);
 
 		hCvar = FindConVar("tongue_player_dropping_to_ground_time");
@@ -4166,7 +4166,7 @@ Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 		return Plugin_Continue;
 
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
-	if (iCid == 0 || IsValidEntity(iCid) == false || IsClientInGame(iCid) == false) 
+	if (iCid == 0 || IsValidEntity(iCid) == false || IsClientInGame(iCid) == false)
 		return Plugin_Continue;
 
 	//reset vars related to spirit perk
@@ -4642,7 +4642,7 @@ void AssignRandomPerks(int iCid)
 	{
 		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
-	}	
+	}
 
 	//3 sleight of hand
 	if (GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
@@ -5181,7 +5181,7 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03begin random perk for boomer");
 	#endif
-	
+
 	InfectedBoomerPerkType iPerkType[InfectedBoomerPerk_Count];
 	int iPerkCount = 0;
 
@@ -5472,9 +5472,9 @@ bool Stopping_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iDmgOrig, co
 	//check if perk is disabled
 	if (!g_bStopping_meta_enable) return true;
 
-	if (iTA == ClientTeam_Survivor 
+	if (iTA == ClientTeam_Survivor
 		&& g_spSur[iAtt].firstPerk == SurvivorFirstPerk_StoppingPower
-		&& g_bConfirm[iAtt] 
+		&& g_bConfirm[iAtt]
 		&& SM_GetClientTeamType(iVic) != ClientTeam_Survivor)
 	{
 		if (StrEqual(stWpn, "melee", false))
@@ -5558,7 +5558,7 @@ void DT_RunChecks()
 void Event_Confirm_DT(int iCid)
 {
 	if (g_iDTRegisterCount < 0) g_iDTRegisterCount = 0;
-	
+
 	if (IsClientInGame(iCid)
 		&& IsPlayerAlive(iCid)
 		&& g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap
@@ -5571,7 +5571,7 @@ void Event_Confirm_DT(int iCid)
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03double tap on confirm, registering \x01%i", iCid);
 		#endif
-	}	
+	}
 }
 
 //called whenever the registry needs to be rebuilt
@@ -6018,7 +6018,7 @@ Action SoH_AutoshotgunStart(Handle timer, DataPack hPack)
 		g_flSoHAutoI,
 		g_flSoHAutoE
 		);*/
-				
+
 	//then we set the new times in the gun
 	SetEntDataFloat(iEntid,	g_iShotStartDurO,	g_flSoHAutoS*flRate,	true);
 	SetEntDataFloat(iEntid,	g_iShotInsertDurO,	g_flSoHAutoI*flRate,	true);
@@ -6090,7 +6090,7 @@ Action SoH_SpasShotgunStart(Handle timer, DataPack hPack)
 		g_flSoHSpasI,
 		g_flSoHSpasE
 		);*/
-				
+
 	//then we set the new times in the gun
 	SetEntDataFloat(iEntid,	g_iShotStartDurO,	g_flSoHSpasS*flRate,	true);
 	SetEntDataFloat(iEntid,	g_iShotInsertDurO,	g_flSoHSpasI*flRate,	true);
@@ -6242,7 +6242,7 @@ Action SoH_ShotgunEnd(Handle timer, DataPack hPack)
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03-autoshotgun tick");
 	#endif
-	
+
 	hPack.Reset();
 	int iCid = hPack.ReadCell();
 	int iEntid = hPack.ReadCell();
@@ -6333,7 +6333,7 @@ Action SoH_ShotgunEndCock (Handle timer, DataPack hPack)
 //on pickup
 void Pyro_Pickup(int iCid, const char[] stWpn)
 {
-	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician 
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician
 		&& GameModeCheck(g_bSur1_enable, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
 	{
 		//only bother with checks if they aren't throwing
@@ -6391,7 +6391,7 @@ void Pyro_OnWeaponFire(int iCid, const char[] stWpn)
 	bool bPipe = StrEqual(stWpn,	"pipe_bomb",	false);
 	bool bMol = StrEqual(stWpn,		"molotov",		false);
 	bool bVomit = StrEqual(stWpn,	"vomitjar",		false);
-	
+
 	if (bPipe || bMol || bVomit)
 	{
 		g_iGren[iCid]--;		//reduce count by 1
@@ -6421,7 +6421,7 @@ void Pyro_OnWeaponFire(int iCid, const char[] stWpn)
 	}
 }
 
-//gives the grenade a few seconds later 
+//gives the grenade a few seconds later
 //(L4D takes a while to remove the grenade from inventory after it's been thrown)
 Action Grenadier_DelayedGive (Handle timer, int iCid)
 {
@@ -6655,7 +6655,7 @@ void Event_Confirm_MA(int iCid)
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03martial artist on confirm, registering \x01%i", iCid);
 		#endif
-	}	
+	}
 }
 
 //called whenever the registry needs to be rebuilt
@@ -6964,7 +6964,7 @@ void Event_Confirm_Unbreakable(int iCid)
 {
 	int iHP = GetEntProp(iCid, Prop_Data, "m_iHealth");
 	if (iCid == 0 || g_bConfirm[iCid] == false) return;
-	
+
 	ClientTeamType TC = SM_GetClientTeamType(iCid);
 
 	//check if perk is enabled
@@ -7195,7 +7195,7 @@ void Spirit_Timer()
 		//client ids are stored incrementally (X in 1, Y in 2, Z in 3,...)
 		//in the array iCid[], and iI increases per tick, hence this mess =P
 		//in short, here we use iCid[iI], NOT iI!
-		if (g_bConfirm[iCid[iI]] 
+		if (g_bConfirm[iCid[iI]]
 			&& g_spSur[iCid[iI]].secondPerk == SurvivorSecondPerk_Spirit
 			&& g_iMyDisabler[iCid[iI]] == -1
 			&& g_iSpiritCooldown[iCid[iI]] == 0
@@ -7270,7 +7270,7 @@ Action Spirit_CooldownTimer(Handle timer, int iCid)
 	//if the cooldown's been turned off,
 	//that means a new round has started
 	//and we can skip everything here
-	
+
 	//if (IsServerProcessing() == false
 		//|| g_iSpiritCooldown[iCid] == 0)
 		//return Plugin_Stop;
@@ -7298,7 +7298,7 @@ Action Spirit_ChangeHP(Handle timer, DataPack hPack)
 	#if defined PM_DEBUG
 	PrintToChatAll("\x05spirit\x03 init changehp");
 	#endif
-	
+
 	//retrieve vars from pack
 	hPack.Reset();
 	int iCid = hPack.ReadCell();
@@ -7413,8 +7413,8 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 	PrintToChatAll("\x05helphand\x03 reviver: \x01%i\x03, subject: \x01%i", iCid, iSub);
 	#endif
 	//then check for helping hand
-	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand 
-		&& g_bConfirm[iCid] 
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand
+		&& g_bConfirm[iCid]
 		&& GameModeCheck(g_bSur2_enable, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
 	{
 		switch (iLedge)
@@ -7589,7 +7589,7 @@ Action PR_GiveFullAmmo_delayed (Handle timer, int iCid)
 		g_bPRalreadyApplying[iCid] = false;
 	else
 		return Plugin_Stop;
-	
+
 	if (IsServerProcessing() == false
 		|| IsValidEntity(iCid) == false
 		|| IsClientInGame(iCid) == false
@@ -7614,7 +7614,7 @@ Action PR_GiveFullAmmo_delayed (Handle timer, int iCid)
 		PrintToChatAll("\x05PR\x03 iI = \x01%i\x03, value = \x01%i", iI, iAmmoCount);
 		iI++;
 	}
-	#endif	
+	#endif
 
 	//rifle - offset +12
 	iAmmoO_offset = 12;
@@ -7697,7 +7697,7 @@ void Chem_OnDrugUsed(int iCid)
 	{
 		float flBuff = GetEntDataFloat(iCid, g_iHPBuffO);
 		int iHP = GetEntProp(iCid, Prop_Data, "m_iHealth");
-		
+
 		//so we need to test the maxbound for
 		//how much health buffer we can give
 		//which can vary depending on whether
@@ -7816,7 +7816,7 @@ Action HardToKill_Delayed(Handle timer, int iCid)
 
 void Event_Confirm_LittleLeaguer(int iCid)
 {
-	if (iCid == 0 
+	if (iCid == 0
 		|| SM_GetClientTeamType(iCid) != ClientTeam_Survivor
 		|| IsPlayerAlive(iCid) == false
 		|| g_bConfirm[iCid] == false
@@ -7860,10 +7860,10 @@ void Extreme_Rebuild()
 	#endif
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) 
-			&& IsPlayerAlive(iI) 
+		if (IsClientInGame(iI)
+			&& IsPlayerAlive(iI)
 			&& g_spSur[iI].thirdPerk == SurvivorThirdPerk_ExtremeConditioning
-			&& g_bConfirm[iI] 
+			&& g_bConfirm[iI]
 			&& SM_GetClientTeamType(iI) == ClientTeam_Survivor)
 		{
 			SetEntDataFloat(iI, g_iLaggedMovementO, 1.0 * g_flExtreme_rate, true);
@@ -7883,7 +7883,7 @@ void BlindLuck_OnIt(int iAtt, int iVic)
 {
 	//don't blind bots as per grandwaziri's plugin, they suck enough anyways
 	if (g_ipInf[iAtt].boomerPerk == InfectedBoomerPerk_BlindLuck
-		&& g_bConfirm[iAtt] 
+		&& g_bConfirm[iAtt]
 		&& IsFakeClient(iVic) == false)
 	{
 		//check if perk is enabled
@@ -7910,7 +7910,7 @@ void BlindLuck_OnSpawn(int iCid)
 		#endif
 		CreateTimer(1.0, Timer_BlindLuckChecks, iCid, TIMER_REPEAT);
 	}
-	
+
 	return ;
 }
 
@@ -7949,7 +7949,7 @@ Action Timer_BlindLuckChecks(Handle timer, int iCid)
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03- ientid == -1, stopping");
 		#endif
-		
+
 		KillTimer(timer);
 		return Plugin_Stop;
 	}
@@ -8001,8 +8001,8 @@ void BarfBagged_OnIt(int iAtt)
 	//only spawn a mob if one guy got slimed
 	//or if all four got slimed (max 2 extra mobs)
 	if (g_ipInf[iAtt].boomerPerk == InfectedBoomerPerk_BarfBagged
-		&& g_bConfirm[iAtt] 
-		&& (g_iSlimed == 1 || g_iSlimed == 4) 
+		&& g_bConfirm[iAtt]
+		&& (g_iSlimed == 1 || g_iSlimed == 4)
 		&& SM_GetClientTeamType(iAtt) == ClientTeam_Infected)
 	{
 		//check if perk is enabled
@@ -8045,7 +8045,7 @@ bool DeadWreckening_DamageAdd(int iAtt, int iVic, int iType, int iDmgOrig)
 		if (iDmgAdd == 0) return false;
 
 		InfToSurDamageAdd(iVic, iDmgAdd , iDmgOrig);
-		
+
 		return true;
 	}
 	return false;
@@ -8190,7 +8190,7 @@ void Drag_OnTongueGrab(int iCid)
 	if (!g_bInfSmoker_enable || !g_bDrag_enable) return;
 
 	//if attacker id is null, reset vars
-	if (iCid <= 0) 
+	if (iCid <= 0)
 	{
 		SetConVarInt(FindConVar("tongue_allow_voluntary_release"), 0, false, false);
 		SetConVarFloat(FindConVar("tongue_player_dropping_to_ground_time"), g_flTongueDropTime, false, false);
@@ -8219,8 +8219,8 @@ bool Drag_OnSpawn(int iCid)
 	//stop if grasshopper is disabled
 	if (!g_bInfSmoker_enable || !g_bDrag_enable) return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
-		&& g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_DragAndDrop 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
+		&& g_ipInf[iCid].smokerPerk == InfectedSmokerPerk_DragAndDrop
 		&& g_bConfirm[iCid])
 	{
 		#if defined PM_DEBUG
@@ -8331,28 +8331,28 @@ Action Timer_DragChecks(Handle timer, int iCid)
 
 Action SmokeIt_OnTongueGrab(int smoker, int victim)
 {
-	if (!g_bInfSmoker_enable || !g_bSmokeIt_enable || g_ipInf[smoker].smokerPerk != InfectedSmokerPerk_SmokeIt || !g_bConfirm[smoker]) 
+	if (!g_bInfSmoker_enable || !g_bSmokeIt_enable || g_ipInf[smoker].smokerPerk != InfectedSmokerPerk_SmokeIt || !g_bConfirm[smoker])
 		return Plugin_Continue;
 
 	//new Smoker = GetClientOfUserId(event.GetInt("userid"));
 	if (IsFakeClient(smoker)) return Plugin_Continue;
-	
+
 	g_bSmokeItGrabbed[smoker] = true;
 	SetEntityMoveType(smoker, MOVETYPE_ISOMETRIC);
 	SetEntDataFloat(smoker, g_iLaggedMovementO, g_flSmokeItSpeed, true);
-	
+
 	DataPack pack = CreateDataPack();
 	pack.WriteCell(smoker);
 	pack.WriteCell(victim);
 	g_hSmokeItTimer[smoker] = CreateDataTimer(0.2, SmokeItTimerFunction, pack, TIMER_FLAG_NO_MAPCHANGE|TIMER_REPEAT);
-	
+
 	return Plugin_Continue;
 }
 
 Action SmokeItTimerFunction(Handle timer, DataPack pack)
 {
 	pack.Reset();
-	
+
 	int smoker = pack.ReadCell();
 	if (!IsValidClient(smoker) || IsFakeClient(smoker) || (SM_GetClientTeamType(smoker) != ClientTeam_Infected) || (g_bSmokeItGrabbed[smoker] = false))
 	{
@@ -8360,7 +8360,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 		CloseHandle(pack);
 		return Plugin_Stop;
 	}
-			
+
 	int victim = pack.ReadCell();
 	if (!IsValidClient(victim) || (SM_GetClientTeamType(victim) != ClientTeam_Survivor) || (g_bSmokeItGrabbed[smoker] = false))
 	{
@@ -8368,7 +8368,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 		CloseHandle(pack);
 		return Plugin_Stop;
 	}
-			
+
 	float smokerPosition[3];
 	float victimPosition[3];
 	GetClientAbsOrigin(smoker, smokerPosition);
@@ -8402,16 +8402,16 @@ Action SmokeIt_OnTongueRelease(int smoker)
 bool IsValidClient(int client)
 {
 	if (client == 0) return false;
-	
-	if (!IsClientConnected(client)) 
+
+	if (!IsClientConnected(client))
 		return false;
-	
+
 	//if (IsFakeClient(client))
 		//return false;
-	
+
 	if (!IsClientInGame(client))
 		return false;
-	
+
 	if (!IsPlayerAlive(client))
 		return false;
 	return true;
@@ -8648,7 +8648,7 @@ bool Grass_OnAbilityUse(int iCid, const char[] stAb)
 	if (!g_bInfHunter_enable || !g_bGrass_enable)
 		return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
 		&& g_ipInf[iCid].hunterPerk == InfectedHunterPerk_Grasshopper
 		&& g_bConfirm[iCid])
 	{
@@ -8694,8 +8694,8 @@ Action Grasshopper_DelayedVel(Handle timer, int iCid)
 void Wind_OnRideStart(int iAtt, int iVic)
 {
 	if (g_ipInf[iAtt].jockeyPerk == InfectedJockeyPerk_Wind
-		&& g_bConfirm[iAtt] 
-		&& g_bInfJockey_enable 
+		&& g_bConfirm[iAtt]
+		&& g_bInfJockey_enable
 		&& g_bWind_enable)
 	{
 		SetEntDataFloat(iVic, g_iLaggedMovementO, 1.0 * g_flWind_rate, true);
@@ -8764,9 +8764,9 @@ Action Cavalier_ChangeHP(Handle timer, int iCid)
 
 bool Frogger_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, const char[] stWpn, int iDmgOrig)
 {
-	if (iTA == ClientTeam_Infected 
-		&& g_bConfirm[iAtt] 
-		&& StrEqual(stWpn, "jockey_claw") 
+	if (iTA == ClientTeam_Infected
+		&& g_bConfirm[iAtt]
+		&& StrEqual(stWpn, "jockey_claw")
 		&& g_ipInf[iAtt].jockeyPerk == InfectedJockeyPerk_Frogger)
 	{
 		//stop if frogger is disabled
@@ -8790,8 +8790,8 @@ bool Frogger_OnJump(int iCid)
 	//stop if frogger is disabled
 	if (!g_bInfJockey_enable || !g_bFrogger_enable || SM_IntToInfectedType(GetEntData(iCid, g_iClassO), g_bIsL4D2) != Infected_Jockey) return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
-		&& g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Frogger 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
+		&& g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Frogger
 		&& g_bConfirm[iCid])
 	{
 		CreateTimer(0.1, Frogger_DelayedVel, iCid);
@@ -8832,7 +8832,7 @@ bool Ghost_OnSpawn(int iCid)
 	//stop if frogger is disabled
 	if (!g_bInfJockey_enable || !g_bGhost_enable) return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
 		&& g_ipInf[iCid].jockeyPerk == InfectedJockeyPerk_Ghost
 		&& g_bConfirm[iCid])
 	{
@@ -8868,7 +8868,7 @@ bool TwinSF_OnSpawn(int iCid)
 	//stop if grasshopper is disabled
 	if (!g_bInfSpitter_enable || !g_bTwinSF_enable) return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
 		&& g_ipInf[iCid].spitterPerk == InfectedSpitterPerk_TwinSpitfire
 		&& g_bConfirm[iCid])
 	{
@@ -9002,8 +9002,8 @@ Action Timer_TwinSFChecks(Handle timer, int iCid)
 
 bool MegaAd_SlowEffect(int iAtt, int iVic, const char[] stWpn)
 {
-	if (g_bConfirm[iAtt] 
-		&& StrEqual(stWpn, "insect_swarm") 
+	if (g_bConfirm[iAtt]
+		&& StrEqual(stWpn, "insect_swarm")
 		&& g_ipInf[iAtt].spitterPerk == InfectedSpitterPerk_MegaAdhesive)
 	{
 		#if defined PM_DEBUG
@@ -9117,8 +9117,8 @@ bool Scatter_OnImpact(int iAtt, int iVic)
 	//stop if disabled
 	if (!g_bInfCharger_enable || !g_bScatter_enable) return false;
 
-	if (SM_GetClientTeamType(iAtt) == ClientTeam_Infected 
-		&& g_ipInf[iAtt].chargerPerk == InfectedChargerPerk_Scatter 
+	if (SM_GetClientTeamType(iAtt) == ClientTeam_Infected
+		&& g_ipInf[iAtt].chargerPerk == InfectedChargerPerk_Scatter
 		&& g_bConfirm[iAtt])
 	{
 		CreateTimer(0.1, Timer_ScatterForce, iVic);
@@ -9173,7 +9173,7 @@ Action Scatter_ChangeHP(Handle timer, int iCid)
 	SetEntityHealth(iCid, RoundToNearest(GetEntProp(iCid, Prop_Data, "m_iHealth") * (1 + g_flScatter_hpmult) ) );
 
 	float flMaxHP = FindConVar("z_charger_health").IntValue * (1 + g_flScatter_hpmult);
-	
+
 	if (GetEntProp(iCid, Prop_Data, "m_iHealth") > flMaxHP)
 		SetEntProp(iCid, Prop_Data, "m_iHealth", RoundToNearest(flMaxHP) );
 
@@ -9189,7 +9189,7 @@ bool Bullet_OnAbilityUse(int iCid, const char[] stAb)
 	//stop if frogger is disabled
 	if (!g_bInfCharger_enable || !g_bBullet_enable) return false;
 
-	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected 
+	if (SM_GetClientTeamType(iCid) == ClientTeam_Infected
 		&& g_ipInf[iCid].chargerPerk == InfectedChargerPerk_Bullet
 		&& g_bConfirm[iCid])
 	{
@@ -9230,7 +9230,7 @@ Action Event_Tank_Spawn(Event event, const char[] name, bool dontBroadcast)
 	SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0, true);
 
 	//stop if tank perks are disallowed
-	if (!g_bInfTank_enable) 
+	if (!g_bInfTank_enable)
 		return Plugin_Continue;
 
 	//start a check if it's a bot
@@ -9258,7 +9258,7 @@ void Tank_ApplyPerk(int iCid)
 	//why apply tank perks to non-infected?
 	if (IsClientInGame(iCid) == false || SM_GetClientTeamType(iCid) != ClientTeam_Infected)
 		return;
-	
+
 	//and make sure we're dealing with a tank
 	char st_class[32];
 	GetClientModel(iCid, st_class, sizeof(st_class));
@@ -9383,7 +9383,7 @@ void Tank_ApplyPerk(int iCid)
 				#endif
 			}
 		}
-		
+
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03double trouble 1st tank apply");
 		#endif
@@ -9541,7 +9541,7 @@ Action DoubleTrouble_SpawnTank(Handle timer, int iCid)
 Action DoubleTrouble_KickBotSpawner(Handle timer, int iSpawner)
 {
 	if ((IsServerProcessing() == false
-		&& IsFakeClient(iSpawner)) 
+		&& IsFakeClient(iSpawner))
 		|| (IsClientInGame(iSpawner)
 		&& IsClientInKickQueue(iSpawner) == false
 		&& IsPlayerAlive(iSpawner) == false
@@ -9571,9 +9571,9 @@ void Adrenal_Rebuild()
 
 	for (int iI = 1; iI <= MaxClients; iI++)
 	{
-		if (IsClientInGame(iI) 
-			&& IsPlayerAlive(iI) 
-			&& SM_GetClientTeamType(iI) == ClientTeam_Infected 
+		if (IsClientInGame(iI)
+			&& IsPlayerAlive(iI)
+			&& SM_GetClientTeamType(iI) == ClientTeam_Infected
 			&& g_ipInf[iI].tankPerk == InfectedTankPerk_AdrenalGlands
 			&& g_bConfirm[iI])
 		{
@@ -9670,11 +9670,11 @@ void Adrenal_OnGameFrame()
 			flTimeStamp_calc = flTimeStamp_ret - (flDuration_ret * (1 - g_flAdrenal_punchcdmult));
 			SetEntDataFloat(iEntid, g_iAttackTimerO + 8, flTimeStamp_calc, true);
 			SetEntDataFloat(iEntid, g_iNextPAttO, flTimeStamp_calc, true);
-			
+
 			//SetEntDataFloat(iEntid, g_iAttackTimerO+4, 0, true); //experimental
 			//SetEntDataFloat(iEntid, 5464+4, 0, true); //experimental
 			//SetEntDataFloat(iEntid, 5464+8, flTimeStamp_calc, true); //experimental
-			
+
 			//SetEntDataFloat(iEntid, g_iNextSAttO, flTimeStamp_calc, true); //experimental
 
 			//similar logic to above, but this change is necessary
@@ -9842,7 +9842,7 @@ Action Event_Tank_Frustrated(Event event, const char[] name, bool dontBroadcast)
 	if (g_iTank == 3) g_iTank = 4;
 
 	SetEntDataFloat(iCid, g_iLaggedMovementO, 1.0, true);
-	
+
 	return Plugin_Continue;
 }
 
@@ -10030,7 +10030,7 @@ int Menu_ChooseInit(Menu topmenu, MenuAction action, int client, int param2)
 		if (IsClientInGame(client))
 			SendPanelToClient(Menu_Top(client), client, Menu_ChooseSubMenu, MENU_TIME_FOREVER);
 	}
-	
+
 	return 0;
 }
 
@@ -10141,13 +10141,13 @@ Panel Menu_Top(int iCid)
 	menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 	menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel1");	
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel1");
 	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel2");	
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel2");
 	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel3");	
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel3");
 	menu.DrawItem(st_display);
-	
+
 	return menu;
 }
 
@@ -10332,7 +10332,7 @@ Panel Menu_Top_Inf(int iCid)
 int Menu_ChooseSubMenu_Inf(Menu topmenu, MenuAction action, int client, int param2)
 {
 	if (topmenu != INVALID_HANDLE) CloseHandle(topmenu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		switch(param2)
@@ -10364,14 +10364,14 @@ int Menu_ChooseSubMenu_Inf(Menu topmenu, MenuAction action, int client, int para
 
 //menu for confirming perk choices
 Panel Menu_Confirm(int iCid)
-{	
+{
 	char panel[128];
-	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel1");	
+	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel1");
 
 	Panel menu = CreatePanel();
 	menu.SetTitle(panel);
 	menu.DrawText("");
-	
+
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel2");
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel3");
@@ -10431,7 +10431,7 @@ int Menu_ChooseConfirm(Menu topmenu, MenuAction action, int client, int param2)
 int Menu_ChooseConfirm_Inf(Menu topmenu, MenuAction action, int client, int param2)
 {
 	if (topmenu != INVALID_HANDLE) CloseHandle(topmenu);
-	
+
 	if (action==MenuAction_Select)
 	{
 		switch(param2)
@@ -10504,7 +10504,7 @@ Panel Menu_ShowChoices(int iCid)
 			iTime = g_iSpirit_cd_vs;
 		else if (g_L4D_GameMode == GameMode_Survival)
 			iTime=g_iSpirit_cd_sur;
-		
+
 		Format(st_perk, sizeof(st_perk), "Spirit (%t: %i min)", "SpiritDescriptionPanel", iTime/60);
 	}
 	else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
@@ -10830,7 +10830,7 @@ Panel Menu_Sur1Perk(int client)
 
 		Format(st_display, sizeof(st_display), "Double Tap %s", st_current);
 		menu.DrawItem(st_display);
-		
+
 		Format(st_display, sizeof(st_display), "%t +%i%%", "DoubleTapDescriptionPanel", RoundToNearest(100 * ((1/g_flDT_rate)-1) ) );
 		menu.DrawText(st_display);
 
@@ -10854,7 +10854,7 @@ Panel Menu_Sur1Perk(int client)
 	else
 	{
 		st_current = (perkType == SurvivorFirstPerk_SleightOfHand ? "(CURRENT)" : "");
-		
+
 		Format(st_display, sizeof(st_display), "Sleight of Hand %s", st_current);
 		menu.DrawItem(st_display);
 
@@ -10872,7 +10872,7 @@ Panel Menu_Sur1Perk(int client)
 	else
 	{
 		st_current = (perkType == SurvivorFirstPerk_Pyrotechnician ? "(CURRENT)" : "");
-		
+
 		Format(st_display, sizeof(st_display), "Pyrotechnician %s", st_current);
 		menu.DrawItem(st_display);
 		Format(st_display, sizeof(st_display), "%t", "PyroDescriptionText1");
@@ -10990,7 +10990,7 @@ Panel Menu_Sur2Perk(int client)
 			Format(st_display, sizeof(st_display), "%t +%i", "HelpingHandDescriptionPanel", iBuff);
 			menu.DrawText(st_display);
 		}
-	
+
 		//set name for perk 4, Martial Artist
 		if (!g_bMA_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
 			|| !g_bMA_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
@@ -11062,7 +11062,7 @@ Panel Menu_Sur3Perk(int client)
 	else
 	{
 		st_current = (perkType == SurvivorThirdPerk_PackRat ? "(CURRENT)" : "");
-		
+
 		Format(st_display, sizeof(st_display), "Pack Rat %s", st_current);
 		menu.DrawItem(st_display);
 
@@ -11158,7 +11158,7 @@ Panel Menu_Sur3Perk(int client)
 int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= SurvivorThirdPerk_Count) {
@@ -11168,7 +11168,7 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 
 	if (IsClientInGame(client))
 		SendPanelToClient(Menu_Top(client), client, Menu_ChooseSubMenu, MENU_TIME_FOREVER);
-	
+
 	return 0;
 }
 
@@ -11380,7 +11380,7 @@ Panel Menu_InfTankPerk(int client)
 int Menu_ChooseInfTankPerk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= InfectedTankPerk_Count) {
@@ -11517,7 +11517,7 @@ Panel Menu_InfHunterPerk(int client)
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
 	else
-	{	
+	{
 		st_current = (perkType == InfectedHunterPerk_BodySlam ? "(CURRENT)" : "");
 
 		Format(st_display, sizeof(st_display), "Body Slam %s", st_current);
@@ -11581,7 +11581,7 @@ Panel Menu_InfHunterPerk(int client)
 int Menu_ChooseInfHunterPerk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= InfectedHunterPerk_Count) {
@@ -11679,7 +11679,7 @@ Panel Menu_InfJockeyPerk(int client)
 int Menu_ChooseInfJockeyPerk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= InfectedJockeyPerk_Count) {
@@ -11745,7 +11745,7 @@ Panel Menu_InfSpitterPerk(int client)
 int Menu_ChooseInfSpitterPerk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= InfectedSpitterPerk_Count) {
@@ -11811,7 +11811,7 @@ Panel Menu_InfChargerPerk(int client)
 int Menu_ChooseInfChargerPerk(Menu menu, MenuAction action, int client, int param2)
 {
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (1 <= param2 <= InfectedChargerPerk_Count) {
@@ -11839,7 +11839,7 @@ Action SS_SetPerks(int iCid, int args)
 		g_bConfirm[iCid] = false;
 		return Plugin_Continue;
 	}
-	
+
 	g_spSur[iCid].firstPerk = SurvivorFirstPerk_StoppingPower;
 	g_spSur[iCid].secondPerk = SurvivorSecondPerk_Unbreakable;
 	g_spSur[iCid].thirdPerk = SurvivorThirdPerk_HardToKill;
@@ -11999,7 +11999,7 @@ Action Debug_OnSay(int iCid, int args)
 		PrintToChat(iCid,"\x03[SM] [DEBUG] retrieving shotgun reload anim values");
 		int iEntid = GetEntDataEnt2(iCid, g_iActiveWO);
 		int iOffs;
-			
+
 		iOffs = FindSendPropInfo("CBaseShotgun", "m_reloadStartDuration");
 		PrintToChat(iCid,"\x03- start, offset \x01%i", iOffs);
 		PrintToChat(iCid,"\x03-- value at offset \x01%f", GetEntDataFloat(iEntid, iOffs) );
@@ -12021,7 +12021,7 @@ Action Debug_OnSay(int iCid, int args)
 
 		return Plugin_Continue;
 	}
-	
+
 	if (StrEqual(st_chat, "debug nextact", false))
 	{
 		g_iNextActO	= FindSendPropInfo("CBaseAbility", "m_nextActivationTimer");
