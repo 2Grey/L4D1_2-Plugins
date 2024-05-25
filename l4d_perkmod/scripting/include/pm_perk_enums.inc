@@ -1,8 +1,8 @@
-#if defined _l4d_perkmod_perks_enums_
+#if defined _l4d_perkmod_perk_enums_
 #endinput
 #endif
 
-#define _l4d_perkmod_perks_enums_
+#define _l4d_perkmod_perk_enums_
 
 // MARK: - Enum Survivor
 
