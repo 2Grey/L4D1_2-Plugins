@@ -4,8 +4,8 @@
 
 #define _l4d_perkmod_base_enums_
 
-// #pragma semicolon 1
-// #pragma newdecls required
+#pragma semicolon 1
+#pragma newdecls required
 
 // #include <sourcemod>
 // #include <sdktools>
@@ -21,11 +21,11 @@ enum ClientTeamType {
 
 enum InfectedType {
 	Infected_Unknown	= 0,
-	Infected_Smoker 	= 1,
-	Infected_Boomer 	= 2,
-	Infected_Hunter 	= 3,
-	Infected_Spitter 	= 4,
-	Infected_Jockey 	= 5, // Tank in L4D1
+	Infected_Smoker		= 1,
+	Infected_Boomer		= 2,
+	Infected_Hunter		= 3,
+	Infected_Spitter	= 4,
+	Infected_Jockey		= 5, // Tank in L4D1
 	Infected_Charger	= 6,
 	Infected_Witch		= 7,
 	Infected_Tank		= 8,
@@ -58,7 +58,7 @@ InfectedType SM_IntToInfectedType(int value, bool isL4D2)
 	if (value == 1) return Infected_Smoker;
 	if (value == 2) return Infected_Boomer;
 	if (value == 3)	return Infected_Hunter;
-	if (value == 4)	return isL4D2 ? Infected_Spitter : Infected_Unknown;
+	if (value == 4)	return isL4D2 ? Infected_Spitter : Infected_Witch;
 	if (value == 5) return isL4D2 ? Infected_Jockey	: Infected_Tank;
 	if (value == 6)	return isL4D2 ? Infected_Charger : Infected_Unknown;
 	if (value == 7)	return isL4D2 ? Infected_Witch : Infected_Unknown;

@@ -4,8 +4,11 @@
 
 #define _l4d_perkmod_perk_structs_
 
+#pragma semicolon 1
+#pragma newdecls required
+
 #include <sourcemod>
-#include <perkenums>
+#include <pm_perk_enums>
 
 enum struct SurvivorPerks {
 

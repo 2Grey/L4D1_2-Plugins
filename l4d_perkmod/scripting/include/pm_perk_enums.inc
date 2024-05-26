@@ -4,6 +4,9 @@
 
 #define _l4d_perkmod_perk_enums_
 
+#pragma semicolon 1
+#pragma newdecls required
+
 // MARK: - Enum Survivor
 
 enum SurvivorFirstPerkType {
@@ -108,17 +111,6 @@ enum InfectedTankPerkType {
 
 // MARK: - Enum functions
 
-InfectedSmokerPerkType PM_IntToInfectedSmokerPerkType(int val)
-{
-    switch (val) {
-        case 1: return InfectedSmokerPerk_TongueTwister;
-        case 2: return InfectedSmokerPerk_Squeezer;
-        case 3: return InfectedSmokerPerk_DragAndDrop;
-        case 4: return InfectedSmokerPerk_SmokeIt;
-        default: return InfectedSmokerPerk_Unknown;
-    }
-}
-
 SurvivorFirstPerkType PM_IntToSurvivorFirstPerkType(int val)
 {
     switch (val) {
@@ -130,6 +122,11 @@ SurvivorFirstPerkType PM_IntToSurvivorFirstPerkType(int val)
     }
 }
 
+int PM_SurvivorFirstPerkTypeToInt(SurvivorFirstPerkType val)
+{
+    return view_as<int>(val);
+}
+
 SurvivorSecondPerkType PM_IntToSurvivorSecondPerkType(int val)
 {
     switch (val) {
@@ -139,6 +136,11 @@ SurvivorSecondPerkType PM_IntToSurvivorSecondPerkType(int val)
         case 4: return SurvivorSecondPerk_MartialArtist;
         default: return SurvivorSecondPerk_Unknown;
     }
+}
+
+int PM_SurvivorSecondPerkTypeToInt(SurvivorSecondPerkType val)
+{
+    return view_as<int>(val);
 }
 
 SurvivorThirdPerkType PM_IntToSurvivorThirdPerkType(int val)
@@ -153,6 +155,26 @@ SurvivorThirdPerkType PM_IntToSurvivorThirdPerkType(int val)
     }
 }
 
+int PM_SurvivorThirdPerkTypeToInt(SurvivorThirdPerkType val) {
+    return view_as<int>(val);
+}
+
+InfectedSmokerPerkType PM_IntToInfectedSmokerPerkType(int val)
+{
+    switch (val) {
+        case 1: return InfectedSmokerPerk_TongueTwister;
+        case 2: return InfectedSmokerPerk_Squeezer;
+        case 3: return InfectedSmokerPerk_DragAndDrop;
+        case 4: return InfectedSmokerPerk_SmokeIt;
+        default: return InfectedSmokerPerk_Unknown;
+    }
+}
+
+int PM_InfectedSmokerPerkTypeToInt(InfectedSmokerPerkType val)
+{
+    return view_as<int>(val);
+}
+
 InfectedBoomerPerkType PM_IntToInfectedBoomerPerkType(int val)
 {
     switch (val) {
@@ -162,6 +184,11 @@ InfectedBoomerPerkType PM_IntToInfectedBoomerPerkType(int val)
         case 4: return InfectedBoomerPerk_MotionSickness;
         default: return InfectedBoomerPerk_Unknown;
     }
+}
+
+int PM_InfectedBoomerPerkTypeToInt(InfectedBoomerPerkType val)
+{
+    return view_as<int>(val);
 }
 
 InfectedHunterPerkType PM_IntToInfectedHunterPerkType(int val)
@@ -175,6 +202,11 @@ InfectedHunterPerkType PM_IntToInfectedHunterPerkType(int val)
     }
 }
 
+int PM_InfectedHunterPerkTypeToInt(InfectedHunterPerkType val)
+{
+    return view_as<int>(val);
+}
+
 InfectedSpitterPerkType PM_IntToInfectedSpitterPerkType(int val)
 {
     switch (val) {
@@ -182,6 +214,11 @@ InfectedSpitterPerkType PM_IntToInfectedSpitterPerkType(int val)
         case 2: return InfectedSpitterPerk_MegaAdhesive;
         default: return InfectedSpitterPerk_Unknown;
     }
+}
+
+int PM_InfectedSpitterPerkTypeToInt(InfectedSpitterPerkType val)
+{
+    return view_as<int>(val);
 }
 
 InfectedJockeyPerkType PM_IntToInfectedJockeyPerkType(int val)
@@ -195,6 +232,11 @@ InfectedJockeyPerkType PM_IntToInfectedJockeyPerkType(int val)
     }
 }
 
+int PM_InfectedJockeyPerkTypeToInt(InfectedJockeyPerkType val)
+{
+    return view_as<int>(val);
+}
+
 InfectedChargerPerkType PM_IntToInfectedChargerPerkType(int val)
 {
     switch (val) {
@@ -202,6 +244,11 @@ InfectedChargerPerkType PM_IntToInfectedChargerPerkType(int val)
         case 2: return InfectedChargerPerk_Bullet;
         default: return InfectedChargerPerk_Unknown;
     }
+}
+
+int PM_InfectedChargerPerkTypeToInt(InfectedChargerPerkType val)
+{
+    return view_as<int>(val);
 }
 
 InfectedTankPerkType PM_IntToInfectedTankPerkType(int val)
@@ -214,4 +261,9 @@ InfectedTankPerkType PM_IntToInfectedTankPerkType(int val)
         case 5: return InfectedTankPerk_DoubleTrouble;
         default: return InfectedTankPerk_Unknown;
     }
+}
+
+int PM_InfectedTankPerkTypeToInt(InfectedTankPerkType val)
+{
+    return view_as<int>(val);
 }
