@@ -33,16 +33,16 @@
 #include <sourcemod>
 #include <sdktools>
 
-#include <baseenums>
-#include <perkenums>
-#include <perkstructs>
+#include <pm_base_enums>
+#include <pm_perk_enums>
+#include <pm_perk_structs>
+#include <pm_convars>
 
 #define PLUGIN_NAME "PerkMod"
-#define PLUGIN_VERSION "2.2.2"
+#define PLUGIN_VERSION "3.0.0"
 // #define PM_DEBUG 1
 
 #define PM_PLAYERS_COUNT (1 + MAXPLAYERS)
-
 
 // MARK: - Plugin Info
 
@@ -64,7 +64,7 @@ InfectedPerks g_ipInf[PM_PLAYERS_COUNT];
 bool g_bConfirm[PM_PLAYERS_COUNT] = {false};
 
 //timer perks handle
-Handle g_hTimerPerks = INVALID_HANDLE;
+Handle g_hTimerPerks = null;
 
 //PYROTECHNICIAN PERK
 //track how many grenades are carried for pyrotechnician perk
@@ -88,7 +88,7 @@ bool g_bPIncap[MAXPLAYERS+1] = {false};
 //used to keep track of whether cooldown is in effect
 int g_iSpiritCooldown[MAXPLAYERS+1];
 //used to track the timers themselves
-Handle g_iSpiritTimer[MAXPLAYERS+1] = {INVALID_HANDLE};
+Handle g_iSpiritTimer[MAXPLAYERS+1] = {null};
 
 //DOUBLE TAP PERK
 //used to track who has the double tap perk.
@@ -149,6 +149,7 @@ bool g_bPRalreadyApplying[MAXPLAYERS+1] = {false};
 //VARIOUS INFECTED PERKS
 //this is used by most cooldown-reducing SI
 //perks, keeps track of when an ability was used
+
 float g_flTimeStamp[MAXPLAYERS+1] = {-1.0};
 //contains id of target, for given disabler
 int g_iMyDisableTarget[MAXPLAYERS+1] = {-1};
@@ -170,7 +171,7 @@ int g_iSlimerLast=0;
 int g_iTwinSFShotCount[MAXPLAYERS+1] = {0};
 
 //MEGA ADHESIVE PERK
-Handle g_hMegaAdTimer[MAXPLAYERS+1] = {INVALID_HANDLE};
+Handle g_hMegaAdTimer[MAXPLAYERS+1] = {null};
 int g_iMegaAdCount[MAXPLAYERS+1] = {0};
 
 //TANKS
@@ -225,32 +226,9 @@ int g_iViewModelO		= -1;
 int g_iIncapO			= -1;
 int g_iIsGhostO			= -1;
 
-//these offsets refuse to be searched for (these netprops
-//have unique names, but the SENDTABLE names are not unique -
-//usually DT_CountdownTimer, making it impossible to search
-//for AFAIK...), so we'll just declare them here and hope
-//Valve doesn't change them...
-
-//these offsets are for L4D2, Windows
-//-----------------------------
-//windows and linux offsets are checked
-//during roundstart by comparing an offset
-//to known offset numbers
-
 // netprop: m_nextActivationTimer
-//int g_iNextActO = 1084;
 int g_iNextActO;
-// netprop: m_attackTimer??
-//int g_iAttackTimerO = 5452;
 int g_iAttackTimerO;
-//int g_iNextActO = 1068;
-//int g_iAttackTimerO = 5436;
-
-//these are for L4D2, Linux
-//int g_iNextActO_linux = 1088;
-//int g_iAttackTimerO_linux = 5444;
-
-
 
 //=============================
 // Declare Variables that track
@@ -267,514 +245,6 @@ bool g_bIsL4D2 = false;
 bool g_bIsRoundStart	 = false;
 bool g_bIsLoading		 = false;
 
-//=============================
-// Declare Variables Related to
-// the Plugin's Own ConVars
-//=============================
-//first line says the name of the perk
-//second line describes how many types there are
-//ie:
-//"one-size-fits-all" = one variable across all game modes and difficulties
-//"versus, non-versus" = one variable for versus games, one for non-versus games
-//"normal, hard, expert" = separate variables for normal-versus-survival, advanced and expert
-
-
-//SUR1 PERKS
-//stopping power, damage multiplier
-//one-size-fits-all
-ConVar g_hStopping_enable;
-ConVar g_hStopping_enable_sur;
-ConVar g_hStopping_enable_vs;
-ConVar g_hStopping_dmgmult;
-//associated var
-bool g_bStopping_enable;
-bool g_bStopping_enable_sur;
-bool g_bStopping_enable_vs;
-float g_flStopping_dmgmult;
-
-//spirit, bonus buffer and cooldown
-//campaign, survival, versus
-ConVar g_hSpirit_enable;
-ConVar g_hSpirit_enable_sur;
-ConVar g_hSpirit_enable_vs;
-ConVar g_hSpirit_buff;
-ConVar g_hSpirit_cd;
-ConVar g_hSpirit_cd_sur;
-ConVar g_hSpirit_cd_vs;
-//associated vars
-bool g_bSpirit_enable;
-bool g_bSpirit_enable_sur;
-bool g_bSpirit_enable_vs;
-int g_iSpirit_buff;
-int g_iSpirit_cd;
-int g_iSpirit_cd_sur;
-int g_iSpirit_cd_vs;
-
-//unbreakable, bonus hp
-//one-size-fits-all
-ConVar g_hUnbreak_enable;
-ConVar g_hUnbreak_enable_sur;
-ConVar g_hUnbreak_enable_vs;
-ConVar g_hUnbreak_hp;
-//associated var
-bool g_bUnbreak_enable;
-bool g_bUnbreak_enable_sur;
-bool g_bUnbreak_enable_vs;
-int g_iUnbreak_hp;
-
-//double tap, fire rate
-//one-size-fits-all
-ConVar g_hDT_enable;
-ConVar g_hDT_enable_sur;
-ConVar g_hDT_enable_vs;
-ConVar g_hDT_rate;
-ConVar g_hDT_rate_reload;
-//associated var
-bool g_bDT_enable;
-bool g_bDT_enable_sur;
-bool g_bDT_enable_vs;
-float g_flDT_rate;
-float g_flDT_rate_reload;
-
-//sleight of hand, reload rate
-//one-size-fits-all
-ConVar g_hSoH_enable;
-ConVar g_hSoH_enable_sur;
-ConVar g_hSoH_enable_vs;
-ConVar g_hSoH_rate;
-//associated var
-bool g_bSoH_enable;
-bool g_bSoH_enable_sur;
-bool g_bSoH_enable_vs;
-float g_flSoH_rate;
-
-//pyrotechnician
-ConVar g_hPyro_enable;
-ConVar g_hPyro_enable_sur;
-ConVar g_hPyro_enable_vs;
-ConVar g_hPyro_maxticks;
-//associated vars
-bool g_bPyro_enable;
-bool g_bPyro_enable_sur;
-bool g_bPyro_enable_vs;
-int g_iPyro_maxticks;
-
-
-//SUR2 PERKS
-//chem reliant, bonus buffer
-//one-size-fits-all
-ConVar g_hChem_enable;
-ConVar g_hChem_enable_sur;
-ConVar g_hChem_enable_vs;
-ConVar g_hChem_buff;
-//associated var
-bool g_bChem_enable;
-bool g_bChem_enable_sur;
-bool g_bChem_enable_vs;
-int g_iChem_buff;
-
-//helping hand, bonus buffer and time multiplier
-//versus, non-versus
-ConVar g_hHelpHand_enable;
-ConVar g_hHelpHand_enable_sur;
-ConVar g_hHelpHand_enable_vs;
-ConVar g_hHelpHand_convar;
-ConVar g_hHelpHand_timemult;
-ConVar g_hHelpHand_buff;
-ConVar g_hHelpHand_buff_vs;
-//associated vars
-bool g_bHelpHand_enable;
-bool g_bHelpHand_enable_sur;
-bool g_bHelpHand_enable_vs;
-bool g_bHelpHand_convar;
-float g_flHelpHand_timemult;
-int g_iHelpHand_buff;
-int g_iHelpHand_buff_vs;
-
-//pack rat, bonus ammo multiplier
-//one-size-fits-all
-ConVar g_hPack_enable;
-ConVar g_hPack_enable_sur;
-ConVar g_hPack_enable_vs;
-ConVar g_hPack_ammomult;
-//associated var
-bool g_bPack_enable;
-bool g_bPack_enable_sur;
-bool g_bPack_enable_vs;
-float g_flPack_ammomult;
-
-//hard to kill, hp multiplier
-//one-size-fits-all
-ConVar g_hHard_enable;
-ConVar g_hHard_enable_sur;
-ConVar g_hHard_enable_vs;
-ConVar g_hHard_hpmult;
-//associated var
-bool g_bHard_enable;
-bool g_bHard_enable_sur;
-bool g_bHard_enable_vs;
-float g_flHard_hpmult;
-
-//martial artist, movement rate
-//campaign, non-campaign
-ConVar g_hMA_enable;
-ConVar g_hMA_enable_sur;
-ConVar g_hMA_enable_vs;
-ConVar g_hMA_maxpenalty;
-//associated var
-bool g_bMA_enable;
-bool g_bMA_enable_sur;
-bool g_bMA_enable_vs;
-int g_iMA_maxpenalty;
-
-//extreme conditioning, movement rate
-//campaign, non-campaign
-ConVar g_hExtreme_enable;
-ConVar g_hExtreme_enable_sur;
-ConVar g_hExtreme_enable_vs;
-ConVar g_hExtreme_rate;
-//associated var
-bool g_bExtreme_enable;
-bool g_bExtreme_enable_sur;
-bool g_bExtreme_enable_vs;
-float g_flExtreme_rate;
-
-//little leaguer
-ConVar g_hLittle_enable;
-ConVar g_hLittle_enable_sur;
-ConVar g_hLittle_enable_vs;
-//associated var
-bool g_bLittle_enable;
-bool g_bLittle_enable_sur;
-bool g_bLittle_enable_vs;
-
-
-// BOOMER PERKS
-//blind luck, cooldown multiplier
-//one-size-fits-all
-ConVar g_hBlind_enable;
-ConVar g_hBlind_cdmult;
-//associated var
-bool g_bBlind_enable;
-float g_flBlind_cdmult;
-
-//dead wreckening, damage multiplier
-//one-size-fits-all
-ConVar g_hDead_enable;
-ConVar g_hDead_dmgmult;
-//associated var
-bool g_bDead_enable;
-float g_flDead_dmgmult;
-
-//barf bagged
-ConVar g_hBarf_enable;
-bool g_bBarf_enable;
-
-//motion sickness
-//one-size-fits-all
-ConVar g_hMotion_rate;
-ConVar g_hMotion_enable;
-//associated vars
-float g_flMotion_rate;
-bool g_bMotion_enable;
-
-
-// SMOKER PERKS
-//tongue twister, multipliers for tongue speed, pull speed, range
-//one-size-fits-all
-ConVar g_hTongue_enable;
-ConVar g_hTongue_speedmult;
-ConVar g_hTongue_pullmult;
-ConVar g_hTongue_rangemult;
-//associated vars
-bool g_bTongue_enable;
-float g_flTongue_speedmult;
-float g_flTongue_pullmult;
-float g_flTongue_rangemult;
-
-//squeezer, bonus damage
-//normal, hard, expert
-//*used by bots in all modes
-ConVar g_hSqueezer_enable;
-ConVar g_hSqueezer_dmgmult;
-//associated var
-bool g_bSqueezer_enable;
-float g_flSqueezer_dmgmult;
-
-//drag and drop, cooldown mult;
-//one-size-fits-all
-ConVar g_hDrag_enable;
-ConVar g_hDrag_cdmult;
-//associated var
-bool g_bDrag_enable;
-float g_flDrag_cdmult;
-
-//smoke it
-ConVar g_hSmokeItSpeed;
-ConVar g_hSmokeItMaxRange;
-ConVar g_hSmokeIt_enable;
-Handle g_hSmokeItTimer[MAXPLAYERS+1] = {INVALID_HANDLE};
-//associated vars
-float g_flSmokeItSpeed;
-bool g_bSmokeItGrabbed[MAXPLAYERS+1] = {false};
-int g_iSmokeItMaxRange;
-bool g_bSmokeIt_enable;
-
-
-
-// HUNTER PERKS
-//body slam, minbound
-//one-size-fits-all
-ConVar g_hBody_enable;
-ConVar g_hBody_minbound;
-//associated var
-bool g_bBody_enable;
-int g_iBody_minbound;
-
-//efficient killer, bonus damage
-//normal, hard, expert
-//*used by bots in all modes
-ConVar g_hEfficient_enable;
-ConVar g_hEfficient_dmgmult;
-//associated var
-bool g_bEfficient_enable;
-float g_flEfficient_dmgmult;
-
-//grasshopper, speed multiplier
-//one-size-fits-all
-ConVar g_hGrass_enable;
-ConVar g_hGrass_rate;
-//associated var
-bool g_bGrass_enable;
-float g_flGrass_rate;
-
-//speed demon, speed multiplier
-//one-size-fits-all
-ConVar g_hSpeedDemon_enable;
-ConVar g_hSpeedDemon_rate;
-ConVar g_hSpeedDemon_dmgmult;
-//associated var
-bool g_bSpeedDemon_enable;
-float g_flSpeedDemon_rate;
-float g_flSpeedDemon_dmgmult;
-
-
-// TANK PERKS
-//adrenal glands, multipliers for punch cooldown,
-//throw rock cooldown, and rock travel speed
-//one-size-fits-all
-ConVar g_hAdrenal_enable;
-ConVar g_hAdrenal_punchcdmult;
-ConVar g_hAdrenal_throwcdmult;
-//associated vars
-bool g_bAdrenal_enable;
-float g_flAdrenal_punchcdmult;
-float g_flAdrenal_throwcdmult;
-
-//juggernaut, bonus health
-//one-size-fits-all
-ConVar g_hJuggernaut_enable;
-ConVar g_hJuggernaut_hp;
-//associated var
-bool g_bJuggernaut_enable;
-int g_iJuggernaut_hp;
-
-//metabolic boost, speed multiplier
-//one-size-fits-all
-ConVar g_hMetabolic_enable;
-ConVar g_hMetabolic_speedmult;
-//associated var
-bool g_bMetabolic_enable;
-float g_flMetabolic_speedmult;
-
-//storm caller, mobs spawned
-//one-size-fits-all
-ConVar g_hStorm_enable;
-ConVar g_hStorm_mobcount;
-//associated var
-bool g_bStorm_enable;
-int g_iStorm_mobcount;
-
-//double the trouble, health multiplier
-//one-size-fits-all
-ConVar g_hDouble_enable;
-ConVar g_hDouble_hpmult;
-//associated var
-bool g_bDouble_enable;
-float g_flDouble_hpmult;
-
-
-// JOCKEY PERKS
-//ride like the wind, runspeed multiplier
-//one-size-fits-all
-ConVar g_hWind_enable;
-ConVar g_hWind_rate;
-//associated var
-bool g_bWind_enable;
-float g_flWind_rate;
-
-//cavalier, hp multiplier
-ConVar g_hCavalier_enable;
-ConVar g_hCavalier_hpmult;
-//associated vars
-bool g_bCavalier_enable;
-float g_flCavalier_hpmult;
-
-//frogger, dmg multiplier, leap multiplier
-ConVar g_hFrogger_enable;
-ConVar g_hFrogger_dmgmult;
-ConVar g_hFrogger_rate;
-//associated vars
-bool g_bFrogger_enable;
-float g_flFrogger_dmgmult;
-float g_flFrogger_rate;
-
-//ghost rider, invis amount
-ConVar g_hGhost_enable;
-ConVar g_hGhost_alpha;
-//associated vars
-bool g_bGhost_enable;
-int g_iGhost_alpha;
-
-
-// SPITTER PERKS
-//twin spitfire, time delay between two shots
-//one-size-fits-all
-ConVar g_hTwinSF_enable;
-ConVar g_hTwinSF_delay;
-//associated var
-bool g_bTwinSF_enable;
-float g_flTwinSF_delay;
-
-//mega adhesive, slow multiplier
-//one-size-fits-all
-ConVar g_hMegaAd_enable;
-ConVar g_hMegaAd_slow;
-//associated var
-bool g_bMegaAd_enable;
-float g_flMegaAd_slow;
-
-// CHARGER PERKS
-//scattering ram, charge force multiplier and maximum cooldown
-//one-size-fits-all
-ConVar g_hScatter_enable;
-ConVar g_hScatter_force;
-ConVar g_hScatter_hpmult;
-//associated var
-bool g_bScatter_enable;
-float g_flScatter_force;
-float g_flScatter_hpmult;
-
-//speeding bullet, charge moverate
-ConVar g_hBullet_enable;
-ConVar g_hBullet_rate;
-//associated vars
-bool g_bBullet_enable;
-float g_flBullet_rate;
-
-//BOT CONTROLLER VARS
-//these track the server's preference
-//for what perks bots should use
-
-//survivor
-ConVar g_hBot_Sur1;
-ConVar g_hBot_Sur2;
-ConVar g_hBot_Sur3;
-
-ConVar g_hBot_inf_smoker;
-ConVar g_hBot_inf_boomer;
-ConVar g_hBot_inf_hunter;
-ConVar g_hBot_inf_spitter;
-ConVar g_hBot_inf_jockey;
-ConVar g_hBot_inf_charger;
-ConVar g_hBot_inf_tank;
-
-//DEFAULT PERKS
-//These vars track the server's
-//given default perks, to account
-//for disabling perks
-
-//sur1
-ConVar g_hSur1_default;
-int g_iSur1_default;
-//sur2
-ConVar g_hSur2_default;
-int g_iSur2_default;
-//sur3
-ConVar g_hSur3_default;
-int g_iSur3_default;
-
-// Infected
-ConVar g_hInfSmoker_default;
-int g_iInfSmoker_default;
-
-ConVar g_hInfBoomer_default;
-int g_iInfBoomer_default;
-
-ConVar g_hInfHunter_default;
-int g_iInfHunter_default;
-
-ConVar g_hInfSpitter_default;
-int g_iInfSpitter_default;
-
-ConVar g_hInfJockey_default;
-int g_iInfJockey_default;
-
-ConVar g_hInfCharger_default;
-int g_iInfCharger_default;
-
-ConVar g_hInfTank_default;
-int g_iInfTank_default;
-
-//FORCE RANDOM PERKS
-//tracks server setting for
-//whether to force random perks
-
-ConVar g_hForceRandom;
-bool g_bForceRandom;
-
-//ENABLE RANDOM PERKS BY PLAYER CHOICE
-//tracks whether player can
-//randomize their perks
-
-ConVar g_hRandomEnable;
-int g_bRandomEnable;
-
-//PERK TREES AVAILABILITY
-//option for servers to completely
-//disable entire perk trees
-
-ConVar g_hSur1_enable;
-ConVar g_hSur2_enable;
-ConVar g_hSur3_enable;
-bool g_bSur1_enable;
-bool g_bSur2_enable;
-bool g_bSur3_enable;
-
-ConVar g_hInfSmoker_enable;
-ConVar g_hInfBoomer_enable;
-ConVar g_hInfHunter_enable;
-ConVar g_hInfSpitter_enable;
-ConVar g_hInfJockey_enable;
-ConVar g_hInfCharger_enable;
-ConVar g_hInfTank_enable;
-
-bool g_bInfSmoker_enable;
-bool g_bInfBoomer_enable;
-bool g_bInfHunter_enable;
-bool g_bInfSpitter_enable;
-bool g_bInfJockey_enable;
-bool g_bInfCharger_enable;
-bool g_bInfTank_enable;
-
-//PERK HIERARCHY AVAILABILITY
-//option for servers to completely
-//disable perks for infected or survivors
-ConVar g_hSurAll_enable;
-ConVar g_hInfAll_enable;
-bool g_bSurAll_enable;
-bool g_bInfAll_enable;
-
 //this var keeps track of whether
 //to enable DT and Stopping or not, so we don't
 //have to do the checks every game frame, or
@@ -783,9 +253,6 @@ bool g_bInfAll_enable;
 bool g_bDT_meta_enable = true;
 bool g_bStopping_meta_enable = true;
 bool g_bMA_meta_enable = true;
-
-//controls whether menu automatically shows
-ConVar g_hMenuAutoShow_enable;
 
 //=============================
 // Hooking, Initialize Vars
@@ -908,11 +375,11 @@ public void OnPluginStart()
 	g_iViewModelO		=	FindSendPropInfo("CTerrorPlayer","m_hViewModel");
 	g_iIncapO			=	FindSendPropInfo("CTerrorPlayer","m_isIncapacitated");
 	g_iIsGhostO			=	FindSendPropInfo("CTerrorPlayer","m_isGhost");
-	//g_iClipO			=	FindSendPropInfo("CTerrorGun","m_iClip1");
 
 	g_iNextActO			=	FindSendPropInfo("CBaseAbility","m_nextActivationTimer");
-	LogMessage("Retrieved g_iNextActO = %i", g_iNextActO);
 	g_iAttackTimerO		=	FindSendPropInfo("CClaw","m_attackTimer");
+	
+	LogMessage("Retrieved g_iNextActO = %i", g_iNextActO);
 	LogMessage("Retrieved g_iAttackTimerO = %i", g_iAttackTimerO);
 
 	//CREATE AND INITIALIZE CONVARS
@@ -927,770 +394,6 @@ public void OnPluginStart()
 	//and load translations
 	LoadTranslations("plugin.perkmod");
 }
-
-//just to give me a bit less of a headache,
-//all convar creation is called here
-void CreateConvars()
-{
-	//BOOMER
-	//barf bagged
-	g_hBarf_enable = CreateConVar(
-		"l4d_perkmod_barfbagged_enable" ,
-		"1" ,
-		"Barf Bagged perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBarf_enable.AddChangeHook(Convar_Barf_en);
-	g_bBarf_enable = true;
-
-	//blind luck
-	g_hBlind_cdmult = CreateConVar(
-		"l4d_perkmod_blindluck_timemultiplier" ,
-		"0.5" ,
-		"Blind Luck perk: Cooldown (default 30s) is multiplied by this value (clamped between 0.01 < 1.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBlind_cdmult.AddChangeHook(Convar_Blind);
-	g_flBlind_cdmult = 0.5;
-
-	g_hBlind_enable = CreateConVar(
-		"l4d_perkmod_blindluck_enable" ,
-		"1" ,
-		"Blind Luck perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled (NOTE: This perk normally adjusts the z_vomit_interval ConVar; disabling this perk will stop the plugin from adjusting this ConVar)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBlind_enable.AddChangeHook(Convar_Blind_en);
-	g_bBlind_enable = true;
-
-	//dead wreckening
-	g_hDead_dmgmult = CreateConVar(
-		"l4d_perkmod_deadwreckening_damagemultiplier" ,
-		"0.5" ,
-		"Dead Wreckening perk: Common infected damage is multiplied by this value and ADDED to their base damage (clamped between 0.01 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDead_dmgmult.AddChangeHook(Convar_Dead);
-	g_flDead_dmgmult = 0.5;
-
-	g_hDead_enable = CreateConVar(
-		"l4d_perkmod_deadwreckening_enable" ,
-		"1" ,
-		"Dead Wreckening perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDead_enable.AddChangeHook(Convar_Dead_en);
-	g_bDead_enable = true;
-
-	//motion sickness
-	g_hMotion_rate = CreateConVar(
-		"l4d_perkmod_motionsickness_rate" ,
-		"1.25" ,
-		"Motion Sickness perk: Boomer movement is multiplied by this value (clamped between 1.0 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMotion_rate.AddChangeHook(Convar_Motion);
-	g_flMotion_rate = 1.25;
-
-	g_hMotion_enable = CreateConVar(
-		"l4d_perkmod_motionsickness_enable" ,
-		"1" ,
-		"Motion Sickness perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled (NOTE: This perk normally adjusts the z_vomit_fatigue ConVar; disabling this perk will stop the plugin from adjusting this ConVar)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMotion_enable.AddChangeHook(Convar_Motion_en);
-	g_bMotion_enable = true;
-
-	//SMOKER
-	//tongue twister
-	g_hTongue_speedmult = CreateConVar(
-		"l4d_perkmod_tonguetwister_speedmultiplier" ,
-		"1.5" ,
-		"Tongue Twister perk: Tongue travel speed before grabbing a survivor; multiplied by this value (clamped between 1.0 < 5.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTongue_speedmult.AddChangeHook(Convar_TongueSpeed);
-	g_flTongue_speedmult = 1.5;
-
-	g_hTongue_pullmult = CreateConVar(
-		"l4d_perkmod_tonguetwister_pullmultiplier" ,
-		"1.5" ,
-		"Tongue Twister perk: Tongue pull speed after grabbing a survivor; multiplied by this value (clamped between 1.0 < 5.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTongue_pullmult.AddChangeHook(Convar_TonguePull);
-	g_flTongue_pullmult = 1.5;
-
-	g_hTongue_rangemult = CreateConVar(
-		"l4d_perkmod_tonguetwister_rangemultiplier" ,
-		"1.75" ,
-		"Tongue Twister perk: Tongue range; multiplied by this value (clamped between 1.0 < 5.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTongue_rangemult.AddChangeHook(Convar_TongueRange);
-	g_flTongue_rangemult = 1.75;
-
-	g_hTongue_enable = CreateConVar(
-		"l4d_perkmod_tonguetwister_enable" ,
-		"1" ,
-		"Tongue Twister perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled (NOTE: This perk normally adjusts the tongue_range, tongue_victim_max_speed and tongue_fly_speed ConVars; disabling this perk will stop the plugin from adjusting these ConVars)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTongue_enable.AddChangeHook(Convar_Tongue_en);
-	g_bTongue_enable = true;
-
-	//squeezer
-	g_hSqueezer_dmgmult = CreateConVar(
-		"l4d_perkmod_squeezer_damagemultiplier" ,
-		"0.5" ,
-		"Squeezer perk: All base damage is multiplied by this value and then ADDED to base damage (clamped between 0.01 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSqueezer_dmgmult.AddChangeHook(Convar_Squeezer);
-	g_flSqueezer_dmgmult = 0.5;
-
-	g_hSqueezer_enable = CreateConVar(
-		"l4d_perkmod_squeezer_enable" ,
-		"1" ,
-		"Squeezer perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSqueezer_enable.AddChangeHook(Convar_Squeezer_en);
-	g_bSqueezer_enable = true;
-
-	//drag and drop
-	g_hDrag_cdmult = CreateConVar(
-		"l4d_perkmod_draganddrop_timemultiplier" ,
-		"0.2" ,
-		"Drag and Drop perk: Cooldown is multiplied by this value (clamped between 0.01 < 1.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDrag_cdmult.AddChangeHook(Convar_Drag);
-	g_flDrag_cdmult = 0.2;
-
-	g_hDrag_enable = CreateConVar(
-		"l4d_perkmod_draganddrop_enable" ,
-		"1" ,
-		"Drag and Drop perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled (NOTE: This perk normally adjusts the tongue_hit_delay and tongue_player_dropping_to_ground_time ConVars; disabling this perk will stop the plugin from adjusting these ConVars)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDrag_enable.AddChangeHook(Convar_Drag_en);
-	g_bDrag_enable = true;
-
-	//smoke it
-	g_hSmokeItSpeed = CreateConVar(
-		"l4d_perkmod_smokeit_speed" ,
-		"0.21" ,
-		"Smoke IT! perk: Smoker's speed modifier" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_flSmokeItSpeed = 0.21;
-	g_hSmokeItSpeed.AddChangeHook(Convar_SmokeIt_speed);
-
-	g_hSmokeItMaxRange = CreateConVar(
-		"l4d_perkmod_smokeit_tonguestretch" ,
-		"950" ,
-		"Smoke IT! perk: Smoker's max tongue stretch, tongue will be released if beyond this" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_iSmokeItMaxRange = 950;
-	g_hSmokeItMaxRange.AddChangeHook(Convar_SmokeIt_range);
-
-	g_hSmokeIt_enable = CreateConVar(
-		"l4d_perkmod_smokeit_enable" ,
-		"1" ,
-		"Smoke IT! perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSmokeIt_enable.AddChangeHook(Convar_SmokeIt_en);
-	g_bSmokeIt_enable = true;
-
-	//HUNTER
-	//body slam
-	g_hBody_minbound = CreateConVar(
-		"l4d_perkmod_bodyslam_minbound" ,
-		"10" ,
-		"Body Slam perk: Defines the minimum initial damage dealt by a pounce (clamped between 2 < 100)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBody_minbound.AddChangeHook(Convar_Body);
-	g_iBody_minbound = 10;
-
-	g_hBody_enable = CreateConVar(
-		"l4d_perkmod_bodyslam_enable" ,
-		"1" ,
-		"Body Slam perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBody_enable.AddChangeHook(Convar_Body_en);
-	g_bBody_enable = true;
-
-	//efficient killer
-	g_hEfficient_dmgmult = CreateConVar(
-		"l4d_perkmod_efficientkiller_damagemultiplier" ,
-		"0.2" ,
-		"Efficient Killer perk: All base damage is multiplied by this value and then ADDED to base damage (clamped between 0.01 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hEfficient_dmgmult.AddChangeHook(Convar_Eff);
-	g_flEfficient_dmgmult = 0.2;
-
-	g_hEfficient_enable = CreateConVar(
-		"l4d_perkmod_efficientkiller_enable" ,
-		"1" ,
-		"Efficient Killer perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hEfficient_enable.AddChangeHook(Convar_Eff_en);
-	g_bEfficient_enable = true;
-
-	//grasshopper
-	g_hGrass_rate = CreateConVar(
-		"l4d_perkmod_grasshopper_rate" ,
-		"1.2" ,
-		"Grasshopper perk: Multiplier for pounce speed (clamped between 1.0 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hGrass_rate.AddChangeHook(Convar_Grass);
-	g_flGrass_rate = 1.2;
-
-	g_hGrass_enable = CreateConVar(
-		"l4d_perkmod_grasshopper_enable" ,
-		"1" ,
-		"Grasshopper perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hGrass_enable.AddChangeHook(Convar_Grass_en);
-	g_bGrass_enable = true;
-
-	//speed demon
-	g_hSpeedDemon_rate = CreateConVar(
-		"l4d_perkmod_speeddemon_rate" ,
-		"1.4" ,
-		"Speed Demon perk: Multiplier for time rate (clamped between 1.0 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSpeedDemon_rate.AddChangeHook(Convar_Demon);
-	g_flSpeedDemon_rate = 1.4;
-
-	g_hSpeedDemon_dmgmult = CreateConVar(
-		"l4d_perkmod_speeddemon_damagemultiplier" ,
-		"0.5" ,
-		"Efficient Killer perk: All base damage is multiplied by this value and then ADDED to base damage (clamped between 0.01 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSpeedDemon_dmgmult.AddChangeHook(Convar_Demon_dmg);
-	g_flSpeedDemon_dmgmult = 0.5;
-
-	g_hSpeedDemon_enable = CreateConVar(
-		"l4d_perkmod_speeddemon_enable" ,
-		"1" ,
-		"Speed Demon perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSpeedDemon_enable.AddChangeHook(Convar_Demon_en);
-	g_bSpeedDemon_enable = true;
-
-	//TANK
-	//adrenal glands
-	g_hAdrenal_punchcdmult = CreateConVar(
-		"l4d_perkmod_adrenalglands_punchcooldownmultiplier" ,
-		"0.5" ,
-		"Adrenal Glands perk: Cooldown for punching is multiplied by this value (clamped between 0.01 < 1.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hAdrenal_punchcdmult.AddChangeHook(Convar_Adrenalpunchcd);
-	g_flAdrenal_punchcdmult = 0.5;
-
-	g_hAdrenal_throwcdmult = CreateConVar(
-		"l4d_perkmod_adrenalglands_throwcooldownmultiplier" ,
-		"0.4" ,
-		"Adrenal Glands perk: Cooldown for throwing rocks is multiplied by this value (clamped between 0.01 < 1.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hAdrenal_throwcdmult.AddChangeHook(Convar_Adrenalthrowcd);
-	g_flAdrenal_throwcdmult = 0.4;
-
-	g_hAdrenal_enable = CreateConVar(
-		"l4d_perkmod_adrenalglands_enable" ,
-		"1" ,
-		"Adrenal Glands perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled (NOTE: This perk normally adjusts the tank_swing_interval, tank_swing_miss_interval, z_tank_attack_interval, z_tank_throw_interval, and z_tank_throw_force ConVars; disabling this perk will stop the plugin from adjusting these ConVars)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hAdrenal_enable.AddChangeHook(Convar_Adrenal_en);
-	g_bAdrenal_enable = true;
-
-	//juggernaut
-	g_hJuggernaut_hp = CreateConVar(
-		"l4d_perkmod_juggernaut_health" ,
-		"3000" ,
-		"Juggernaut perk: Bonus health given to tanks; absolute value (clamped between 1 < 99999)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hJuggernaut_hp.AddChangeHook(Convar_Jugg);
-	g_iJuggernaut_hp = 3000;
-
-	g_hJuggernaut_enable = CreateConVar(
-		"l4d_perkmod_juggernaut_enable" ,
-		"1" ,
-		"Juggernaut perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hJuggernaut_enable.AddChangeHook(Convar_Jugg_en);
-	g_bJuggernaut_enable = true;
-
-	//metabolic boost
-	g_hMetabolic_speedmult = CreateConVar(
-		"l4d_perkmod_metabolicboost_speedmultiplier" ,
-		"1.4" ,
-		"Metabolic Boost perk: Run speed multiplier (clamped between 1.01 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMetabolic_speedmult.AddChangeHook(Convar_Met);
-	g_flMetabolic_speedmult = 1.4;
-
-	g_hMetabolic_enable = CreateConVar(
-		"l4d_perkmod_metabolicboost_enable" ,
-		"1" ,
-		"Metabolic Boost perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMetabolic_enable.AddChangeHook(Convar_Met_en);
-	g_bMetabolic_enable = true;
-
-	//storm caller
-	g_hStorm_mobcount = CreateConVar(
-		"l4d_perkmod_stormcaller_mobcount" ,
-		"3" ,
-		"Storm Caller perk: How many groups of zombies are spawned (clamped between 1 < 10)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hStorm_mobcount.AddChangeHook(Convar_Storm);
-	g_iStorm_mobcount = 3;
-
-	g_hStorm_enable = CreateConVar(
-		"l4d_perkmod_stormcaller_enable" ,
-		"1" ,
-		"Storm Caller perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hStorm_enable.AddChangeHook(Convar_Storm_en);
-	g_bStorm_enable = true;
-
-	//double the trouble
-	g_hDouble_hpmult = CreateConVar(
-		"l4d_perkmod_doublethetrouble_healthmultiplier" ,
-		"0.35" ,
-		"Double the Trouble: Health multiplier for all tanks spawned under the perk (clamped between 0.1 < 2.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDouble_hpmult.AddChangeHook(Convar_Double);
-	g_flDouble_hpmult = 0.35;
-
-	g_hDouble_enable = CreateConVar(
-		"l4d_perkmod_doublethetrouble_enable" ,
-		"1" ,
-		"Double the Trouble perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hDouble_enable.AddChangeHook(Convar_Double_en);
-	g_bDouble_enable = true;
-
-	//JOCKEY
-	//ride like the wind
-	g_hWind_rate = CreateConVar(
-		"l4d_perkmod_ridelikethewind_rate" ,
-		"1.4" ,
-		"Ride Like the Wind perk: Multiplier for run speed rate (clamped between 1.0 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hWind_rate.AddChangeHook(Convar_Wind);
-	g_flWind_rate = 1.4;
-
-	g_hWind_enable = CreateConVar(
-		"l4d_perkmod_ridelikethewind_enable" ,
-		"1" ,
-		"Ride Like the Wind perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hWind_enable.AddChangeHook(Convar_Wind_en);
-	g_bWind_enable = true;
-
-	//cavalier
-	g_hCavalier_hpmult = CreateConVar(
-		"l4d_perkmod_cavalier_healthmultiplier" ,
-		"0.6" ,
-		"Cavalier: Bonus health multiplier, product is ADDED to base health (clamped between 0.01 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hCavalier_hpmult.AddChangeHook(Convar_Cavalier);
-	g_flCavalier_hpmult = 0.6;
-
-	g_hCavalier_enable = CreateConVar(
-		"l4d_perkmod_cavalier_enable" ,
-		"1" ,
-		"Cavalier perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hCavalier_enable.AddChangeHook(Convar_Cavalier_en);
-	g_bCavalier_enable = true;
-
-	//frogger
-	g_hFrogger_dmgmult = CreateConVar(
-		"l4d_perkmod_frogger_damagemultiplier" ,
-		"0.35" ,
-		"Frogger perk: All base damage is multiplied by this value and then ADDED to base damage (clamped between 0.01 < 4.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hFrogger_dmgmult.AddChangeHook(Convar_Frogger_dmgmult);
-	g_flFrogger_dmgmult = 0.35;
-
-	g_hFrogger_rate = CreateConVar(
-		"l4d_perkmod_frogger_rate" ,
-		"1.3" ,
-		"Frogger perk: Multiplier for leap speed (clamped between 1.0 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hFrogger_rate.AddChangeHook(Convar_Frogger_rate);
-	g_flFrogger_rate = 1.3;
-
-	g_hFrogger_enable = CreateConVar(
-		"l4d_perkmod_frogger_enable" ,
-		"1" ,
-		"Frogger perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hFrogger_enable.AddChangeHook(Convar_Frogger_en);
-	g_bFrogger_enable = true;
-
-	//ghost rider
-	g_hGhost_alpha = CreateConVar(
-		"l4d_perkmod_ghostrider_alpha" ,
-		"25" ,
-		"Ghost Rider perk: Sets the alpha level (clamped between 0 total invis < 255 opaque)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hGhost_alpha.AddChangeHook(Convar_Ghost);
-	g_iGhost_alpha = 25;
-
-	g_hGhost_enable = CreateConVar(
-		"l4d_perkmod_ghostrider_enable" ,
-		"1" ,
-		"Ghost Rider perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hGhost_enable.AddChangeHook(Convar_Ghost_en);
-	g_bGhost_enable = true;
-
-	//SPITTER
-	//twin spitfire
-	g_hTwinSF_delay = CreateConVar(
-		"l4d_perkmod_twinspitfire_delay" ,
-		"6" ,
-		"Twin Spitfire perk: Delay in-between double shots, in seconds (clamped between 0.5 < 20.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTwinSF_delay.AddChangeHook(Convar_TwinSF);
-	g_flTwinSF_delay = 6.0;
-
-	g_hTwinSF_enable = CreateConVar(
-		"l4d_perkmod_twinspitfire_enable" ,
-		"1" ,
-		"Twin Spitfire perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hTwinSF_enable.AddChangeHook(Convar_TwinSF_en);
-	g_bTwinSF_enable = true;
-
-	//mega adhesive
-	g_hMegaAd_enable = CreateConVar(
-		"l4d_perkmod_megaadhesive_enable" ,
-		"1" ,
-		"Mega Adhesive perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMegaAd_enable.AddChangeHook(Convar_MegaAd_en);
-	g_bMegaAd_enable = true;
-
-	g_hMegaAd_slow = CreateConVar(
-		"l4d_perkmod_megaadhesive_slowmultiplier" ,
-		"0.6" ,
-		"Mega Adhesive perk: Survivor run speed is MULTIPLIED DIRECTLY by this value - 0.6 means they run at 60% speed (clamped between 0 < 1.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hMegaAd_slow.AddChangeHook(Convar_MegaAd);
-	g_flMegaAd_slow = 0.6;
-
-	//CHARGER
-	//scattering ram
-	g_hScatter_force = CreateConVar(
-		"l4d_perkmod_scatteringram_force" ,
-		"1.6" ,
-		"Scattering Ram perk: Direct multiplier to force applied to survivors on charge impact (clamped between 1.0 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hScatter_force.AddChangeHook(Convar_Scatter_force);
-	g_flScatter_force = 1.6;
-
-	g_hScatter_hpmult = CreateConVar(
-		"l4d_perkmod_scatteringram_healthmultiplier" ,
-		"0.3" ,
-		"Scattering Ram perk: Bonus health multiplier, product is ADDED to base health (clamped between 0.01 < 3.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hScatter_hpmult.AddChangeHook(Convar_Scatter_hpmult);
-	g_flScatter_hpmult = 0.3;
-
-	g_hScatter_enable = CreateConVar(
-		"l4d_perkmod_scatteringram_enable" ,
-		"1" ,
-		"Scattering Ram perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hScatter_enable.AddChangeHook(Convar_Scatter_en);
-	g_bScatter_enable = true;
-
-	//speeding bullet
-	g_hBullet_rate = CreateConVar(
-		"l4d_perkmod_speedingbullet_rate" ,
-		"1.5" ,
-		"Speeding Bullet perk: Time rate while charging (clamped between 1.0 < 10.0)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBullet_rate.AddChangeHook(Convar_Bullet);
-	g_flBullet_rate = 1.5;
-
-	g_hBullet_enable = CreateConVar(
-		"l4d_perkmod_speedingbullet_enable" ,
-		"1" ,
-		"Speeding Bullet perk: Allows the perk to be chosen by players, 0=disabled, 1=enabled" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hBullet_enable.AddChangeHook(Convar_Bullet_en);
-	g_bBullet_enable = true;
-
-	//MISC
-	//bot preferences for perks
-	g_hBot_Sur1 = CreateConVar(
-		"l4d_perkmod_bot_survivor1" ,
-		"1, 2, 3, 4" ,
-		"Bot preferences for Survivor 1 perks: 1 = stopping power, 2 = double tap, 3 = sleight of hand, 4 = pyrotechnician" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_Sur2 = CreateConVar(
-		"l4d_perkmod_bot_survivor2" ,
-		"1, 2, 3, 4" ,
-		"Bot preferences for Survivor 2 perks: 1 = unbreakable, 2 = spirit, 3 = helping hand, 4 = martial artist" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_Sur3 = CreateConVar(
-		"l4d_perkmod_bot_survivor3" ,
-		"1, 2" ,
-		"Bot preferences for Survivor 2 perks: 1 = pack rat, 2 = chem reliant, 3 = hard to kill, 4 = extreme conditioning" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_boomer = CreateConVar(
-		"l4d_perkmod_bot_boomer" ,
-		"1, 2, 3" ,
-		"Bot preferences for boomer perks: 1 = barf bagged, 2 = blind luck, 3 = dead wreckening, 4 = motion sickness (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_smoker = CreateConVar(
-		"l4d_perkmod_bot_smoker" ,
-		"2, 3" ,
-		"Bot preferences for smoker perks: 1 = tongue twister, 2 = squeezer, 3 = drag and drop (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_hunter = CreateConVar(
-		"l4d_perkmod_bot_hunter" ,
-		"2" ,
-		"Bot preferences for hunter perks: 1 = body slam, 2 = efficient killer, 3 = grasshopper, 4 = speed demon (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_tank = CreateConVar(
-		"l4d_perkmod_bot_tank" ,
-		"1, 2, 3, 4, 5" ,
-		"Bot preferences for tank perks: 1 = adrenal glands, 2 = juggernaut, 3 = metabolic boost, 4 = storm caller, 5 = double the trouble (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_jockey = CreateConVar(
-		"l4d_perkmod_bot_jockey" ,
-		"1, 2, 3, 4" ,
-		"Bot preferences for jockey perks: 1 = ride like the wind, 2 = cavalier, 3 = frogger, 4 = ghost rider (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_spitter = CreateConVar(
-		"l4d_perkmod_bot_spitter" ,
-		"1, 2" ,
-		"Bot preferences for spitter perks: 1 = twin spitfire, 2 = mega adhesive (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	g_hBot_inf_charger = CreateConVar(
-		"l4d_perkmod_bot_charger" ,
-		"1, 2" ,
-		"Bot preferences for charger perks: 1 = scattering ram, 2 = speeding bullet (NOTE: You can select more than one using the format '1, 3, 4', and the game will randomize between your choices)" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-
-	//default perks
-	g_hSur1_default = CreateConVar(
-		"l4d_perkmod_default_survivor1" ,
-		"1" ,
-		"Default selected perk for Survivor, Primary: 1 = stopping power, 2 = double tap, 3 = sleight of hand, 4 = pyrotechnician" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur1_default.AddChangeHook(Convar_Def_Sur1);
-	g_iSur1_default = 1;
-
-	g_hSur2_default = CreateConVar(
-		"l4d_perkmod_default_survivor2" ,
-		"1" ,
-		"Default selected perk for Survivor, Secondary: 1 = unbreakable, 2 = spirit, 3 = helping hand, 4 = martial artist" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur2_default.AddChangeHook(Convar_Def_Sur2);
-	g_iSur2_default = 1;
-
-	g_hSur3_default = CreateConVar(
-		"l4d_perkmod_default_survivor3" ,
-		"1" ,
-		"Default selected perk for Survivor, Secondary: 1 = pack rat, 2 = chem reliant, 3 = hard to kill" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur3_default.AddChangeHook(Convar_Def_Sur3);
-	g_iSur3_default = 1;
-
-	g_hInfBoomer_default = CreateConVar(
-		"l4d_perkmod_default_boomer" ,
-		"1" ,
-		"Default selected perk for Boomer: 1 = barf bagged, 2 = blind luck, 3 = dead wreckening" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfBoomer_default.AddChangeHook(Convar_Def_Inf_Boomer);
-	g_iInfBoomer_default = 1;
-
-	g_hInfTank_default = CreateConVar(
-		"l4d_perkmod_default_tank" ,
-		"2" ,
-		"Default selected perk for Tank: 1 = adrenal glands, 2 = juggernaut, 3 = metabolic boost, 4 = storm caller, 5 = double the trouble" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfTank_default.AddChangeHook(Convar_Def_Inf_Tank);
-	g_iInfTank_default = 2;
-
-	g_hInfSmoker_default = CreateConVar(
-		"l4d_perkmod_default_smoker" ,
-		"1" ,
-		"Default selected perk for Smoker: 1 = tongue twister, 2 = squeezer, 3 = drag and drop" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfSmoker_default.AddChangeHook(Convar_Def_Inf_Smoker);
-	g_iInfSmoker_default = 1;
-
-	g_hInfHunter_default = CreateConVar(
-		"l4d_perkmod_default_hunter" ,
-		"1" ,
-		"Default selected perk for Hunter: 1 = body slam, 2 = efficient killer, 3 = grasshopper, 4 = old school, 5 = speed demon" ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfHunter_default.AddChangeHook(Convar_Def_Inf_Hunter);
-	g_iInfHunter_default = 1;
-
-	g_hInfJockey_default = CreateConVar(
-		"l4d_perkmod_default_jockey" ,
-		"1" ,
-		"Default selected perk for Jockey: " ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfJockey_default.AddChangeHook(Convar_Def_Inf_Jockey);
-	g_iInfJockey_default = 1;
-
-	g_hInfSpitter_default = CreateConVar(
-		"l4d_perkmod_default_spitter" ,
-		"1" ,
-		"Default selected perk for Spitter: " ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfSpitter_default.AddChangeHook(Convar_Def_Inf_Spitter);
-	g_iInfSpitter_default = 1;
-
-	g_hInfCharger_default = CreateConVar(
-		"l4d_perkmod_default_charger" ,
-		"1" ,
-		"Default selected perk for Charger: " ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfCharger_default.AddChangeHook(Convar_Def_Inf_Charger);
-	g_iInfCharger_default = 1;
-
-
-
-	//enable perk trees
-	//-----------------
-	g_hSur1_enable = CreateConVar(
-		"l4d_perkmod_perktree_survivor1_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the primary Survivor tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur1_enable.AddChangeHook(Convar_Sur1_en);
-	g_bSur1_enable = true;
-
-	g_hSur2_enable = CreateConVar(
-		"l4d_perkmod_perktree_survivor2_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the secondary Survivor tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur2_enable.AddChangeHook(Convar_Sur2_en);
-	g_bSur2_enable = true;
-
-	g_hSur3_enable = CreateConVar(
-		"l4d_perkmod_perktree_survivor3_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the tertiary Survivor tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSur3_enable.AddChangeHook(Convar_Sur3_en);
-	g_bSur3_enable = true;
-
-	g_hInfBoomer_enable = CreateConVar(
-		"l4d_perkmod_perktree_boomer_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Boomer tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfBoomer_enable.AddChangeHook(Convar_Inf_Boomer_en);
-	g_bInfBoomer_enable = true;
-
-	g_hInfTank_enable = CreateConVar(
-		"l4d_perkmod_perktree_tank_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Tank tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfTank_enable.AddChangeHook(Convar_Inf_Tank_en);
-	g_bInfTank_enable = true;
-
-	g_hInfSmoker_enable = CreateConVar(
-		"l4d_perkmod_perktree_smoker_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Smoker tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfSmoker_enable.AddChangeHook(Convar_Inf_Smoker_en);
-	g_bInfSmoker_enable = true;
-
-	g_hInfHunter_enable = CreateConVar(
-		"l4d_perkmod_perktree_hunter_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Hunter tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfHunter_enable.AddChangeHook(Convar_Inf_Hunter_en);
-	g_bInfHunter_enable = true;
-
-	g_hInfJockey_enable = CreateConVar(
-		"l4d_perkmod_perktree_jockey_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Jockey tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfJockey_enable.AddChangeHook(Convar_Inf_Jockey_en);
-	g_bInfJockey_enable = true;
-
-	g_hInfSpitter_enable = CreateConVar(
-		"l4d_perkmod_perktree_spitter_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Spitter tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfSpitter_enable.AddChangeHook(Convar_Inf_Spitter_en);
-	g_bInfSpitter_enable = true;
-
-	g_hInfCharger_enable = CreateConVar(
-		"l4d_perkmod_perktree_charger_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks from the Charger tree." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfCharger_enable.AddChangeHook(Convar_Inf_Charger_en);
-	g_bInfCharger_enable = true;
-
-
-	//perk hierarchy
-	//--------------
-	g_hInfAll_enable = CreateConVar(
-		"l4d_perkmod_perktree_infected_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks as Special Infected (affects ALL perks for SI)." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hInfAll_enable.AddChangeHook(Convar_InfAll);
-	g_bInfAll_enable = true;
-
-	g_hSurAll_enable = CreateConVar(
-		"l4d_perkmod_perktree_survivor_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to select perks as Survivors (affects ALL perks for Survivors)." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hSurAll_enable.AddChangeHook(Convar_SurAll);
-	g_bSurAll_enable = true;
-
-	//force random perks
-	g_hForceRandom = CreateConVar(
-		"l4d_perkmod_forcerandomperks" ,
-		"0" ,
-		"If set to 1, players will be assigned random perks at roundstart, and they cannot edit their perks." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hForceRandom.AddChangeHook(Convar_ForceRandom);
-	g_bForceRandom = false;
-
-	//enable random perk choice
-	g_hRandomEnable = CreateConVar(
-		"l4d_perkmod_randomperks_enable" ,
-		"1" ,
-		"If set to 1, players will be allowed to randomize their perks at roundstart. Otherwise, they can only customize their perks or use default perks." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_hRandomEnable.AddChangeHook(Convar_Random_en);
-	g_bRandomEnable = true;
-
-	//misc game convars
-	g_hMenuAutoShow_enable = CreateConVar(
-		"l4d_perkmod_autoshowmenu" ,
-		"1" ,
-		"If set to 1, the perks menu will automatically be shown at the start of every round." ,
-		FCVAR_SPONLY|FCVAR_NOTIFY);
-}
-
-//=============================
-// MARK: - ConVar Changes
-//=============================
-
-
-//changes in base L4D convars
-//---------------------------
 
 //tracks changes in game mode
 void Convar_GameMode(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -1707,776 +410,11 @@ void Convar_GameMode(ConVar convar, const char[] oldValue, const char[] newValue
 	#endif
 }
 
-
-//changes in perkmod convars
-//---------------------------
-
-//stopping power
-//the enable/disable functions also call
-//the checks-pre-calculate function
-void Convar_Stopping(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flStopping_dmgmult = StringToFloatConstrainted(newValue, 0.05, 1.0);
-}
-
-void Convar_Stopping_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bStopping_enable = StringToBool(newValue);
-	Stopping_RunChecks();
-}
-
-void Convar_Stopping_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bStopping_enable_sur = StringToBool(newValue);
-	Stopping_RunChecks();
-}
-
-void Convar_Stopping_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bStopping_enable_vs = StringToBool(newValue);
-	Stopping_RunChecks();
-}
-
-//spirit
-void Convar_SpiritBuff(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSpirit_buff = StringToIntConstrainted(newValue, 0, 170);
-}
-
-void Convar_SpiritCD(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSpirit_cd = StringToIntConstrainted(newValue, 1, 1800);
-}
-
-void Convar_SpiritCDsur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSpirit_cd_sur = StringToIntConstrainted(newValue, 1, 1800);
-}
-
-void Convar_SpiritCDvs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSpirit_cd_vs = StringToIntConstrainted(newValue, 1, 1800);
-}
-
-void Convar_Spirit_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSpirit_enable = StringToBool(newValue);
-}
-
-void Convar_Spirit_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSpirit_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Spirit_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSpirit_enable_vs = StringToBool(newValue);
-}
-
-//helping hand
-void Convar_HelpTime(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flHelpHand_timemult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_HelpBuff(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iHelpHand_buff = StringToIntConstrainted(newValue, 1, 170);
-}
-
-void Convar_HelpBuffvs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iHelpHand_buff_vs = StringToIntConstrainted(newValue, 1, 170);
-}
-
-void Convar_Help_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHelpHand_enable = StringToBool(newValue);
-}
-
-void Convar_Help_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHelpHand_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Help_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHelpHand_enable_vs = StringToBool(newValue);
-}
-
-void Convar_Help_convar(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHelpHand_convar = StringToBool(newValue);
-}
-
-//unbreakable
-void Convar_Unbreak(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iUnbreak_hp = StringToIntConstrainted(newValue, 1, 100);
-}
-
-void Convar_Unbreak_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bUnbreak_enable = StringToBool(newValue);
-}
-
-void Convar_Unbreak_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bUnbreak_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Unbreak_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bUnbreak_enable_vs = StringToBool(newValue);
-}
-
-//double tap
-//the enable/disable functions also call
-//for the run-on-game-frame-check function
-void Convar_DT(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flDT_rate = StringToFloatConstrainted(newValue, 0.02, 0.9);
-}
-
-void Convar_DT_rate_reload(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flDT_rate_reload = StringToFloatConstrainted(newValue, 0.2, 1.0);
-}
-
-void Convar_DT_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDT_enable = StringToBool(newValue);
-	DT_RunChecks();
-}
-
-void Convar_DT_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDT_enable_sur = StringToBool(newValue);
-	DT_RunChecks();
-}
-
-void Convar_DT_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDT_enable_vs = StringToBool(newValue);
-	DT_RunChecks();
-}
-
-//sleight of hand
-void Convar_SoH(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flSoH_rate = StringToFloatConstrainted(newValue, 0.02, 0.9);
-}
-
-void Convar_SoH_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSoH_enable = StringToBool(newValue);
-}
-
-void Convar_SoH_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSoH_enable_sur = StringToBool(newValue);
-}
-
-void Convar_SoH_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSoH_enable_vs = StringToBool(newValue);
-}
-
-//chem reliant
-void Convar_Chem(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iChem_buff = StringToIntConstrainted(newValue, 0, 150);
-}
-
-void Convar_Chem_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bChem_enable = StringToBool(newValue);
-}
-
-void Convar_Chem_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bChem_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Chem_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bChem_enable_vs = StringToBool(newValue);
-}
-
-//pyrotechnician
-void Convar_Pyro(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iPyro_maxticks = StringToIntConstrainted(newValue, 0, 300);
-}
-
-void Convar_Pyro_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPyro_enable = StringToBool(newValue);
-}
-
-void Convar_Pyro_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPyro_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Pyro_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPyro_enable_vs = StringToBool(newValue);
-}
-
-//pack rat
-void Convar_Pack(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flPack_ammomult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_Pack_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPack_enable = StringToBool(newValue);
-}
-
-void Convar_Pack_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPack_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Pack_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bPack_enable_vs = StringToBool(newValue);
-}
-
-//hard to kill
-void Convar_Hard(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flHard_hpmult = StringToFloatConstrainted(newValue, 0.01, 3.0);
-}
-
-void Convar_Hard_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHard_enable = StringToBool(newValue);
-}
-
-void Convar_Hard_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHard_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Hard_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bHard_enable_vs = StringToBool(newValue);
-}
-
-//martial artist
-//also rebuilds MA registry in order to
-//reassign new speed values
-void Convar_MA_maxpenalty(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iMA_maxpenalty = StringToIntConstrainted(newValue, 0, 6);
-	MA_Rebuild();
-}
-
-void Convar_MA_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMA_enable = StringToBool(newValue);
-}
-
-void Convar_MA_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMA_enable_sur = StringToBool(newValue);
-}
-
-void Convar_MA_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMA_enable_vs = StringToBool(newValue);
-}
-
-//extreme conditioning
-void Convar_Extreme(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flExtreme_rate = StringToFloatConstrainted(newValue, 1.0, 1.5);
-	Extreme_Rebuild();
-}
-
-void Convar_Extreme_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bExtreme_enable = StringToBool(newValue);
-}
-
-void Convar_Extreme_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bExtreme_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Extreme_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bExtreme_enable_vs = StringToBool(newValue);
-}
-
-//little leaguer
-void Convar_Little_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bLittle_enable = StringToBool(newValue);
-}
-
-void Convar_Little_en_sur(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bLittle_enable_sur = StringToBool(newValue);
-}
-
-void Convar_Little_en_vs(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bLittle_enable_vs = StringToBool(newValue);
-}
-
-//barf bagged
-void Convar_Barf_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bBarf_enable = StringToBool(newValue);
-}
-
-//blind luck
-void Convar_Blind(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flBlind_cdmult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_Blind_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bBlind_enable = StringToBool(newValue);
-}
-
-//dead wreckening
-void Convar_Dead(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flDead_dmgmult = StringToFloatConstrainted(newValue, 0.01, 4.0);
-}
-
-void Convar_Dead_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDead_enable = StringToBool(newValue);
-}
-
-//motion sickness
-void Convar_Motion(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flMotion_rate = StringToFloatConstrainted(newValue, 1.0, 4.0);
-}
-
-void Convar_Motion_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMotion_enable = StringToBool(newValue);
-}
-
-//tongue twister
-void Convar_TongueSpeed(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flTongue_speedmult = StringToFloatConstrainted(newValue, 1.0, 5.0);
-}
-
-void Convar_TonguePull(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flTongue_pullmult = StringToFloatConstrainted(newValue, 1.0, 5.0);
-}
-
-void Convar_TongueRange(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flTongue_rangemult = StringToFloatConstrainted(newValue, 1.0, 5.0);
-}
-
-void Convar_Tongue_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bTongue_enable = StringToBool(newValue);
-}
-
-//squeezer
-void Convar_Squeezer(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flSqueezer_dmgmult = StringToFloatConstrainted(newValue, 0.1, 4.0);
-}
-
-void Convar_Squeezer_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSqueezer_enable = StringToBool(newValue);
-}
-
-//drag and drop
-void Convar_Drag(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flDrag_cdmult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_Drag_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDrag_enable = StringToBool(newValue);
-}
-
-//smoke it
-void Convar_SmokeIt_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSmokeIt_enable = StringToBool(newValue);
-}
-
-void Convar_SmokeIt_range(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSmokeItMaxRange = StringToInt(newValue);
-}
-
-void Convar_SmokeIt_speed(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flSmokeItSpeed = StringToFloat(newValue);
-}
-
-//efficient killer
-void Convar_Eff(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flEfficient_dmgmult = StringToFloatConstrainted(newValue, 0.1, 4.0);
-}
-
-void Convar_Eff_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bEfficient_enable = StringToBool(newValue);
-}
-
-//body slam
-void Convar_Body(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iBody_minbound = StringToIntConstrainted(newValue, 2, 100);
-}
-
-void Convar_Body_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bBody_enable = StringToBool(newValue);
-}
-
-//grasshopper
-void Convar_Grass(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flGrass_rate = StringToFloatConstrainted(newValue, 1.0, 3.0);
-}
-
-void Convar_Grass_en(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bGrass_enable = StringToBool(newValue);
-}
-
-//speed demon
-void Convar_Demon (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flSpeedDemon_rate = StringToFloatConstrainted(newValue, 1.0, 3.0);
-}
-
-void Convar_Demon_dmg (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flSpeedDemon_dmgmult = StringToFloatConstrainted(newValue, 0.1, 4.0);
-}
-
-void Convar_Demon_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSpeedDemon_enable = StringToBool(newValue);
-}
-
-//ride like the wind
-void Convar_Wind (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flWind_rate = StringToFloatConstrainted(newValue, 1.0, 3.0);
-}
-
-void Convar_Wind_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bWind_enable = StringToBool(newValue);
-}
-
-//cavalier
-void Convar_Cavalier (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flCavalier_hpmult = StringToFloatConstrainted(newValue, 0.0, 3.0);
-}
-
-void Convar_Cavalier_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bCavalier_enable = StringToBool(newValue);
-}
-
-//frogger
-void Convar_Frogger_dmgmult (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flFrogger_dmgmult = StringToFloatConstrainted(newValue, 0.0, 3.0);
-}
-
-void Convar_Frogger_rate (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flFrogger_rate = StringToFloatConstrainted(newValue, 1.0, 3.0);
-}
-
-void Convar_Frogger_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bFrogger_enable = StringToBool(newValue);
-}
-
-//ghost rider
-void Convar_Ghost (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iGhost_alpha = StringToIntConstrainted(newValue, 0, 255);
-}
-
-void Convar_Ghost_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bGhost_enable = StringToBool(newValue);
-}
-
-//twin spitfire
-void Convar_TwinSF (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flTwinSF_delay = StringToFloatConstrainted(newValue, 0.5, 20.0);
-}
-
-void Convar_TwinSF_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bTwinSF_enable = StringToBool(newValue);
-}
-
-//mega adhesive
-void Convar_MegaAd_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMegaAd_enable = StringToBool(newValue);
-}
-
-void Convar_MegaAd (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flMegaAd_slow = StringToFloatConstrainted(newValue, 0.0, 3.0);
-}
-
-//scattering ram
-void Convar_Scatter_force (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flScatter_force = StringToFloatConstrainted(newValue, 1.0, 3.0);
-}
-
-void Convar_Scatter_hpmult (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flScatter_hpmult = StringToFloatConstrainted(newValue, 0.0, 3.0);
-}
-
-void Convar_Scatter_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bScatter_enable = StringToBool(newValue);
-}
-
-//speeding bullet
-void Convar_Bullet (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flBullet_rate = StringToFloatConstrainted(newValue, 1.0, 10.0);
-}
-
-void Convar_Bullet_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bBullet_enable = StringToBool(newValue);
-}
-
-//adrenal glands
-void Convar_Adrenalpunchcd (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flAdrenal_punchcdmult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_Adrenalthrowcd (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flAdrenal_throwcdmult = StringToFloatConstrainted(newValue, 0.01, 1.0);
-}
-
-void Convar_Adrenal_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bAdrenal_enable = StringToBool(newValue);
-}
-
-//juggernaut
-void Convar_Jugg (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iJuggernaut_hp = StringToIntConstrainted(newValue, 1, 99999);
-}
-
-void Convar_Jugg_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bJuggernaut_enable = StringToBool(newValue);
-}
-
-//metabolic boost
-void Convar_Met (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flMetabolic_speedmult = StringToFloatConstrainted(newValue, 1.01, 3.0);
-}
-
-void Convar_Met_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bMetabolic_enable = StringToBool(newValue);
-}
-
-//storm caller
-void Convar_Storm (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iStorm_mobcount = StringToIntConstrainted(newValue, 1, 10);
-}
-
-void Convar_Storm_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bStorm_enable = StringToBool(newValue);
-}
-
-//double the trouble
-void Convar_Double (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_flDouble_hpmult = StringToFloatConstrainted(newValue, 0.1, 2.0);
-}
-
-void Convar_Double_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bDouble_enable = StringToBool(newValue);
-}
-
-//default perks
-void Convar_Def_Sur1 (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSur1_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-void Convar_Def_Sur2 (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSur2_default = StrinToIntWithOneConstrainted(newValue, 3);
-}
-
-void Convar_Def_Sur3 (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iSur3_default=StrinToIntWithOneConstrainted(newValue, 3);
-}
-
-void Convar_Def_Inf_Boomer(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfBoomer_default = StrinToIntWithOneConstrainted(newValue, 3);
-}
-
-void Convar_Def_Inf_Tank (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfTank_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-void Convar_Def_Inf_Smoker (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfSmoker_default = StrinToIntWithOneConstrainted(newValue, 3);
-}
-
-void Convar_Def_Inf_Hunter (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfHunter_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-void Convar_Def_Inf_Jockey (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfJockey_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-void Convar_Def_Inf_Spitter (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfSpitter_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-void Convar_Def_Inf_Charger (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_iInfCharger_default = StrinToIntWithOneConstrainted(newValue, 5);
-}
-
-//force random perks
-void Convar_ForceRandom (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bForceRandom = StringToBool(newValue);
-}
-
-//enable random perk choice
-void Convar_Random_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bRandomEnable = StringToBool(newValue);
-}
-
-//perk trees
-void Convar_Sur1_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSur1_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Sur2_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSur2_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Sur3_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSur3_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Boomer_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfBoomer_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Tank_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfTank_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Smoker_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfSmoker_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Hunter_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfHunter_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Jockey_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfJockey_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Spitter_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfSpitter_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_Inf_Charger_en (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfCharger_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_InfAll (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bInfAll_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-void Convar_SurAll (ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	g_bSurAll_enable = StringToBool(newValue);
-	RunChecksAll();
-}
-
-
 //====================================================
 //====================================================
-//					P	E	R	K	S
+// MARK: - 	P	E	R	K	S
 //====================================================
 //====================================================
-
-
 
 //=============================
 // MARK: - Events Directly related to perks
@@ -2498,7 +436,6 @@ Action Event_PlayerHurtPre(Event event, const char[] name, bool dontBroadcast)
 	event.GetString("weapon", sWeapon, sizeof(sWeapon));
 	PrintToChatAll("\x03attacker:\x01%i\x03 weapon:\x01%s\x03 type:\x01%i\x03 amount: \x01%i", iAtt, sWeapon, iType, iDmgOrig);
 	#endif
-
 
 	//check for dead wreckening damage add for zombies
 	if (DeadWreckening_DamageAdd(iAtt, iVic, iType, iDmgOrig))
@@ -3274,7 +1211,7 @@ Action Event_PDisconnect(Event event, const char[] name, bool dontBroadcast)
 
 	g_spSur[iCid].ResetState();
 	g_ipInf[iCid].ResetState();
-	g_bConfirm[iCid] = true;
+	g_bConfirm[iCid] = false;
 
 	g_iGren[iCid] = 0;
 	g_iGrenThrow[iCid] = 0;
@@ -3288,7 +1225,7 @@ Action Event_PDisconnect(Event event, const char[] name, bool dontBroadcast)
 	if (g_iSpiritTimer[iCid] != INVALID_HANDLE)
 	{
 		KillTimer(g_iSpiritTimer[iCid]);
-		g_iSpiritTimer[iCid] = INVALID_HANDLE;
+		g_iSpiritTimer[iCid] = null;
 	}
 
 	RebuildAll();
@@ -3323,43 +1260,12 @@ Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 	//tell plugin to not run this function repeatedly until we're done
 	if (g_bIsRoundStart)
 		return Plugin_Continue;
-	else
-		g_bIsRoundStart = true;
+	
+	g_bIsRoundStart = true;
 
 	#if defined PM_DEBUG
 	PrintToChatAll("\x03round start detected");
 	#endif
-	//for l4d1, need to change some offsets
-	/*if (g_iL4D_12 == 1)
-	{
-		//L4D1, Windows
-		g_iNextActO = 888;
-		g_iAttackTimerO = 1488;
-	}
-	else if (g_iL4D_12 == 2)
-	{
-		//check for Linux or Windows by checking
-		//a base offset, NextPrimaryAttack for weapons
-		//--------------------------------------------
-		//numbers have changed since last valve update
-		//usually +4 - next activation timer changed for
-		//both windows and linux, attack timer changed
-		//only for linux, next primary attack changed
-		//for both windows and linux
-
-		if (g_iNextPAttO == 5088)
-		{
-			//L4D2, Windows
-			g_iNextActO = 1068;
-			g_iAttackTimerO = 5436;
-		}
-		else if (g_iNextPAttO == 5104)
-		{
-			//L4D2, Linux
-			g_iNextActO = 1092;
-			g_iAttackTimerO = 5448;
-		}
-	}*/
 
 	//AutoExecConfig(false , "perkmod");
 
@@ -3382,7 +1288,7 @@ Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 		if (g_iSpiritTimer[iI] != INVALID_HANDLE)
 		{
 			KillTimer(g_iSpiritTimer[iI]);
-			g_iSpiritTimer[iI] = INVALID_HANDLE;
+			g_iSpiritTimer[iI] = null;
 		}
 
 		TwinSF_ResetShotCount(iI);
@@ -3481,7 +1387,7 @@ Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 	if (g_hTimerPerks != INVALID_HANDLE)
 	{
 		KillTimer(g_hTimerPerks);
-		g_hTimerPerks = INVALID_HANDLE;
+		g_hTimerPerks = null;
 	}
 	g_hTimerPerks = CreateTimer(2.0, TimerPerks, 0, TIMER_REPEAT);
 
@@ -3515,7 +1421,7 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if (g_iSpiritTimer[iCid] != INVALID_HANDLE)
 	{
 		KillTimer(g_iSpiritTimer[iCid]);
-		g_iSpiritTimer[iCid] = INVALID_HANDLE;
+		g_iSpiritTimer[iCid] = null;
 	}
 	TwinSF_ResetShotCount(iCid);
 
@@ -3588,14 +1494,12 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	return Plugin_Continue;
 }
 
-
 //sets confirm to 0 and redisplays perks menu
 Action Event_PlayerTransitioned(Event event, const char[] name, bool dontBroadcast)
 {
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
 	if (iCid == 0) return Plugin_Continue;
-	//reset their confirm perks var
-	//and show the menu
+	//reset their confirm perks var and show the menu
 	g_bConfirm[iCid] = false;
 	/*CreateTimer(1.0, Timer_ShowTopMenu, iCid);
 	//since we just changed maps
@@ -3625,7 +1529,7 @@ Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	if (g_hTimerPerks != INVALID_HANDLE)
 	{
 		KillTimer(g_hTimerPerks);
-		g_hTimerPerks = INVALID_HANDLE;
+		g_hTimerPerks = null;
 	}
 
 	//tells plugin we're about to start loading
@@ -3650,7 +1554,7 @@ public void OnMapEnd()
 	if (g_hTimerPerks != INVALID_HANDLE)
 	{
 		KillTimer(g_hTimerPerks);
-		g_hTimerPerks = INVALID_HANDLE;
+		g_hTimerPerks = null;
 	}
 
 	//tells plugin we're about to start loading
@@ -3705,7 +1609,7 @@ Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 	if (g_iSpiritTimer[iCid] != INVALID_HANDLE)
 	{
 		KillTimer(g_iSpiritTimer[iCid]);
-		g_iSpiritTimer[iCid] = INVALID_HANDLE;
+		g_iSpiritTimer[iCid] = null;
 	}
 
 	//reset runspeed
@@ -3752,7 +1656,7 @@ public void OnPluginEnd()
 		if (g_iSpiritTimer[iI] != INVALID_HANDLE)
 		{
 			KillTimer(g_iSpiritTimer[iI]);
-			g_iSpiritTimer[iI] = INVALID_HANDLE;
+			g_iSpiritTimer[iI] = null;
 		}
 
 		//before we run any functions on players
@@ -3809,7 +1713,7 @@ public void OnPluginEnd()
 
 	if (g_hTimerPerks != INVALID_HANDLE)
 		KillTimer(g_hTimerPerks);
-	g_hTimerPerks = INVALID_HANDLE;
+	g_hTimerPerks = null;
 
 	g_bIsRoundStart = false;
 	g_bIsLoading = false;
@@ -4153,28 +2057,28 @@ void AssignRandomPerks(int iCid)
 	iPerkCount = 0;
 
 	//1 stopping power
-	if (GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
+	if (GameModeCheck(true, g_iStopping_enable))
 	{
 		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
 	}
 
 	//2 double tap
-	if (GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
+	if (GameModeCheck(true, g_iDT_enable))
 	{
 		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
 	}
 
 	//3 sleight of hand
-	if (GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
+	if (GameModeCheck(true, g_iSoH_enable))
 	{
 		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
 	}
 
 	//4 pyrotechnician
-	if (GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	if (GameModeCheck(true, g_iPyro_enable))
 	{
 		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
@@ -4190,28 +2094,28 @@ void AssignRandomPerks(int iCid)
 	iPerkCount = 0;
 
 	//1 unbreakable
-	if (GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+	if (GameModeCheck(true, g_iUnbreak_enable))
 	{
 		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
 	}
 
 	//2 spirit
-	if (GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
+	if (GameModeCheck(true, g_iSpirit_enable))
 	{
 		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
 	}
 
 	//3 helping hand
-	if (GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	if (GameModeCheck(true, g_iHelpHand_enable))
 	{
 		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
 	}
 
 	//4 martial artist
-	if (GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
+	if (GameModeCheck(true, g_iMA_enable))
 	{
 		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
@@ -4227,34 +2131,34 @@ void AssignRandomPerks(int iCid)
 	iPerkCount = 0;
 
 	//1 pack rat
-	if (GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (GameModeCheck(true, g_iPack_enable))
 	{
 		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
 	}
 
 	//2 chem reliant
-	if (GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
+	if (GameModeCheck(true, g_iChem_enable))
 	{
 		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
 	}
 
 	//3 hard to kill
-	if (GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
+	if (GameModeCheck(true, g_iHard_enable))
 	{
 		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
 	}
 
 	//4 extreme conditioning
-	if (GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
+	if (GameModeCheck(true, g_iExtreme_enable))
 	{
 		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
 	}
 
-	if (GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	if (GameModeCheck(true, g_iLittle_enable))
 	{
 		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_LittleLeaguer;
@@ -4269,14 +2173,14 @@ void AssignRandomPerks(int iCid)
 	iPerkCount = 0;
 
 	//1 barf bagged
-	if (g_bBarf_enable)
+	if (g_iBarf_enable)
 	{
 		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
 	}
 
 	//2 blind luck
-	if (g_bBlind_enable)
+	if (g_iBlind_enable)
 	{
 		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
@@ -4484,7 +2388,7 @@ void AssignRandomPerks(int iCid)
 	}
 
 	//5 double the trouble
-	if (g_bDouble_enable)
+	if (g_iDouble_enable)
 	{
 		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
@@ -4524,27 +2428,28 @@ SurvivorFirstPerkType BotPickRandomSurvivorFirstPerk()
 	if (g_hBot_Sur1 != INVALID_HANDLE)
 		GetConVarString(g_hBot_Sur1, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1, 2, 3";
+		stPerk = "1, 2, 3, 4";
 
-	if (StringInsensitiveContains(stPerk, "1") && g_bStopping_enable)
+	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iStopping_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
 	}
 
-	if (StringInsensitiveContains(stPerk, "2") && g_bDT_enable)
+	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iDT_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
 	}
 
-	if (StringInsensitiveContains(stPerk, "3") && g_bSoH_enable)
+	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iSoH_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
 	}
 
-	if (StringInsensitiveContains(stPerk, "4") && g_hPyro_enable) {
+	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iPyro_enable))
+	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
 	}
@@ -4568,29 +2473,29 @@ SurvivorSecondPerkType BotPickRandomSurvivorSecondPerk()
 	if (g_hBot_Sur2 != INVALID_HANDLE)
 		GetConVarString(g_hBot_Sur2, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1, 2, 3";
+		stPerk = "1, 2, 3, 4";
 
-	if (StringInsensitiveContains(stPerk, "1") && g_bUnbreak_enable)
+	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iUnbreak_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
 	}
 
-	if (StringInsensitiveContains(stPerk, "2") && g_bSpirit_enable)
+	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iSpirit_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
 	}
 
 	//helping hand
-	if (StringInsensitiveContains(stPerk, "3") && g_bHelpHand_enable)
+	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iHelpHand_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
 	}
 
 	//martial artist
-	if (StringInsensitiveContains(stPerk, "4") && g_bMA_enable)
+	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iMA_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
@@ -4615,27 +2520,27 @@ SurvivorThirdPerkType BotPickRandomSurvivorThirdPerk()
 	if (g_hBot_Sur3 != INVALID_HANDLE)
 		GetConVarString(g_hBot_Sur3, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1, 3";
+		stPerk = "1, 2, 3";
 
-	if (StringInsensitiveContains(stPerk, "1") && g_bPack_enable)
+	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iPack_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
 	}
 
-	if (StringInsensitiveContains(stPerk, "2") && g_hChem_enable)
+	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iChem_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
 	}
 
-	if (StringInsensitiveContains(stPerk, "3") && g_bHard_enable)
+	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iHard_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
 	}
 
-	if (StringInsensitiveContains(stPerk, "4") && g_hExtreme_enable)
+	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iExtreme_enable))
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
@@ -4717,7 +2622,7 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 	PrintToChatAll("\x03-stPerk: \x01%s", stPerk);
 	#endif
 
-	if (StringInsensitiveContains(stPerk, "1") && g_bBarf_enable)
+	if (StringInsensitiveContains(stPerk, "1") && g_iBarf_enable)
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
@@ -4727,7 +2632,7 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 		#endif
 	}
 
-	if (StringInsensitiveContains(stPerk, "2") && g_bBlind_enable)
+	if (StringInsensitiveContains(stPerk, "2") && g_iBlind_enable)
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
@@ -4825,7 +2730,7 @@ InfectedSpitterPerkType BotPickRandomSpitterPerk()
 	if (g_hBot_inf_spitter != INVALID_HANDLE)
 		GetConVarString(g_hBot_inf_spitter, stPerk, sizeof(stPerk));
 	else
-		stPerk = "1";
+		stPerk = "1, 2";
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bTwinSF_enable)
 	{
@@ -4964,7 +2869,7 @@ InfectedTankPerkType BotPickRandomTankPerk()
 	}
 
 	//double trouble
-	if (StringInsensitiveContains(stPerk, "5") && g_bDouble_enable)
+	if (StringInsensitiveContains(stPerk, "5") && g_iDouble_enable)
 	{
 		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
@@ -4985,7 +2890,7 @@ InfectedTankPerkType BotPickRandomTankPerk()
 //run, since damage events can occur pretty often
 void Stopping_RunChecks()
 {
-	g_bStopping_meta_enable = GameModeCheck(g_bSur1_enable, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs);
+	g_bStopping_meta_enable = GameModeCheck(g_bSur1_enable, g_iStopping_enable);
 }
 
 //main damage add function
@@ -5072,7 +2977,7 @@ Action Event_InfectedHurtPre(Event event, const char[] name, bool dontBroadcast)
 //should be run every game frame
 void DT_RunChecks()
 {
-	g_bDT_meta_enable = GameModeCheck(g_bSur1_enable, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs);
+	g_bDT_meta_enable = GameModeCheck(g_bSur1_enable, g_iDT_enable);
 }
 
 //called on confirming perks
@@ -5355,10 +3260,7 @@ void DT_OnGameFrame()
 void SoH_OnReload(int iCid)
 {
 	//check if perk is disabled
-	if (g_bSur1_enable == false
-		|| g_bSoH_enable == false		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bSoH_enable_sur == false	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bSoH_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur1_enable, g_iSoH_enable) == false)
 		return;
 
 	SurvivorFirstPerkType iSur1 = g_spSur[iCid].firstPerk;
@@ -5855,8 +3757,7 @@ Action SoH_ShotgunEndCock (Handle timer, DataPack hPack)
 //on pickup
 void Pyro_Pickup(int iCid, const char[] stWpn)
 {
-	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician
-		&& GameModeCheck(g_bSur1_enable, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(g_bSur1_enable, g_iPyro_enable))
 	{
 		//only bother with checks if they aren't throwing
 		if (g_iGrenThrow[iCid] == 0)
@@ -5898,10 +3799,7 @@ void Pyro_Pickup(int iCid, const char[] stWpn)
 void Pyro_OnWeaponFire(int iCid, const char[] stWpn)
 {
 	//check if perk is enabled
-	if (g_bSur1_enable == false
-		|| g_bPyro_enable == false		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bPyro_enable_sur == false	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bPyro_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur1_enable, g_iPyro_enable) == false)
 		return;
 
 	if (g_bConfirm[iCid] == false || g_spSur[iCid].firstPerk != SurvivorFirstPerk_Pyrotechnician) return;
@@ -5986,10 +3884,7 @@ void Event_Confirm_Grenadier(int iCid)
 		return;
 
 	//check if perk is enabled
-	if (g_bSur1_enable == false
-		|| g_bPyro_enable == false 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bPyro_enable_sur == false 	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bPyro_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur1_enable, g_iPyro_enable) == false)
 		return;
 
 	//reset grenade count on player
@@ -6028,11 +3923,7 @@ void Pyro_Timer()
 	int iTicks;
 
 	//check if perk is enabled
-	if (g_bSur1_enable == false
-		|| g_iPyro_maxticks == 0
-		|| g_bPyro_enable == false		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bPyro_enable_sur == false	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bPyro_enable_vs == false	&&	g_L4D_GameMode == GameMode_Versus)
+	if (g_iPyro_maxticks == 0 || GameModeCheck(g_bSur1_enable, g_iPyro_enable) == false)
 		return;
 
 	//or if no one has DT, don't bother either
@@ -6147,7 +4038,7 @@ void Pyro_Clear(bool bRoundStart)
 
 void MA_RunChecks()
 {
-	g_bMA_meta_enable = GameModeCheck(g_bSur2_enable, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs);
+	g_bMA_meta_enable = GameModeCheck(g_bSur2_enable, g_iMA_enable);
 }
 
 //called on confirming perks
@@ -6159,10 +4050,7 @@ void Event_Confirm_MA(int iCid)
 		g_iMARegisterCount = 0;
 
 	//check if perk is enabled
-	if (g_bSur1_enable == false
-		|| g_bMA_enable == false		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bMA_enable_sur == false	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bMA_enable_vs == false		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur1_enable, g_iMA_enable) == false)
 		return;
 
 	if (IsClientInGame(iCid)
@@ -6196,10 +4084,7 @@ void MA_Rebuild()
 		return;
 
 	//check if perk is enabled
-	if (g_bSur2_enable == false
-		|| g_bMA_enable == false		&&	g_L4D_GameMode == GameMode_Campaign
-		|| g_bMA_enable_sur == false	&&	g_L4D_GameMode == GameMode_Survival
-		|| g_bMA_enable_vs == false		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur2_enable, g_iMA_enable) == false)
 		return;
 
 	#if defined PM_DEBUG
@@ -6457,10 +4342,7 @@ void MA_OnGameFrame()
 void Unbreakable_OnHeal(int iCid)
 {
 	//check if perk is enabled
-	if (!g_bSur2_enable
-		|| !g_bUnbreak_enable			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bUnbreak_enable_sur		&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bUnbreak_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur2_enable, g_iUnbreak_enable) == false)
 		return;
 
 	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable)
@@ -6490,13 +4372,10 @@ void Event_Confirm_Unbreakable(int iCid)
 	ClientTeamType TC = SM_GetClientTeamType(iCid);
 
 	//check if perk is enabled
-	if (!g_bSur2_enable
-		|| !g_bUnbreak_enable			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bUnbreak_enable_sur		&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bUnbreak_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur2_enable, g_iUnbreak_enable) == false)
 	{
 		//if not, check if hp is higher than it should be
-		if (iHP>100 && TC == ClientTeam_Survivor)
+		if (iHP > 100 && TC == ClientTeam_Survivor)
 		{
 			//if it IS higher, reduce hp to 100
 			//otherwise, no way to know whether previous owner
@@ -6510,9 +4389,9 @@ void Event_Confirm_Unbreakable(int iCid)
 	//if we've gotten up to this point, the perk is enabled
 	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && TC == ClientTeam_Survivor)
 	{
-		if (iHP>100 && iHP < (100+g_iUnbreak_hp) )
+		if (iHP > 100 && iHP < (100 + g_iUnbreak_hp) )
 			CreateTimer(0.5, Unbreakable_Delayed_Max, iCid);
-		else if (iHP<=100)
+		else if (iHP <= 100)
 			CreateTimer(0.5, Unbreakable_Delayed_Normal, iCid);
 		PrintHintText(iCid,"Unbreakable: %t!", "UnbreakableHint");
 
@@ -6540,10 +4419,7 @@ void Unbreakable_OnRescue(int iCid)
 	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable)
 	{
 		//check if perk is enabled
-		if (!g_bSur2_enable
-			|| !g_bUnbreak_enable			&&	g_L4D_GameMode == GameMode_Campaign
-			|| !g_bUnbreak_enable_sur		&&	g_L4D_GameMode == GameMode_Survival
-			|| !g_bUnbreak_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+		if (GameModeCheck(g_bSur2_enable, g_iUnbreak_enable) == false)
 			return;
 
 		CreateTimer(0.5, Unbreakable_Delayed_Rescue, iCid);
@@ -6566,7 +4442,7 @@ void Unbreakable_OnRevive(int iSub, int iLedge)
 	if (g_spSur[iSub].secondPerk == SurvivorSecondPerk_Unbreakable && g_bConfirm[iSub] && iLedge == 0)
 	{
 		//check if perk is enabled
-		if (GameModeCheck(g_bSur1_enable, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+		if (GameModeCheck(g_bSur1_enable, g_iUnbreak_enable))
 		{
 			SetEntDataFloat(iSub, g_iHPBuffO, GetEntDataFloat(iSub, g_iHPBuffO)+(g_iUnbreak_hp/2), true);
 			PrintHintText(iSub,"Unbreakable: %t!", "UnbreakableHint");
@@ -6656,10 +4532,7 @@ Action Unbreakable_Delayed_SetLow(Handle timer, int iCid)
 void Spirit_Timer()
 {
 	//check if perk is enabled
-	if (!g_bSur2_enable
-		|| !g_bSpirit_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bSpirit_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bSpirit_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur2_enable, g_iSpirit_enable) == false)
 		return;
 
 	//this var counts how many people are incapped
@@ -6788,7 +4661,7 @@ void Spirit_Timer()
 Action Spirit_CooldownTimer(Handle timer, int iCid)
 {
 	KillTimer(timer);
-	g_iSpiritTimer[iCid] = INVALID_HANDLE;
+	g_iSpiritTimer[iCid] = null;
 	//if the cooldown's been turned off,
 	//that means a new round has started
 	//and we can skip everything here
@@ -6902,10 +4775,7 @@ void HelpHand_OnReviveBegin(int iCid)
 		return;
 
 	//check if perk is enabled
-	if (!g_bSur2_enable
-		|| !g_bHelpHand_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bHelpHand_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bHelpHand_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur2_enable, g_iHelpHand_enable) == false)
 		return;
 
 	//check for helping hand
@@ -6935,9 +4805,7 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 	PrintToChatAll("\x05helphand\x03 reviver: \x01%i\x03, subject: \x01%i", iCid, iSub);
 	#endif
 	//then check for helping hand
-	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand
-		&& g_bConfirm[iCid]
-		&& GameModeCheck(g_bSur2_enable, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	if (g_bConfirm[iCid] && g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(g_bSur2_enable, g_iHelpHand_enable))
 	{
 		switch (iLedge)
 		{
@@ -6979,7 +4847,7 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 	//only adjust the convar if
 	//convar changes are allowed
 	//for this perk
-	if (g_bHelpHand_convar && GameModeCheck(g_bSur2_enable, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	if (g_bHelpHand_convar && GameModeCheck(g_bSur2_enable, g_iHelpHand_enable))
 		SetConVarFloat(FindConVar("survivor_revive_duration"), g_flReviveTime, false, false);
 
 	//and then check if we need to continue allowing crawling
@@ -7040,7 +4908,7 @@ Action HelpHand_Delayed(Handle timer, int iCid)
 //on gun pickup
 void PR_Pickup(int iCid, const char[] stWpn)
 {
-	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(g_bSur2_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(g_bSur2_enable, g_iPack_enable))
 	{
 		if (StringInsensitiveContains(stWpn, "smg")
 			|| StringInsensitiveContains(stWpn, "rifle")
@@ -7058,7 +4926,7 @@ Action Event_AmmoPickup(Event event, const char[] name, bool dontBroadcast)
 	int iCid = GetClientOfUserId(event.GetInt("userid"));
 	if (iCid == 0) return Plugin_Continue;
 
-	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && g_bConfirm[iCid] && GameModeCheck(g_bSur3_enable, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_bConfirm[iCid] && g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat &&  GameModeCheck(g_bSur3_enable, g_iPack_enable))
 	{
 		PR_GiveFullAmmo(iCid);
 	}
@@ -7206,10 +5074,7 @@ Action PR_GiveFullAmmo_delayed (Handle timer, int iCid)
 void Chem_OnDrugUsed(int iCid)
 {
 	//check if perk is enabled
-	if (!g_bSur3_enable
-		|| !g_bChem_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bChem_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bChem_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur3_enable, g_iChem_enable) == false)
 		return;
 
 	#if defined PM_DEBUG
@@ -7226,7 +5091,7 @@ void Chem_OnDrugUsed(int iCid)
 		//they have unbreakable or not
 
 		//CASE 1: HAS UNBREAKABLE
-		if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(g_bSur3_enable, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+		if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(g_bSur3_enable, g_iUnbreak_enable))
 		{
 			//CASE 1A:
 			//combined health + chem reliant < max health possible
@@ -7273,10 +5138,7 @@ void Event_Confirm_ChemReliant(int iCid)
 		return;
 
 	//check if perk is enabled
-	if (!g_bSur3_enable
-		|| !g_bChem_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bChem_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bChem_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur3_enable, g_iChem_enable) == false)
 		return;
 
 	int iflags = GetCommandFlags("give");
@@ -7299,10 +5161,7 @@ void HardToKill_OnIncap(int iCid)
 	if (SM_GetClientTeamType(iCid) != ClientTeam_Survivor || g_bConfirm[iCid] == false)
 		return;
 
-	if (!g_bSur3_enable
-		|| !g_bHard_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bHard_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bHard_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur3_enable, g_iHard_enable) == false)
 		return;
 
 	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill)
@@ -7346,10 +5205,7 @@ void Event_Confirm_LittleLeaguer(int iCid)
 		return;
 
 	//check if perk is enabled
-	if (!g_bSur3_enable
-		|| !g_bChem_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bChem_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bChem_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur3_enable, g_iChem_enable) == false)
 		return;
 
 	int iflags = GetCommandFlags("give");
@@ -7371,10 +5227,7 @@ void Extreme_Rebuild()
 	if (IsServerProcessing() == false) return;
 
 	//check if perk is enabled
-	if (!g_bSur3_enable
-		|| !g_bExtreme_enable		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bExtreme_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bExtreme_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(g_bSur3_enable, g_iExtreme_enable) == false)
 		return;
 
 	#if defined PM_DEBUG
@@ -7409,7 +5262,8 @@ void BlindLuck_OnIt(int iAtt, int iVic)
 		&& IsFakeClient(iVic) == false)
 	{
 		//check if perk is enabled
-		if (g_bInfBoomer_enable == false || g_bBlind_enable == false) return;
+		if (GameModeCheck(g_bInfBoomer_enable, g_iBlind_enable) == false)
+			return;
 
 		SetEntProp(iVic, Prop_Send, "m_iHideHUD", 64);
 
@@ -7423,7 +5277,7 @@ void BlindLuck_OnIt(int iAtt, int iVic)
 void BlindLuck_OnSpawn(int iCid)
 {
 	//stop if convar changes are disallowed for this perk
-	if (g_bBlind_enable == false || g_bInfBoomer_enable == false) return;
+	if (GameModeCheck(g_bInfBoomer_enable, g_iBlind_enable) == false) return;
 
 	if (g_ipInf[iCid].boomerPerk == InfectedBoomerPerk_BlindLuck)
 	{
@@ -7528,7 +5382,7 @@ void BarfBagged_OnIt(int iAtt)
 		&& SM_GetClientTeamType(iAtt) == ClientTeam_Infected)
 	{
 		//check if perk is enabled
-		if (g_bInfBoomer_enable == false || g_bBarf_enable == false) return;
+		if (GameModeCheck(g_bInfBoomer_enable, g_iBarf_enable) == false) return;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-attempting to spawn a mob, g_iSlimed=\x01%i", g_iSlimed);
@@ -7878,7 +5732,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 	int smoker = pack.ReadCell();
 	if (!IsValidClient(smoker) || IsFakeClient(smoker) || (SM_GetClientTeamType(smoker) != ClientTeam_Infected) || (g_bSmokeItGrabbed[smoker] = false))
 	{
-		g_hSmokeItTimer[smoker] = INVALID_HANDLE;
+		g_hSmokeItTimer[smoker] = null;
 		CloseHandle(pack);
 		return Plugin_Stop;
 	}
@@ -7886,7 +5740,7 @@ Action SmokeItTimerFunction(Handle timer, DataPack pack)
 	int victim = pack.ReadCell();
 	if (!IsValidClient(victim) || (SM_GetClientTeamType(victim) != ClientTeam_Survivor) || (g_bSmokeItGrabbed[smoker] = false))
 	{
-		g_hSmokeItTimer[smoker] = INVALID_HANDLE;
+		g_hSmokeItTimer[smoker] = null;
 		CloseHandle(pack);
 		return Plugin_Stop;
 	}
@@ -7915,7 +5769,7 @@ Action SmokeIt_OnTongueRelease(int smoker)
 	if (g_hSmokeItTimer[smoker] != INVALID_HANDLE)
 	{
 		KillTimer(g_hSmokeItTimer[smoker], true);
-		g_hSmokeItTimer[smoker] = INVALID_HANDLE;
+		g_hSmokeItTimer[smoker] = null;
 	}
 
 	return Plugin_Continue;
@@ -8576,7 +6430,7 @@ Action MegaAd_Timer(Handle timer, int iVic)
 		|| IsClientInGame(iVic) == false)
 	{
 		KillTimer(timer);
-		g_hMegaAdTimer[iVic] = INVALID_HANDLE;
+		g_hMegaAdTimer[iVic] = null;
 		return Plugin_Stop;
 	}
 
@@ -8625,7 +6479,7 @@ Action MegaAd_Timer(Handle timer, int iVic)
 		Extreme_Rebuild();
 
 		KillTimer(timer);
-		g_hMegaAdTimer[iVic] = INVALID_HANDLE;
+		g_hMegaAdTimer[iVic] = null;
 		return Plugin_Stop;
 	}
 }
@@ -8888,7 +6742,7 @@ void Tank_ApplyPerk(int iCid)
 		g_iTank_MainId = iCid;
 
 		//stop if double trouble is disabled
-		if (!g_bDouble_enable) return;
+		if (!g_iDouble_enable) return;
 
 		//recount the number of tanks left
 		g_iTankCount = 0;
@@ -8925,7 +6779,7 @@ void Tank_ApplyPerk(int iCid)
 	else if (g_iTank == 3)
 	{
 		//stop if double trouble is disabled
-		if (!g_bDouble_enable) return;
+		if (!g_iDouble_enable) return;
 
 		//recount the number of tanks left
 		g_iTankCount = 0;
@@ -9317,13 +7171,13 @@ Action DoubleTrouble_FrustrationTimer(Handle timer, int iCid)
 
 	//stop the timer if any of these
 	//conditions are true
-	if (IsClientInGame(iCid) == false
+	if (GameModeCheck(true, g_iDouble_enable) == false
+		|| IsClientInGame(iCid) == false
 		|| IsFakeClient(iCid) == true
 		|| IsPlayerAlive(iCid) == false
 		|| SM_GetClientTeamType(iCid) != ClientTeam_Infected
 		|| g_iTankCount <= 1
-		|| g_bInfTank_enable == false
-		|| g_bDouble_enable == false)
+		|| g_bInfTank_enable == false)
 	{
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03- stopping, tankcount \x01%i", g_iTankCount);
@@ -9603,13 +7457,13 @@ Panel Menu_Top(int iCid)
 	char st_display[MAXPLAYERS+1];
 
 	//set name for sur1 perk
-	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
+	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_iStopping_enable))
 		st_perk = "Stopping Power";
-	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_iDT_enable))
 		st_perk = "Double Tap";
-	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_iSoH_enable))
 		st_perk = "Sleight of Hand";
-	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_iPyro_enable))
 		st_perk = "Pyrotechnician";
 	else
 		st_perk = "Not set";
@@ -9621,13 +7475,13 @@ Panel Menu_Top(int iCid)
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 
 	//set name for sur2 perk
-	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_iUnbreak_enable))
 		st_perk = "Unbreakable";
-	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_iSpirit_enable))
 		st_perk = "Spirit";
-	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_iHelpHand_enable))
 		st_perk = "Helping Hand";
-	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_MartialArtist	&& g_bIsL4D2 && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
+	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_MartialArtist	&& g_bIsL4D2 && GameModeCheck(true, g_iMA_enable))
 		st_perk = "Martial Artist";
 	else
 		st_perk = "Not set";
@@ -9639,15 +7493,15 @@ Panel Menu_Top(int iCid)
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 
 	//set name for sur3 perk
-	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_iPack_enable))
 		st_perk = "Pack Rat";
-	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_iChem_enable))
 		st_perk = "Chem Reliant";
-	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_iHard_enable))
 		st_perk = "Hard to Kill";
-	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_iExtreme_enable))
 		st_perk = "Extreme Conditioning";
-	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_iLittle_enable))
 		st_perk = "Little Leaguer";
 	else
 		st_perk = "Not set";
@@ -9718,9 +7572,9 @@ Panel Menu_Top_Inf(int iCid)
 
 	//set name for Boomer perk
 	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
-	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_bBarf_enable)
+	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
 		st_perk = "Barf Bagged";
-	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_bBlind_enable)
+	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
 		st_perk = "Blind Luck";
 	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
 		st_perk = "Dead Wreckening";
@@ -9832,7 +7686,7 @@ Panel Menu_Top_Inf(int iCid)
 		st_perk = "Metabolic";
 	else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
 		st_perk = "Storm Caller";
-	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_bDouble_enable)
+	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_iDouble_enable)
 		st_perk = "Double the Trouble";
 	else
 		st_perk = "Not set";
@@ -9998,13 +7852,13 @@ Panel Menu_ShowChoices(int iCid)
 
 	//show sur1 perk
 	SurvivorFirstPerkType firstPerk = g_spSur[iCid].firstPerk;
-	if (firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_bStopping_enable, g_bStopping_enable_sur, g_bStopping_enable_vs))
+	if (firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_iStopping_enable))
 		Format(st_perk , sizeof(st_perk), "Stopping Power (+%i%% %t)", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText" );
-	else if (firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_bDT_enable, g_bDT_enable_sur, g_bDT_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_iDT_enable))
 		Format(st_perk, sizeof(st_perk), "Double Tap (%t, %t, %t)", "DoubleTapDescriptionPanel", "SleighOfHandDescriptionPanel", "DoubleTapRestrictionWarning" ) ;
-	else if (firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_bSoH_enable, g_bSoH_enable_sur, g_bSoH_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_iSoH_enable))
 		Format(st_perk, sizeof(st_perk), "Sleight of Hand (%t +%i%%)", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) ) ;
-	else if (firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_bPyro_enable, g_bPyro_enable_sur, g_bPyro_enable_vs))
+	else if (firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_iPyro_enable))
 		Format(st_perk, sizeof(st_perk), "Pyrotechnician (%t)", "PyroDescriptionPanel");
 	else
 		Format(st_perk, sizeof(st_perk),"%t", "NotSet");
@@ -10017,9 +7871,9 @@ Panel Menu_ShowChoices(int iCid)
 
 	//show sur2 perk
 	SurvivorSecondPerkType secondPerk = g_spSur[iCid].secondPerk;
-	if (secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_bUnbreak_enable, g_bUnbreak_enable_sur, g_bUnbreak_enable_vs))
+	if (secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_iUnbreak_enable))
 		Format(st_perk, sizeof(st_perk), "Unbreakable (+%i %t)", g_iUnbreak_hp, "UnbreakableHint");
-	else if (secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_bSpirit_enable, g_bSpirit_enable_sur, g_bSpirit_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_iSpirit_enable))
 	{
 		int iTime = g_iSpirit_cd;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -10029,7 +7883,7 @@ Panel Menu_ShowChoices(int iCid)
 
 		Format(st_perk, sizeof(st_perk), "Spirit (%t: %i min)", "SpiritDescriptionPanel", iTime/60);
 	}
-	else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_bHelpHand_enable, g_bHelpHand_enable_sur, g_bHelpHand_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_iHelpHand_enable))
 	{
 		int iBuff = g_iHelpHand_buff;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -10040,7 +7894,7 @@ Panel Menu_ShowChoices(int iCid)
 		else
 			Format(st_perk, sizeof(st_perk), "Helping Hand (%t +%i)", "HelpingHandDescriptionPanel", iBuff);
 	}
-	else if (secondPerk == SurvivorSecondPerk_MartialArtist && GameModeCheck(true, g_bMA_enable, g_bMA_enable_sur, g_bMA_enable_vs))
+	else if (secondPerk == SurvivorSecondPerk_MartialArtist && GameModeCheck(true, g_iMA_enable))
 	{
 		if (g_iMA_maxpenalty < 6)
 			Format(st_perk, sizeof(st_perk), "Martial Artist (%t)", "MartialArtistDescriptionPanel");
@@ -10058,15 +7912,15 @@ Panel Menu_ShowChoices(int iCid)
 
 	//show sur3 perk
 	SurvivorThirdPerkType thirdPerk = g_spSur[iCid].thirdPerk;
-	if (thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_bPack_enable, g_bPack_enable_sur, g_bPack_enable_vs))
+	if (thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_iPack_enable))
 		Format(st_perk, sizeof(st_perk), "Pack Rat (%t +%i%%)", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100) );
-	else if (thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_bChem_enable, g_bChem_enable_sur, g_bChem_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_iChem_enable))
 		Format(st_perk, sizeof(st_perk), "Chem Reliant (%t +%i)", "ChemReliantDescriptionPanel", g_iChem_buff);
-	else if (thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_bHard_enable, g_bHard_enable_sur, g_bHard_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_iHard_enable))
 		Format(st_perk, sizeof(st_perk), "Hard to Kill (+%i%% %t)", RoundToNearest(g_flHard_hpmult*100), "HardToKillDescriptionPanel");
-	else if (thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_bExtreme_enable, g_bExtreme_enable_sur, g_bExtreme_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_iExtreme_enable))
 		Format(st_perk, sizeof(st_perk), "Extreme Conditioning (+%i%% %t)", RoundToNearest(g_flExtreme_rate * 100 - 100), "MartialArtistDescriptionPanelCoop" );
-	else if (thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_bLittle_enable, g_bLittle_enable_sur, g_bLittle_enable_vs))
+	else if (thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_iLittle_enable))
 		Format(st_perk, sizeof(st_perk),"Little Leaguer (%t)", "LittleLeaguerDescriptionPanel" );
 	else
 		Format(st_perk, sizeof(st_perk), "%t", "NotSet");
@@ -10090,12 +7944,12 @@ Panel Menu_ShowChoices_Inf(int iCid)
 	menu.SetTitle("tPoncho's Perkmod: Your perks for this round");
 
 	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
-	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_bBarf_enable)
+	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
 	{
 		st_perk = "Boomer: Barf Bagged";
 		Format(stDesc, sizeof(st_perk), "%t", "BarfBaggedDescriptionPanel");
 	}
-	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_bBlind_enable)
+	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
 	{
 		st_perk = "Boomer: Blind Luck";
 		Format(stDesc, sizeof(st_perk), "%t", "AcidVomitDescriptionPanel");
@@ -10286,7 +8140,7 @@ Panel Menu_ShowChoices_Inf(int iCid)
 		st_perk = "Tank: Storm Caller";
 		Format(stDesc, sizeof(st_perk), "%t", "StormCallerDescriptionPanel");
 	}
-	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_bDouble_enable)
+	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_iDouble_enable)
 	{
 		st_perk = "Tank: Double the Trouble";
 		Format(stDesc, sizeof(st_perk),"%t", "DoubleTroubleDescriptionPanel");
@@ -10322,9 +8176,7 @@ Panel Menu_Sur1Perk(int client)
 	SurvivorFirstPerkType perkType = g_spSur[client].firstPerk;
 
 	//set name for perk 1
-	if (!g_bStopping_enable			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bStopping_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bStopping_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iStopping_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10340,9 +8192,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 
 	//set name for perk 2
-	if (!g_bDT_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bDT_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bDT_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iDT_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10367,9 +8217,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 
 	//set name for perk 3
-	if (!g_bSoH_enable 			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bSoH_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bSoH_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iSoH_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10385,9 +8233,7 @@ Panel Menu_Sur1Perk(int client)
 	}
 
 	//set name for perk 4
-	if (!g_bPyro_enable			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bPyro_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bPyro_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iPyro_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10413,7 +8259,7 @@ int Menu_ChooseSur1Perk(Menu menu, MenuAction action, int client, int param2)
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= SurvivorFirstPerk_Count) {
+		if (1 <= param2 <= PM_SurvivorFirstPerkTypeToInt(SurvivorFirstPerk_Count)) {
 			g_spSur[client].firstPerk = PM_IntToSurvivorFirstPerkType(param2);
 		}
 	}
@@ -10440,9 +8286,7 @@ Panel Menu_Sur2Perk(int client)
 	SurvivorSecondPerkType perkType = g_spSur[client].secondPerk;
 
 	//set name for perk 1
-	if (!g_bUnbreak_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bUnbreak_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bUnbreak_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iUnbreak_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10458,9 +8302,7 @@ Panel Menu_Sur2Perk(int client)
 	}
 
 	//set name for perk 2
-	if (!g_bSpirit_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bSpirit_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bSpirit_enable_vs		&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iSpirit_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10485,9 +8327,7 @@ Panel Menu_Sur2Perk(int client)
 	}
 
 	//set name for perk 3
-	if (!g_bHelpHand_enable 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bHelpHand_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bHelpHand_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iHelpHand_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10514,10 +8354,7 @@ Panel Menu_Sur2Perk(int client)
 		}
 
 		//set name for perk 4, Martial Artist
-		if (!g_bMA_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
-			|| !g_bMA_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-			|| !g_bMA_enable_vs		&&	g_L4D_GameMode == GameMode_Versus
-			|| !g_bIsL4D2)
+		if (g_bIsL4D2 == false || GameModeCheck(true, g_iMA_enable) == false)
 		{
 			menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 		}
@@ -10548,7 +8385,7 @@ int Menu_ChooseSur2Perk(Menu menu, MenuAction action, int client, int param2)
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= SurvivorSecondPerk_Count) {
+		if (1 <= param2 <= PM_SurvivorSecondPerkTypeToInt(SurvivorSecondPerk_Count)) {
 			g_spSur[client].secondPerk = PM_IntToSurvivorSecondPerkType(param2);
 		}
 	}
@@ -10575,9 +8412,7 @@ Panel Menu_Sur3Perk(int client)
 	SurvivorThirdPerkType perkType = g_spSur[client].thirdPerk;
 
 	//set name for perk 1
-	if (!g_bPack_enable 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bPack_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bPack_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iPack_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10593,9 +8428,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 
 	//set name for perk 2
-	if (!g_bChem_enable			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bChem_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bChem_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iChem_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10616,9 +8449,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 
 	//set name for perk 3
-	if (!g_bHard_enable 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bHard_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bHard_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iHard_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10637,9 +8468,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 
 	//set name for perk 4
-	if (!g_bExtreme_enable	 		&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bExtreme_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bExtreme_enable_vs	&&	g_L4D_GameMode == GameMode_Versus)
+	if (GameModeCheck(true, g_iExtreme_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10655,10 +8484,7 @@ Panel Menu_Sur3Perk(int client)
 	}
 
 	//set name for perk 5
-	if (!g_bLittle_enable 			&&	g_L4D_GameMode == GameMode_Campaign
-		|| !g_bLittle_enable_sur	&&	g_L4D_GameMode == GameMode_Survival
-		|| !g_bLittle_enable_vs		&&	g_L4D_GameMode == GameMode_Versus
-		|| !g_bIsL4D2)
+	if (g_bIsL4D2 == false || GameModeCheck(true, g_iLittle_enable) == false)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10683,7 +8509,7 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= SurvivorThirdPerk_Count) {
+		if (1 <= param2 <= PM_SurvivorThirdPerkTypeToInt(SurvivorThirdPerk_Count)) {
 			g_spSur[client].thirdPerk = PM_IntToSurvivorThirdPerkType(param2);
 		}
 	}
@@ -10710,7 +8536,7 @@ Panel Menu_InfBoomerPerk(int client)
 	InfectedBoomerPerkType perkType = g_ipInf[client].boomerPerk;
 
 	//set name for perk 1
-	if (!g_bBarf_enable)
+	if (!g_iBarf_enable)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10726,7 +8552,7 @@ Panel Menu_InfBoomerPerk(int client)
 	}
 
 	//set name for perk 2
-	if (!g_bBlind_enable)
+	if (!g_iBlind_enable)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10782,7 +8608,7 @@ int Menu_ChooseInfBoomerPerk(Menu menu, MenuAction action, int client, int param
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedBoomerPerk_Count) {
+		if (1 <= param2 <= PM_InfectedBoomerPerkTypeToInt(InfectedBoomerPerk_Count)) {
 			g_ipInf[client].boomerPerk = PM_IntToInfectedBoomerPerkType(param2);
 		}
 	}
@@ -10878,7 +8704,7 @@ Panel Menu_InfTankPerk(int client)
 	}
 
 	//set name for perk 5
-	if (!g_bDouble_enable)
+	if (!g_iDouble_enable)
 	{
 		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
 	}
@@ -10905,7 +8731,7 @@ int Menu_ChooseInfTankPerk(Menu menu, MenuAction action, int client, int param2)
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedTankPerk_Count) {
+		if (1 <= param2 <= PM_InfectedTankPerkTypeToInt(InfectedTankPerk_Count)) {
 			g_ipInf[client].tankPerk = PM_IntToInfectedTankPerkType(param2);
 		}
 	}
@@ -11008,7 +8834,7 @@ int Menu_ChooseInfSmokerPerk(Menu menu, MenuAction action, int client, int param
 	if (menu != INVALID_HANDLE) CloseHandle(menu);
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedSmokerPerk_Count) {
+		if (1 <= param2 <= PM_InfectedSmokerPerkTypeToInt(InfectedSmokerPerk_Count)) {
 			g_ipInf[client].smokerPerk = PM_IntToInfectedSmokerPerkType(param2);
 		}
 	}
@@ -11106,7 +8932,7 @@ int Menu_ChooseInfHunterPerk(Menu menu, MenuAction action, int client, int param
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedHunterPerk_Count) {
+		if (1 <= param2 <= PM_InfectedHunterPerkTypeToInt(InfectedHunterPerk_Count)) {
 			g_ipInf[client].hunterPerk = PM_IntToInfectedHunterPerkType(param2);
 		}
 	}
@@ -11204,7 +9030,7 @@ int Menu_ChooseInfJockeyPerk(Menu menu, MenuAction action, int client, int param
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedJockeyPerk_Count) {
+		if (1 <= param2 <= PM_InfectedJockeyPerkTypeToInt(InfectedJockeyPerk_Count)) {
 			g_ipInf[client].jockeyPerk = PM_IntToInfectedJockeyPerkType(param2);
 		}
 	}
@@ -11270,7 +9096,7 @@ int Menu_ChooseInfSpitterPerk(Menu menu, MenuAction action, int client, int para
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedSpitterPerk_Count) {
+		if (1 <= param2 <= PM_InfectedSpitterPerkTypeToInt(InfectedSpitterPerk_Count)) {
 			g_ipInf[client].spitterPerk = PM_IntToInfectedSpitterPerkType(param2);
 		}
 	}
@@ -11336,7 +9162,7 @@ int Menu_ChooseInfChargerPerk(Menu menu, MenuAction action, int client, int para
 
 	if (action == MenuAction_Select)
 	{
-		if (1 <= param2 <= InfectedChargerPerk_Count) {
+		if (1 <= param2 <= PM_InfectedChargerPerkTypeToInt(InfectedChargerPerk_Count)) {
 			g_ipInf[client].chargerPerk = PM_IntToInfectedChargerPerkType(param2);
 		}
 	}
@@ -11375,57 +9201,17 @@ Action SS_SetPerks(int iCid, int args)
 
 // MARK: - Helpers
 
-float constraintedFloat(float value, float min, float max)
-{
-	if (value < min) return min;
-	if (value > max) return max;
-	return value;
-}
-
-float StringToFloatConstrainted(const char[] strValue, float min, float max)
-{
-	float value = StringToFloat(strValue);
-	return constraintedFloat(value, min, max);
-}
-
-int constraintedInt(int value, int min, int max)
-{
-	if (value < min) return min;
-	if (value > max) return max;
-	return value;
-}
-
-int StringToIntConstrainted(const char[] strValue, int min, int max)
-{
-	int value = StringToInt(strValue);
-	return constraintedInt(value, min, max);
-}
-
-int StrinToIntWithOneConstrainted(const char[] strValue, int max) {
-	int value = StringToInt(strValue);
-	if (value <= 0) return 1;
-	if (value > max) return max;
-	return value;
-}
-
-bool StringToBool(const char[] strValue)
-{
-	int value = StringToInt(strValue);
-	if (value == 0) return false;
-	return true;
-}
-
 bool StringInsensitiveContains(const char[] lhs, const char[] rhs)
 {
 	return StrContains(lhs, rhs, false) != -1;
 }
 
-bool GameModeCheck(bool main, bool campaign, bool survival, bool versus)
+bool GameModeCheck(bool main, kConVarEnableType enableType)
 {
 	return (main
-		&& (campaign 	&& g_L4D_GameMode == GameMode_Campaign)
-		|| (survival 	&& g_L4D_GameMode == GameMode_Survival)
-		|| (versus 		&& g_L4D_GameMode == GameMode_Versus));
+		&& ((enableType & ConVarEnable_Campaign) && g_L4D_GameMode == GameMode_Campaign)
+		|| ((enableType & ConVarEnable_Survival) && g_L4D_GameMode == GameMode_Survival)
+		|| ((enableType & ConVarEnable_Versus)	&& g_L4D_GameMode == GameMode_Versus));
 }
 
 // MARK: - Debug
