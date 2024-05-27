@@ -2059,29 +2059,29 @@ void AssignRandomPerks(int iCid)
 	//1 stopping power
 	if (GameModeCheck(true, g_iStopping_enable))
 	{
-		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
+		iPerkCount++;
 	}
 
 	//2 double tap
 	if (GameModeCheck(true, g_iDT_enable))
 	{
-		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
+		iPerkCount++;
 	}
 
 	//3 sleight of hand
 	if (GameModeCheck(true, g_iSoH_enable))
 	{
-		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
+		iPerkCount++;
 	}
 
 	//4 pyrotechnician
 	if (GameModeCheck(true, g_iPyro_enable))
 	{
-		iPerkCount++;
 		firstPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2096,29 +2096,29 @@ void AssignRandomPerks(int iCid)
 	//1 unbreakable
 	if (GameModeCheck(true, g_iUnbreak_enable))
 	{
-		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
+		iPerkCount++;
 	}
 
 	//2 spirit
 	if (GameModeCheck(true, g_iSpirit_enable))
 	{
-		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
+		iPerkCount++;
 	}
 
 	//3 helping hand
 	if (GameModeCheck(true, g_iHelpHand_enable))
 	{
-		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
+		iPerkCount++;
 	}
 
 	//4 martial artist
 	if (GameModeCheck(true, g_iMA_enable))
 	{
-		iPerkCount++;
 		secondPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2133,35 +2133,35 @@ void AssignRandomPerks(int iCid)
 	//1 pack rat
 	if (GameModeCheck(true, g_iPack_enable))
 	{
-		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
+		iPerkCount++;
 	}
 
 	//2 chem reliant
 	if (GameModeCheck(true, g_iChem_enable))
 	{
-		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
+		iPerkCount++;
 	}
 
 	//3 hard to kill
 	if (GameModeCheck(true, g_iHard_enable))
 	{
-		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
+		iPerkCount++;
 	}
 
 	//4 extreme conditioning
 	if (GameModeCheck(true, g_iExtreme_enable))
 	{
-		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
+		iPerkCount++;
 	}
 
 	if (GameModeCheck(true, g_iLittle_enable))
 	{
-		iPerkCount++;
 		thirdPerkType[iPerkCount] = SurvivorThirdPerk_LittleLeaguer;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2175,29 +2175,29 @@ void AssignRandomPerks(int iCid)
 	//1 barf bagged
 	if (g_iBarf_enable)
 	{
-		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
+		iPerkCount++;
 	}
 
 	//2 blind luck
 	if (g_iBlind_enable)
 	{
-		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
+		iPerkCount++;
 	}
 
 	//3 dead wreckening
 	if (g_bDead_enable)
 	{
-		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_DeadWreckening;
+		iPerkCount++;
 	}
 
 	//4 motion sickness
 	if (g_bMotion_enable)
 	{
-		iPerkCount++;
 		boomerPerkType[iPerkCount] = InfectedBoomerPerk_MotionSickness;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2211,28 +2211,28 @@ void AssignRandomPerks(int iCid)
 	//1 tongue twister
 	if (g_bTongue_enable)
 	{
-		iPerkCount++;
 		smokerPerkType[iPerkCount] = InfectedSmokerPerk_TongueTwister;
+		iPerkCount++;
 	}
 
 	//2 squeezer
 	if (g_bSqueezer_enable)
 	{
-		iPerkCount++;
 		smokerPerkType[iPerkCount] = InfectedSmokerPerk_Squeezer;
+		iPerkCount++;
 	}
 
 	//3 drag and drop
 	if (g_bDrag_enable)
 	{
-		iPerkCount++;
 		smokerPerkType[iPerkCount] = InfectedSmokerPerk_DragAndDrop;
+		iPerkCount++;
 	}
 
 	if (g_bSmokeIt_enable)
 	{
-		iPerkCount++;
 		smokerPerkType[iPerkCount] = InfectedSmokerPerk_SmokeIt;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2246,29 +2246,29 @@ void AssignRandomPerks(int iCid)
 	//1 body slam
 	if (g_bBody_enable)
 	{
-		iPerkCount++;
 		hunterPerkType[iPerkCount] = InfectedHunterPerk_BodySlam;
+		iPerkCount++;
 	}
 
 	//2 efficient killer
 	if (g_bEfficient_enable)
 	{
-		iPerkCount++;
 		hunterPerkType[iPerkCount] = InfectedHunterPerk_EfficientKiller;
+		iPerkCount++;
 	}
 
 	//3 grasshopper
 	if (g_bGrass_enable)
 	{
-		iPerkCount++;
 		hunterPerkType[iPerkCount] = InfectedHunterPerk_Grasshopper;
+		iPerkCount++;
 	}
 
 	//4 speed demon
 	if (g_bSpeedDemon_enable)
 	{
-		iPerkCount++;
 		hunterPerkType[iPerkCount] = InfectedHunterPerk_SpeedDemon;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2282,29 +2282,29 @@ void AssignRandomPerks(int iCid)
 	//1 wind
 	if (g_bWind_enable)
 	{
-		iPerkCount++;
 		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Wind;
+		iPerkCount++;
 	}
 
 	//2 cavalier
 	if (g_bCavalier_enable)
 	{
-		iPerkCount++;
 		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Cavalier;
+		iPerkCount++;
 	}
 
 	//3 frogger
 	if (g_bFrogger_enable)
 	{
-		iPerkCount++;
 		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Frogger;
+		iPerkCount++;
 	}
 
 	//4 ghost
 	if (g_bGhost_enable)
 	{
-		iPerkCount++;
 		jockeyPerkType[iPerkCount] = InfectedJockeyPerk_Ghost;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2318,15 +2318,15 @@ void AssignRandomPerks(int iCid)
 	//1 twin spitfire
 	if (g_bTwinSF_enable)
 	{
-		iPerkCount++;
 		spitterPerkType[iPerkCount] = InfectedSpitterPerk_TwinSpitfire;
+		iPerkCount++;
 	}
 
 	//2 mega adhesive
 	if (g_bMegaAd_enable)
 	{
-		iPerkCount++;
 		spitterPerkType[iPerkCount] = InfectedSpitterPerk_MegaAdhesive;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2340,15 +2340,15 @@ void AssignRandomPerks(int iCid)
 	//1 scatter
 	if (g_bScatter_enable)
 	{
-		iPerkCount++;
 		chargerPerkType[iPerkCount] = InfectedChargerPerk_Scatter;
+		iPerkCount++;
 	}
 
 	//2 bullet
 	if (g_bBullet_enable)
 	{
-		iPerkCount++;
 		chargerPerkType[iPerkCount] = InfectedChargerPerk_Bullet;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2362,36 +2362,36 @@ void AssignRandomPerks(int iCid)
 	//1 adrenal glands
 	if (g_bAdrenal_enable)
 	{
-		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_AdrenalGlands;
+		iPerkCount++;
 	}
 
 	//2 Juggernaut
 	if (g_bJuggernaut_enable)
 	{
-		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_Juggernaut;
+		iPerkCount++;
 	}
 
 	//3 metabolic boost
 	if (g_bMetabolic_enable)
 	{
-		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_MetabolicBoost;
+		iPerkCount++;
 	}
 
 	//4 stormcaller
 	if (g_bStorm_enable)
 	{
-		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_Stormcaller;
+		iPerkCount++;
 	}
 
 	//5 double the trouble
 	if (g_iDouble_enable)
 	{
-		iPerkCount++;
 		tankPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
+		iPerkCount++;
 	}
 
 	//randomize a perk
@@ -2432,26 +2432,26 @@ SurvivorFirstPerkType BotPickRandomSurvivorFirstPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iStopping_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_StoppingPower;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iDT_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_DoubleTap;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iSoH_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_SleightOfHand;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iPyro_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorFirstPerk_Pyrotechnician;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2477,28 +2477,28 @@ SurvivorSecondPerkType BotPickRandomSurvivorSecondPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iUnbreak_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_Unbreakable;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iSpirit_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_Spirit;
+		iPerkCount++;
 	}
 
 	//helping hand
 	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iHelpHand_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_HelpingHand;
+		iPerkCount++;
 	}
 
 	//martial artist
 	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iMA_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorSecondPerk_MartialArtist;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2524,26 +2524,26 @@ SurvivorThirdPerkType BotPickRandomSurvivorThirdPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && GameModeCheck(true, g_iPack_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_PackRat;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && GameModeCheck(true, g_iChem_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_ChemReliant;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && GameModeCheck(true, g_iHard_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_HardToKill;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "4") && GameModeCheck(true, g_iExtreme_enable))
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = SurvivorThirdPerk_ExtremeConditioning;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2571,26 +2571,26 @@ InfectedSmokerPerkType BotPickRandomSmokerPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bTongue_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSmokerPerk_TongueTwister;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bSqueezer_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSmokerPerk_Squeezer;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && g_bDrag_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSmokerPerk_DragAndDrop;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "4") && g_hSmokeIt_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSmokerPerk_SmokeIt;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2624,8 +2624,8 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_iBarf_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_BarfBagged;
+		iPerkCount++;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
@@ -2634,8 +2634,8 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 
 	if (StringInsensitiveContains(stPerk, "2") && g_iBlind_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_BlindLuck;
+		iPerkCount++;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
@@ -2645,8 +2645,8 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 	//dead wreckening
 	if (StringInsensitiveContains(stPerk, "3") && g_bDead_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_DeadWreckening;
+		iPerkCount++;
 
 		#if defined PM_DEBUG
 		PrintToChatAll("\x03-count \x01%i\x03, type \x01%i", iPerkCount, iPerkType[iPerkCount]);
@@ -2655,8 +2655,8 @@ InfectedBoomerPerkType BotPickRandomBoomerPerk()
 
 	if (StringInsensitiveContains(stPerk, "4") && g_hMotion_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedBoomerPerk_MotionSickness;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2689,26 +2689,26 @@ InfectedHunterPerkType BotPickRandomHunterPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_hBody_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedHunterPerk_BodySlam;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bEfficient_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedHunterPerk_EfficientKiller;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && g_hGrass_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedHunterPerk_Grasshopper;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "4") && g_bSpeedDemon_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedHunterPerk_SpeedDemon;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2734,14 +2734,14 @@ InfectedSpitterPerkType BotPickRandomSpitterPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bTwinSF_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSpitterPerk_TwinSpitfire;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bMegaAd_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedSpitterPerk_MegaAdhesive;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2767,26 +2767,26 @@ InfectedJockeyPerkType BotPickRandomJockeyPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bWind_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedJockeyPerk_Wind;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bCavalier_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedJockeyPerk_Cavalier;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && g_bFrogger_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedJockeyPerk_Frogger;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "4") && g_bGhost_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedJockeyPerk_Ghost;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2812,14 +2812,14 @@ InfectedChargerPerkType BotPickRandomChargerPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bScatter_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedChargerPerk_Scatter;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bBullet_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedChargerPerk_Bullet;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -2845,34 +2845,34 @@ InfectedTankPerkType BotPickRandomTankPerk()
 
 	if (StringInsensitiveContains(stPerk, "1") && g_bAdrenal_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_AdrenalGlands;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "2") && g_bJuggernaut_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_Juggernaut;
+		iPerkCount++;
 	}
 
 	if (StringInsensitiveContains(stPerk, "3") && g_bMetabolic_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_MetabolicBoost;
+		iPerkCount++;
 	}
 
 	//storm caller
 	if (StringInsensitiveContains(stPerk, "4") && g_bStorm_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_Stormcaller;
+		iPerkCount++;
 	}
 
 	//double trouble
 	if (StringInsensitiveContains(stPerk, "5") && g_iDouble_enable)
 	{
-		iPerkCount++;
 		iPerkType[iPerkCount] = InfectedTankPerk_DoubleTrouble;
+		iPerkCount++;
 	}
 
 	//randomize
@@ -7462,7 +7462,7 @@ Panel Menu_Top(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorFirstPerkTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuSurvivorFirstPerkTitle", st_perk);
 	if (g_bSur1_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7480,7 +7480,7 @@ Panel Menu_Top(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorSecondPerkTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuSurvivorSecondPerkTitle", st_perk);
 	if (g_bSur2_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7500,7 +7500,7 @@ Panel Menu_Top(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorThirdPerkTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuSurvivorThirdPerkTitle", st_perk);
 	if (g_bSur3_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7584,7 +7584,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedSmokerTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedSmokerTitle", st_perk);
 	if (g_bInfSmoker_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7603,7 +7603,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedBoomerTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedBoomerTitle", st_perk);
 	if (g_bInfBoomer_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7621,7 +7621,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedHunterTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedHunterTitle", st_perk);
 	if (g_bInfHunter_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7635,7 +7635,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedSpitterTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedSpitterTitle", st_perk);
 	if (g_bInfSpitter_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
@@ -7654,7 +7654,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedJockeyTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedJockeyTitle", st_perk);
 	if (g_bInfJockey_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
@@ -7669,7 +7669,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedChargerTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedChargerTitle", st_perk);
 	if (g_bInfCharger_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
@@ -7690,7 +7690,7 @@ Panel Menu_Top_Inf(int iCid)
 	else
 		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedTankTitle (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t (%s)", "PerkMenuInfectedTankTitle", st_perk);
 	if (g_bInfTank_enable)
 		menu.DrawItem(st_display);
 	else
