@@ -1,8 +1,8 @@
-#if defined _l4d_perkmod_perk_convars_
+#if defined _l4d_perkmod_convars_
 #endinput
 #endif
 
-#define _l4d_perkmod_perk_convars_
+#define _l4d_perkmod_convars_
 
 #pragma semicolon 1
 #pragma newdecls required

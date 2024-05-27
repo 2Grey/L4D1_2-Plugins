@@ -319,10 +319,10 @@ public void OnPluginStart()
 	HookEvent("round_start", Event_RoundStart);
 	HookEvent("player_death", Event_PlayerDeath);
 	HookEvent("round_end", Event_RoundEnd);
-	//RegConsoleCmd("say", MenuOpen_OnSay);
-	//RegConsoleCmd("say_team", MenuOpen_OnSay);
+
 	RegConsoleCmd("sm_perks", MenuOpen_OnSay);
 	RegConsoleCmd("sm_setperks", SS_SetPerks);
+
 	FindConVar("mp_gamemode").AddChangeHook(Convar_GameMode);
 
 	//l4d2 only hooks
@@ -443,10 +443,10 @@ Action Event_PlayerHurtPre(Event event, const char[] name, bool dontBroadcast)
 
 	if (iAtt == 0) return Plugin_Continue;
 
-	ClientTeamType iTA = SM_GetClientTeamType(iAtt);
 	char stWpn[16];
 	event.GetString("weapon", stWpn, sizeof(stWpn));
 
+	ClientTeamType iTA = SM_GetClientTeamType(iAtt);
 	#if defined PM_DEBUG
 	if (iTA == ClientTeam_Survivor) PrintToChatAll("\x03weapon:\x01%s\x03 type:\x01%i", stWpn, iType);
 	#endif
@@ -1246,8 +1246,8 @@ Action Event_PlayerFirstSpawn(Event event, const char[] name, bool dontBroadcast
 	if (g_bConfirm[iCid] == false && IsFakeClient(iCid) == false)
 	{
 		CreateTimer(3.0, Timer_ShowTopMenu, iCid);
-		PrintHintText(iCid,"%t", "WelcomeMessageHint");
-		PrintToChat(iCid,"\x03[SM] %t", "WelcomeMessageChat");
+		PrintHintText(iCid, "%t", "WelcomeMessageHint");
+		PrintToChat(iCid, "\x03[SM] %t", "WelcomeMessageChat");
 	}
 
 	return Plugin_Continue;
@@ -3777,7 +3777,7 @@ void Pyro_Pickup(int iCid, const char[] stWpn)
 				if (g_iGren[iCid] == 0 || g_iGren[iCid] == 2)
 				{
 					g_iGren[iCid] = 2;
-					PrintHintText(iCid, "Pyrotechnician: %t %i %s(s)", "GrenadierCarryHint", g_iGren[iCid], stWpn2);
+					PrintHintText(iCid, "%t: %t %i %s(s)", "PerkMenuSurvivorFirstPerkPyrotechnician", "GrenadierCarryHint", g_iGren[iCid], stWpn2);
 				}
 				//otherwise, only give them one and tell them to
 				//throw the grenade before picking up another one;
@@ -3835,7 +3835,8 @@ void Pyro_OnWeaponFire(int iCid, const char[] stWpn)
 				stWpn2 = "vomit jar";
 			}
 
-			PrintHintText(iCid,"Pyrotechnician: %t %i %s(s) %t", "GrenadierCounter_A", g_iGren[iCid], stWpn2, "GrenadierCounter_B");
+			PrintHintText(iCid, "%t: %t %i %s(s) %t", 
+				"PerkMenuSurvivorFirstPerkPyrotechnician", "GrenadierCounter_A", g_iGren[iCid], stWpn2, "GrenadierCounter_B");
 			CreateTimer(2.5, Grenadier_DelayedGive, iCid);
 		}
 	}
@@ -4357,7 +4358,7 @@ void Unbreakable_OnHeal(int iCid)
 		if (GetEntProp(iCid, Prop_Data,"m_iHealth") > 200)
 			CreateTimer(0.5, Unbreakable_Delayed_SetHigh, iCid);
 
-		PrintHintText(iCid,"Unbreakable: %t!", "UnbreakableHint");
+		PrintHintText(iCid, "%t: %t!", "PerkMenuSurvivorSecondPerkUnbreakable", "UnbreakableHint");
 	}
 }
 
@@ -4393,7 +4394,7 @@ void Event_Confirm_Unbreakable(int iCid)
 			CreateTimer(0.5, Unbreakable_Delayed_Max, iCid);
 		else if (iHP <= 100)
 			CreateTimer(0.5, Unbreakable_Delayed_Normal, iCid);
-		PrintHintText(iCid,"Unbreakable: %t!", "UnbreakableHint");
+		PrintHintText(iCid, "%t: %t!", "PerkMenuSurvivorSecondPerkUnbreakable", "UnbreakableHint");
 
 		//run a check to see if for whatever reason
 		//the player's health is above 200
@@ -4423,7 +4424,7 @@ void Unbreakable_OnRescue(int iCid)
 			return;
 
 		CreateTimer(0.5, Unbreakable_Delayed_Rescue, iCid);
-		PrintHintText(iCid, "Unbreakable: %t!", "UnbreakableHint");
+		PrintHintText(iCid, "%t: %t!", "PerkMenuSurvivorSecondPerkUnbreakable", "UnbreakableHint");
 
 		//run a check to see if for whatever reason
 		//the player's health is above 200
@@ -4445,7 +4446,7 @@ void Unbreakable_OnRevive(int iSub, int iLedge)
 		if (GameModeCheck(g_bSur1_enable, g_iUnbreak_enable))
 		{
 			SetEntDataFloat(iSub, g_iHPBuffO, GetEntDataFloat(iSub, g_iHPBuffO)+(g_iUnbreak_hp/2), true);
-			PrintHintText(iSub,"Unbreakable: %t!", "UnbreakableHint");
+			PrintHintText(iSub, "%t: %t!", "PerkMenuSurvivorSecondPerkUnbreakable", "UnbreakableHint");
 		}
 	}
 }
@@ -4680,7 +4681,7 @@ Action Spirit_CooldownTimer(Handle timer, int iCid)
 		&& IsPlayerAlive(iCid)
 		&& SM_GetClientTeamType(iCid) == ClientTeam_Survivor
 		&& IsFakeClient(iCid) == false)
-		PrintHintText(iCid,"%t", "SpiritTimerFinishedMessage");
+		PrintHintText(iCid, "%t", "SpiritTimerFinishedMessage");
 
 	return Plugin_Stop;
 }
@@ -4745,7 +4746,7 @@ Action Spirit_ChangeHP(Handle timer, DataPack hPack)
 		if (iRevCount_ret + 1 >= 2)
 			PrintHintText(iCid, "%t", "SpiritBWWarning");
 		else
-			PrintHintText(iCid,"Spirit: %t!", "SpritSuccessMessage");
+			PrintHintText(iCid, "%t: %t!", "PerkMenuSurvivorSecondPerkSpirit", "SpritSuccessMessage");
 	}
 
 	//always destroy the timer, since it's possible spirit may not have executed
@@ -4834,9 +4835,9 @@ void HelpHand_OnReviveSuccess(int iCid, int iSub, int iLedge)
 				#endif
 				char st_name[24];
 				GetClientName(iSub, st_name, sizeof(st_name));
-				PrintHintText(iCid,"Helping Hand: %t %s!", "HelpingHandDonorHint", st_name);
+				PrintHintText(iCid,"%t: %t %s!", "PerkMenuSurvivorSecondPerkHelpingHand", "HelpingHandDonorHint", st_name);
 				GetClientName(iCid, st_name, sizeof(st_name));
-				PrintHintText(iSub,"Helping Hand: %s %t", st_name, "HelpingHandReceiverHint");
+				PrintHintText(iSub, "%t: %s %t", "PerkMenuSurvivorSecondPerkHelpingHand", st_name, "HelpingHandReceiverHint");
 			}
 		}
 	}
@@ -5392,7 +5393,7 @@ void BarfBagged_OnIt(int iAtt)
 		FakeClientCommand(iAtt,"z_spawn mob auto");
 		SetCommandFlags("z_spawn", iflags);
 
-		if (g_iSlimed == 4) PrintHintText(iAtt, "Barf Bagged! %t", "BarfBaggedMobHint");
+		if (g_iSlimed == 4) PrintHintText(iAtt, "%t! %t", "PerkMenuInfectedBoomerBarfBagged", "BarfBaggedMobHint");
 	}
 	return;
 }
@@ -5832,7 +5833,7 @@ bool BodySlam_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const
 				PrintToChatAll("\x03iHP>8 condition");
 				#endif
 				SetEntProp(iVic, Prop_Data, "m_iHealth", iHP-(iMinBound-iDmgOrig) );
-				PrintHintText(iAtt,"Body Slam: %i %t!", iMinBound-iDmgOrig, "BonusDamageText");
+				PrintHintText(iAtt, "%t: %i %t!", "PerkMenuInfectedHunterBodySlam", iMinBound-iDmgOrig, "BonusDamageText");
 
 				#if defined PM_DEBUG
 				PrintToChatAll("\x03-%i bonus damage", (iMinBound-iDmgOrig) );
@@ -5882,7 +5883,7 @@ bool BodySlam_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const
 						int iHPBuff = RoundToFloor(flHPBuff);
 						if (iHPBuff < iDmgAdd) iDmgAdd = iHPBuff;
 						SetEntDataFloat(iVic, g_iHPBuffO, flHPBuff-iDmgAdd, true);
-						PrintHintText(iAtt, "Body Slam: %i bonus damage!", iDmgCount+iDmgAdd);
+						PrintHintText(iAtt, "%t: %i bonus damage!", "PerkMenuInfectedHunterBodySlam", iDmgCount+iDmgAdd);
 
 						#if defined PM_DEBUG
 						PrintToChatAll("\x03-damage to health: \x01%i\x03, current health: \x01%i", iDmgCount, GetEntProp(iVic, Prop_Data,"m_iHealth"));
@@ -5923,7 +5924,7 @@ bool BodySlam_DamageAdd(int iAtt, int iVic, ClientTeamType iTA, int iType, const
 					//of remaining health if necessary
 					if (iDmgAdd >= iHP) iDmgAdd = iHP - 1;
 					SetEntProp(iVic, Prop_Data, "m_iHealth", iHP-iDmgAdd);
-					PrintHintText(iAtt, "Body Slam: %i bonus damage!", iDmgAdd);
+					PrintHintText(iAtt, "%t: %i bonus damage!", "PerkMenuInfectedHunterBodySlam", iDmgAdd);
 
 					#if defined PM_DEBUG
 					PrintToChatAll("\x03-iHP<8, %i bonus damage", iDmgAdd);
@@ -6665,7 +6666,7 @@ void Tank_ApplyPerk(int iCid)
 				Adrenal_Rebuild();
 
 				if (IsFakeClient(iCid) == false)
-					PrintHintText(iCid,"Adrenal Glands: %t", "AdrenalGlandsHint");
+					PrintHintText(iCid, "%t: %t", "PerkMenuInfectedTankAdrenalGlands", "AdrenalGlandsHint");
 				return;
 			}
 		//check for juggernaut perk
@@ -6687,7 +6688,7 @@ void Tank_ApplyPerk(int iCid)
 				g_iTank = 2;
 
 				if (IsFakeClient(iCid) == false)
-					PrintHintText(iCid, "Juggernaut: %t", "JuggernautHint");
+					PrintHintText(iCid, "%t: %t", "PerkMenuInfectedTankJuggernaut", "JuggernautHint");
 
 				return ;
 			}
@@ -6726,7 +6727,7 @@ void Tank_ApplyPerk(int iCid)
 				}
 				SetCommandFlags("z_spawn", iflags);
 				if (IsFakeClient(iCid) == false)
-					PrintHintText(iCid,"Storm Caller: %t", "StormCallerHint");
+					PrintHintText(iCid, "%t: %t", "PerkMenuInfectedTankStormcaller", "StormCallerHint");
 
 				return;
 			}
@@ -6770,7 +6771,7 @@ void Tank_ApplyPerk(int iCid)
 		CreateTimer(3.0, DoubleTrouble_FrustrationTimer, iCid, TIMER_REPEAT);
 
 		if (IsFakeClient(iCid) == false)
-			PrintHintText(iCid,"Double Trouble: %t", "DoubleTroubleHint1");
+			PrintHintText(iCid, "%t: %t", "PerkMenuInfectedTankDoubleTrouble", "DoubleTroubleHint1");
 		return ;
 	}
 
@@ -6802,7 +6803,7 @@ void Tank_ApplyPerk(int iCid)
 		#endif
 
 		if (IsFakeClient(iCid) == false)
-			PrintHintText(iCid,"%t", "DoubleTroubleHint2");
+			PrintHintText(iCid, "%t", "DoubleTroubleHint2");
 
 		CreateTimer(0.1, DoubleTrouble_ChangeHP, iCid);
 
@@ -7272,7 +7273,7 @@ Action Timer_TankBot(Handle timer, int iTankid)
 
 //====================================================
 //====================================================
-//					M	E	N	U
+// MARK: - M	E	N	U
 //====================================================
 //====================================================
 
@@ -7323,13 +7324,10 @@ Panel Menu_Initial(int iCid)
 	menu.SetTitle("tPoncho's Perkmod");
 
 	//"This server is using Perkmod"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel1");
-	menu.DrawText(stPanel);
-	//"Select option 1 to customize your perks"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel2");
+	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuTitle");
 	menu.DrawText(stPanel);
 	//"Customize Perks"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel3");
+	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuManualSelect");
 	menu.DrawItem(stPanel);
 
 	//random perks, enable only if cvar is set
@@ -7339,28 +7337,16 @@ Panel Menu_Initial(int iCid)
 	}
 	else
 	{
-		//"You can opt to randomize your perks"
-		Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel4");
-		menu.DrawText(stPanel);
-		//"but you can't change them afterwards"
-		Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel5");
-		menu.DrawText(stPanel);
 		//"Randomize Perks"
-		Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel6");
+		Format(stPanel, sizeof(stPanel), "%t", "InitialMenuRandomSelect");
 		menu.DrawItem(stPanel);
 	}
 
-	//"Otherwise, you can use whatever"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel7");
-	menu.DrawText(stPanel);
-	//"perks you've selected already"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel8");
-	menu.DrawText(stPanel);
 	//"by using option 3"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel9");
+	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPreviousSelectText");
 	menu.DrawText(stPanel);
 	//"PLAY NOW!"
-	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPanel10");
+	Format(stPanel, sizeof(stPanel), "%t", "InitialMenuPreviousSelectItem");
 	menu.DrawItem(stPanel);
 
 	return menu;
@@ -7379,7 +7365,7 @@ int Menu_ChooseInit(Menu topmenu, MenuAction action, int client, int param2)
 			case 2:
 				{
 					AssignRandomPerks(client);
-					PrintHintText(client, "Perkmod: %t", "ThanksForChoosingMessage");
+					PrintHintText(client, "Perkmod: %t", "InitialMenuCompleteText");
 				}
 			case 3:
 				{
@@ -7391,7 +7377,7 @@ int Menu_ChooseInit(Menu topmenu, MenuAction action, int client, int param2)
 					Event_Confirm_MA(client);
 					Event_Confirm_LittleLeaguer(client);
 					Extreme_Rebuild();
-					PrintHintText(client, "Perkmod: %t", "ThanksForChoosingMessage");
+					PrintHintText(client, "Perkmod: %t", "InitialMenuCompleteText");
 				}
 			default:
 				{
@@ -7423,12 +7409,12 @@ int Menu_ChooseInit_Inf(Handle topmenu, MenuAction action, int client, int param
 			case 2:
 				{
 					AssignRandomPerks(client);
-					PrintHintText(client, "Perkmod: %t", "ThanksForChoosingMessage");
+					PrintHintText(client, "Perkmod: %t", "InitialMenuCompleteText");
 				}
 			case 3:
 				{
 					g_bConfirm[client] = true;
-					PrintHintText(client, "Perkmod: %t", "ThanksForChoosingMessage");
+					PrintHintText(client, "Perkmod: %t", "InitialMenuCompleteText");
 				}
 			default:
 				{
@@ -7449,26 +7435,34 @@ int Menu_ChooseInit_Inf(Handle topmenu, MenuAction action, int client, int param
 //build top menu
 Panel Menu_Top(int iCid)
 {
-	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Main Menu");
-	menu.DrawText("Select a submenu to choose a perk");
+	char menuTitle[30];
+	char menuDescription[75];
+	char notSetText[25];
 
-	char st_perk[32];
-	char st_display[MAXPLAYERS+1];
+	Format(menuTitle, sizeof(menuTitle), "%t", "MainMenuSurvivorTitle");
+	Format(menuDescription, sizeof(menuDescription), "%t", "MainMenuSurvivorDescription");
+	Format(notSetText, sizeof(notSetText), "%t", "NotSet");
+	
+	Panel menu = CreatePanel();
+	menu.SetTitle(menuTitle);
+	menu.DrawText(menuDescription);
+
+	char st_perk[50];
+	char st_display[75];
 
 	//set name for sur1 perk
 	if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_iStopping_enable))
-		st_perk = "Stopping Power";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorFirstPerkStoppingPower");
 	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_iDT_enable))
-		st_perk = "Double Tap";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorFirstPerkDoubleTap");
 	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_iSoH_enable))
-		st_perk = "Sleight of Hand";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorFirstPerkSleightOfHand");
 	else if (g_spSur[iCid].firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_iPyro_enable))
-		st_perk = "Pyrotechnician";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorFirstPerkPyrotechnician");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Survivor - Primary (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorFirstPerkTitle (%s)", st_perk);
 	if (g_bSur1_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7476,17 +7470,17 @@ Panel Menu_Top(int iCid)
 
 	//set name for sur2 perk
 	if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_iUnbreak_enable))
-		st_perk = "Unbreakable";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorSecondPerkUnbreakable");
 	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_iSpirit_enable))
-		st_perk = "Spirit";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorSecondPerkSpirit");
 	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_iHelpHand_enable))
-		st_perk = "Helping Hand";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorSecondPerkHelpingHand");
 	else if (g_spSur[iCid].secondPerk == SurvivorSecondPerk_MartialArtist	&& g_bIsL4D2 && GameModeCheck(true, g_iMA_enable))
-		st_perk = "Martial Artist";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorSecondPerkMartialArtist");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Survivor - Secondary (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorSecondPerkTitle (%s)", st_perk);
 	if (g_bSur2_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7494,19 +7488,19 @@ Panel Menu_Top(int iCid)
 
 	//set name for sur3 perk
 	if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_iPack_enable))
-		st_perk = "Pack Rat";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorThirdPerkPackRat");
 	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_iChem_enable))
-		st_perk = "Chem Reliant";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorThirdPerkChemReliant");
 	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_iHard_enable))
-		st_perk = "Hard to Kill";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorThirdPerkHardToKill");
 	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_iExtreme_enable))
-		st_perk = "Extreme Conditioning";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorThirdPerkExtremeConditioning");
 	else if (g_spSur[iCid].thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_iLittle_enable))
-		st_perk = "Little Leaguer";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuSurvivorThirdPerkLittleLeaguer");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Survivor - Tertiary (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuSurvivorThirdPerkTitle (%s)", st_perk);
 	if (g_bSur3_enable)
 		menu.DrawItem(st_display);
 	else
@@ -7563,66 +7557,86 @@ int Menu_ChooseSubMenu(Menu topmenu, MenuAction action, int client, int param2)
 //build top menu, infected
 Panel Menu_Top_Inf(int iCid)
 {
+	char menuTitle[30];
+	char menuDescription[75];
+	char notSetText[25];
+
+	Format(menuTitle, sizeof(menuTitle), "%t", "MainMenuInfectedTitle");
+	Format(menuDescription, sizeof(menuDescription), "%t", "MainMenuInfectedDescription");
+	Format(notSetText, sizeof(notSetText), "%t", "NotSet");
+
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Main Menu");
-	menu.DrawText("Select a submenu to choose a perk");
+	menu.SetTitle(menuTitle);
+	menu.DrawText(menuDescription);
 
 	char st_perk[32];
-	char st_display[MAXPLAYERS+1];
+	char st_display[75];
 
-	//set name for Boomer perk
-	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
-	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
-		st_perk = "Barf Bagged";
-	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
-		st_perk = "Blind Luck";
-	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
-		st_perk = "Dead Wreckening";
-	else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
-		st_perk = "Motion Sickness";
-	else
-		st_perk = "Not set";
-
-	Format(st_display, sizeof(st_display), "Boomer (%s)", st_perk);
-	if (g_bInfBoomer_enable)
-		menu.DrawItem(st_display);
-	else
-		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
-
-	//set name for Smoker perk
 	InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
 	if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
-		st_perk = "Tongue Twister";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSmokerTongueTwister");
 	else if (smokerPerk == InfectedSmokerPerk_Squeezer && g_bSqueezer_enable)
-		st_perk = "Squeezer";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSmokerSqueezer");
 	else if (smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bDrag_enable)
-		st_perk = "Drag and Drop";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSmokerDragAndDrop");
 	else if (smokerPerk == InfectedSmokerPerk_SmokeIt && g_bSmokeIt_enable)
-		st_perk = "Smoke IT!";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSmokerSmokeIt");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Smoker (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedSmokerTitle (%s)", st_perk);
 	if (g_bInfSmoker_enable)
 		menu.DrawItem(st_display);
 	else
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
+	
+	//set name for Boomer perk
+	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
+	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedBoomerBarfBagged");
+	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedBoomerBlindLuck");
+	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedBoomerDeadWreckening");
+	else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedBoomerMotionSickness");
+	else
+		st_perk = notSetText;
 
-	//set name for Hunter perk
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedBoomerTitle (%s)", st_perk);
+	if (g_bInfBoomer_enable)
+		menu.DrawItem(st_display);
+	else
+		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);	
+
 	InfectedHunterPerkType hunterPerk = g_ipInf[iCid].hunterPerk;
 	if (hunterPerk == InfectedHunterPerk_BodySlam && g_bBody_enable)
-		st_perk = "Body Slam";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedHunterBodySlam");
 	else if (hunterPerk == InfectedHunterPerk_EfficientKiller && g_bEfficient_enable)
-		st_perk = "Efficient Killer";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedHunterEfficientKiller");
 	else if (hunterPerk == InfectedHunterPerk_Grasshopper && g_bGrass_enable)
-		st_perk = "Grasshopper";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedHunterGrasshopper");
 	else if (hunterPerk == InfectedHunterPerk_SpeedDemon && g_bSpeedDemon_enable)
-		st_perk = "Speed Demon";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedHunterSpeedDemon");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Hunter (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedHunterTitle (%s)", st_perk);
 	if (g_bInfHunter_enable)
+		menu.DrawItem(st_display);
+	else
+		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
+
+	InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
+	if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSpitterTwinSpitfire");
+	else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedSpitterMegaAdhesive");
+	else
+		st_perk = notSetText;
+
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedSpitterTitle (%s)", st_perk);
+	if (g_bInfSpitter_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
@@ -7630,33 +7644,18 @@ Panel Menu_Top_Inf(int iCid)
 	//set name for Jockey perk
 	InfectedJockeyPerkType jockeyPerk = g_ipInf[iCid].jockeyPerk;
 	if (jockeyPerk == InfectedJockeyPerk_Wind && g_bWind_enable)
-		st_perk = "Ride Like the Wind";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedJockeyWind");
 	else if (jockeyPerk == InfectedJockeyPerk_Cavalier && g_bCavalier_enable)
-		st_perk = "Cavalier";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedJockeyCavalier");
 	else if (jockeyPerk == InfectedJockeyPerk_Frogger && g_bFrogger_enable)
-		st_perk = "Frogger";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedJockeyFrogger");
 	else if (jockeyPerk == InfectedJockeyPerk_Ghost && g_bGhost_enable)
-		st_perk = "Ghost Rider";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedJockeyGhost");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Jockey (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedJockeyTitle (%s)", st_perk);
 	if (g_bInfJockey_enable && g_bIsL4D2)
-		menu.DrawItem(st_display);
-	else
-		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
-
-	//set name for Spitter perk
-	InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
-	if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
-		st_perk = "Twin Spitfire";
-	else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
-		st_perk = "Mega Adhesive";
-	else
-		st_perk = "Not set";
-
-	Format(st_display, sizeof(st_display), "Spitter (%s)", st_perk);
-	if (g_bInfSpitter_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
@@ -7664,13 +7663,13 @@ Panel Menu_Top_Inf(int iCid)
 	//set name for Charger perk
 	InfectedChargerPerkType chargerPerk = g_ipInf[iCid].chargerPerk;
 	if (chargerPerk == InfectedChargerPerk_Scatter && g_bScatter_enable)
-		st_perk = "Scattering Ram";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedChargerScatter");
 	else if (chargerPerk == InfectedChargerPerk_Bullet && g_bBullet_enable)
-		st_perk = "Speeding Bullet";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedChargerBullet");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Charger (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedChargerTitle (%s)", st_perk);
 	if (g_bInfCharger_enable && g_bIsL4D2)
 		menu.DrawItem(st_display);
 	else
@@ -7679,27 +7678,30 @@ Panel Menu_Top_Inf(int iCid)
 	//set name for Tank perk
 	InfectedTankPerkType tankPerk = g_ipInf[iCid].tankPerk;
 	if (tankPerk == InfectedTankPerk_AdrenalGlands && g_bAdrenal_enable)
-		st_perk = "Adrenal Glands";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedTankAdrenalGlands");
 	else if (tankPerk == InfectedTankPerk_Juggernaut && g_bJuggernaut_enable)
-		st_perk = "Juggernaut";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedTankJuggernaut");
 	else if (tankPerk == InfectedTankPerk_MetabolicBoost && g_bMetabolic_enable)
-		st_perk = "Metabolic";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedTankMetabolicBoost");
 	else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
-		st_perk = "Storm Caller";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedTankStormcaller");
 	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_iDouble_enable)
-		st_perk = "Double the Trouble";
+		Format(st_perk, sizeof(st_perk), "%t", "PerkMenuInfectedTankDoubleTrouble");
 	else
-		st_perk = "Not set";
+		st_perk = notSetText;
 
-	Format(st_display, sizeof(st_display), "Tank (%s)", st_perk);
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuInfectedTankTitle (%s)", st_perk);
 	if (g_bInfTank_enable)
 		menu.DrawItem(st_display);
 	else
 		menu.DrawItem(st_display, ITEMDRAW_NOTEXT);
 
-	menu.DrawText("In order for your perks to work");
-	menu.DrawText("you MUST hit 'done'");
-	menu.DrawText("DONE");
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel1");
+	menu.DrawText(st_display);
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel2");
+	menu.DrawText(st_display);
+	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel3");
+	menu.DrawItem(st_display);
 
 	return menu;
 }
@@ -7713,11 +7715,11 @@ int Menu_ChooseSubMenu_Inf(Menu topmenu, MenuAction action, int client, int para
 	{
 		switch(param2)
 		{
-			case 1: SendPanelToClient(Menu_InfBoomerPerk(client), client, Menu_ChooseInfBoomerPerk, MENU_TIME_FOREVER);
-			case 2: SendPanelToClient(Menu_InfSmokerPerk(client), client, Menu_ChooseInfSmokerPerk, MENU_TIME_FOREVER);
+			case 1: SendPanelToClient(Menu_InfSmokerPerk(client), client, Menu_ChooseInfSmokerPerk, MENU_TIME_FOREVER);
+			case 2: SendPanelToClient(Menu_InfBoomerPerk(client), client, Menu_ChooseInfBoomerPerk, MENU_TIME_FOREVER);
 			case 3: SendPanelToClient(Menu_InfHunterPerk(client), client, Menu_ChooseInfHunterPerk, MENU_TIME_FOREVER);
-			case 4: SendPanelToClient(Menu_InfJockeyPerk(client), client, Menu_ChooseInfJockeyPerk, MENU_TIME_FOREVER);
-			case 5: SendPanelToClient(Menu_InfSpitterPerk(client), client, Menu_ChooseInfSpitterPerk, MENU_TIME_FOREVER);
+			case 4: SendPanelToClient(Menu_InfSpitterPerk(client), client, Menu_ChooseInfSpitterPerk, MENU_TIME_FOREVER);
+			case 5: SendPanelToClient(Menu_InfJockeyPerk(client), client, Menu_ChooseInfJockeyPerk, MENU_TIME_FOREVER);
 			case 6: SendPanelToClient(Menu_InfChargerPerk(client), client, Menu_ChooseInfChargerPerk, MENU_TIME_FOREVER);
 			case 7: SendPanelToClient(Menu_InfTankPerk(client), client, Menu_ChooseInfTankPerk, MENU_TIME_FOREVER);
 			case 8: SendPanelToClient(Menu_Confirm(client), client, Menu_ChooseConfirm_Inf, MENU_TIME_FOREVER);
@@ -7752,15 +7754,15 @@ Panel Menu_Confirm(int iCid)
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel3");
 	menu.DrawText(panel);
+	Format(panel, sizeof(panel), "%t", "PerkMenuConfirmText");
+	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel4");
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel5");
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel6");
 	menu.DrawText(panel);
-	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel7");
-	menu.DrawText(panel);
-	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel8");
+	Format(panel, sizeof(panel), "%t", "PerkMenuCancelText");
 	menu.DrawItem(panel);
 
 	return menu;
@@ -7841,94 +7843,137 @@ int Menu_DoNothing(Menu topmenu, MenuAction action, int param1, int param2)
 
 //shows perk choices
 Panel Menu_ShowChoices(int iCid)
-{
-	Panel menu=CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod");
+{	
+	char buffer[128];
+	char stPerk[128];
+	char stDesc[128];
 
-	char st_perk[128];
+	Panel menu = CreatePanel();
+	menu.SetTitle("Perkmod");
 
 	//"Your perks for this round:"
-	Format(st_perk, sizeof(st_perk), "%t:", "MapPerksPanel");
-
-	//show sur1 perk
-	SurvivorFirstPerkType firstPerk = g_spSur[iCid].firstPerk;
-	if (firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_iStopping_enable))
-		Format(st_perk , sizeof(st_perk), "Stopping Power (+%i%% %t)", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText" );
-	else if (firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_iDT_enable))
-		Format(st_perk, sizeof(st_perk), "Double Tap (%t, %t, %t)", "DoubleTapDescriptionPanel", "SleighOfHandDescriptionPanel", "DoubleTapRestrictionWarning" ) ;
-	else if (firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_iSoH_enable))
-		Format(st_perk, sizeof(st_perk), "Sleight of Hand (%t +%i%%)", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) ) ;
-	else if (firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_iPyro_enable))
-		Format(st_perk, sizeof(st_perk), "Pyrotechnician (%t)", "PyroDescriptionPanel");
-	else
-		Format(st_perk, sizeof(st_perk),"%t", "NotSet");
+	Format(buffer, sizeof(buffer), "%t:", "MapPerksPanel");
+	menu.DrawText(buffer);
 
 	if (g_bSur1_enable)
 	{
-		menu.DrawItem("Survivor, primary:");
-		menu.DrawText(st_perk);
-	}
+		SurvivorFirstPerkType firstPerk = g_spSur[iCid].firstPerk;
+		if (firstPerk == SurvivorFirstPerk_StoppingPower && GameModeCheck(true, g_iStopping_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorFirstPerkStoppingPower");
+			Format(stDesc , sizeof(stDesc), "+%i%% %t", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText");
+		}
+		else if (firstPerk == SurvivorFirstPerk_DoubleTap && GameModeCheck(true, g_iDT_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorFirstPerkDoubleTap");
+			Format(stDesc, sizeof(stDesc), "%t, %t, %t", "DoubleTapDescriptionPanel", "SleighOfHandDescriptionPanel", "DoubleTapRestrictionWarning" ) ;
+		}
+		else if (firstPerk == SurvivorFirstPerk_SleightOfHand && GameModeCheck(true, g_iSoH_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorFirstPerkSleightOfHand");
+			Format(stDesc, sizeof(stDesc), "%t +%i%%", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) ) ;
+		}
+		else if (firstPerk == SurvivorFirstPerk_Pyrotechnician && GameModeCheck(true, g_iPyro_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorFirstPerkPyrotechnician");
+			Format(stDesc, sizeof(stDesc), "%t", "PyroDescriptionPanel");
+		}
+		else {
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
 
-	//show sur2 perk
-	SurvivorSecondPerkType secondPerk = g_spSur[iCid].secondPerk;
-	if (secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_iUnbreak_enable))
-		Format(st_perk, sizeof(st_perk), "Unbreakable (+%i %t)", g_iUnbreak_hp, "UnbreakableHint");
-	else if (secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_iSpirit_enable))
-	{
-		int iTime = g_iSpirit_cd;
-		if (g_L4D_GameMode == GameMode_Versus)
-			iTime = g_iSpirit_cd_vs;
-		else if (g_L4D_GameMode == GameMode_Survival)
-			iTime=g_iSpirit_cd_sur;
-
-		Format(st_perk, sizeof(st_perk), "Spirit (%t: %i min)", "SpiritDescriptionPanel", iTime/60);
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuSurvivorFirstPerkTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
 	}
-	else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_iHelpHand_enable))
-	{
-		int iBuff = g_iHelpHand_buff;
-		if (g_L4D_GameMode == GameMode_Versus)
-			iBuff=g_iHelpHand_buff_vs;
-
-		if (g_bHelpHand_convar)
-			Format(st_perk, sizeof(st_perk), "Helping Hand (%t +%i)", "HelpingHandDescriptionPanel2", iBuff);
-		else
-			Format(st_perk, sizeof(st_perk), "Helping Hand (%t +%i)", "HelpingHandDescriptionPanel", iBuff);
-	}
-	else if (secondPerk == SurvivorSecondPerk_MartialArtist && GameModeCheck(true, g_iMA_enable))
-	{
-		if (g_iMA_maxpenalty < 6)
-			Format(st_perk, sizeof(st_perk), "Martial Artist (%t)", "MartialArtistDescriptionPanel");
-		else
-			Format(st_perk, sizeof(st_perk), "Martial Artist (%t)", "MartialArtistDescriptionPanel_noreduc");
-	}
-	else
-		Format(st_perk, sizeof(st_perk), "%t", "NotSet");
 
 	if (g_bSur2_enable)
 	{
-		menu.DrawItem("Survivor, secondary:");
-		menu.DrawText(st_perk);
-	}
+		SurvivorSecondPerkType secondPerk = g_spSur[iCid].secondPerk;
+		if (secondPerk == SurvivorSecondPerk_Unbreakable && GameModeCheck(true, g_iUnbreak_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorSecondPerkUnbreakable");
+			Format(stDesc, sizeof(stDesc), "+%i %t", g_iUnbreak_hp, "UnbreakableHint");
+		}
+		else if (secondPerk == SurvivorSecondPerk_Spirit && GameModeCheck(true, g_iSpirit_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorSecondPerkSpirit");
 
-	//show sur3 perk
-	SurvivorThirdPerkType thirdPerk = g_spSur[iCid].thirdPerk;
-	if (thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_iPack_enable))
-		Format(st_perk, sizeof(st_perk), "Pack Rat (%t +%i%%)", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100) );
-	else if (thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_iChem_enable))
-		Format(st_perk, sizeof(st_perk), "Chem Reliant (%t +%i)", "ChemReliantDescriptionPanel", g_iChem_buff);
-	else if (thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_iHard_enable))
-		Format(st_perk, sizeof(st_perk), "Hard to Kill (+%i%% %t)", RoundToNearest(g_flHard_hpmult*100), "HardToKillDescriptionPanel");
-	else if (thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_iExtreme_enable))
-		Format(st_perk, sizeof(st_perk), "Extreme Conditioning (+%i%% %t)", RoundToNearest(g_flExtreme_rate * 100 - 100), "MartialArtistDescriptionPanelCoop" );
-	else if (thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_iLittle_enable))
-		Format(st_perk, sizeof(st_perk),"Little Leaguer (%t)", "LittleLeaguerDescriptionPanel" );
-	else
-		Format(st_perk, sizeof(st_perk), "%t", "NotSet");
+			int iTime = g_iSpirit_cd;
+			if (g_L4D_GameMode == GameMode_Versus)
+				iTime = g_iSpirit_cd_vs;
+			else if (g_L4D_GameMode == GameMode_Survival)
+				iTime=g_iSpirit_cd_sur;
+
+			Format(stDesc, sizeof(stDesc), "%t: %i min", "SpiritDescriptionPanel", iTime/60);
+		}
+		else if (secondPerk == SurvivorSecondPerk_HelpingHand && GameModeCheck(true, g_iHelpHand_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorSecondPerkHelpingHand");
+
+			int iBuff = g_iHelpHand_buff;
+			if (g_L4D_GameMode == GameMode_Versus)
+				iBuff=g_iHelpHand_buff_vs;
+
+			if (g_bHelpHand_convar)
+				Format(stDesc, sizeof(stDesc), "%t +%i", "HelpingHandDescriptionPanel2", iBuff);
+			else
+				Format(stDesc, sizeof(stDesc), "%t +%i", "HelpingHandDescriptionPanel", iBuff);
+		}
+		else if (secondPerk == SurvivorSecondPerk_MartialArtist && GameModeCheck(true, g_iMA_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorSecondPerkMartialArtist");
+			Format(stDesc, sizeof(stDesc), "%t", (g_iMA_maxpenalty < 6 ? "MartialArtistDescriptionPanel" : "MartialArtistDescriptionPanel_noreduc"));
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuSurvivorSecondPerkTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
+	}
 
 	if (g_bSur3_enable)
 	{
-		menu.DrawItem("Survivor, tertiary:");
-		menu.DrawText(st_perk);
+		SurvivorThirdPerkType thirdPerk = g_spSur[iCid].thirdPerk;
+		if (thirdPerk == SurvivorThirdPerk_PackRat && GameModeCheck(true, g_iPack_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorThirdPerkPackRat");
+			Format(stDesc, sizeof(stDesc), "%t +%i%%", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100));
+		}
+		else if (thirdPerk == SurvivorThirdPerk_ChemReliant && GameModeCheck(true, g_iChem_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorThirdPerkChemReliant");
+			Format(stDesc, sizeof(stDesc), "%t +%i", "ChemReliantDescriptionPanel", g_iChem_buff);
+		}
+		else if (thirdPerk == SurvivorThirdPerk_HardToKill && GameModeCheck(true, g_iHard_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorThirdPerkHardToKill");
+			Format(stDesc, sizeof(stDesc), "(+%i%% %t)", RoundToNearest(g_flHard_hpmult*100), "HardToKillDescriptionPanel");
+		}
+		else if (thirdPerk == SurvivorThirdPerk_ExtremeConditioning && GameModeCheck(true, g_iExtreme_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorThirdPerkExtremeConditioning");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t", RoundToNearest(g_flExtreme_rate * 100 - 100), "MartialArtistDescriptionPanelCoop");
+		}
+		else if (thirdPerk == SurvivorThirdPerk_LittleLeaguer && GameModeCheck(true, g_iLittle_enable))
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuSurvivorThirdPerkLittleLeaguer");
+			Format(stDesc, sizeof(stDesc), "%t", "LittleLeaguerDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuSurvivorThirdPerkTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
 	}
 
 	return menu;
@@ -7937,223 +7982,235 @@ Panel Menu_ShowChoices(int iCid)
 //shows perk choices, infected
 Panel Menu_ShowChoices_Inf(int iCid)
 {
-	char st_perk[128];
+	char buffer[128];
+	char stPerk[128];
 	char stDesc[128];
-
+	
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod: Your perks for this round");
 
-	InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
-	if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
-	{
-		st_perk = "Boomer: Barf Bagged";
-		Format(stDesc, sizeof(st_perk), "%t", "BarfBaggedDescriptionPanel");
-	}
-	else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
-	{
-		st_perk = "Boomer: Blind Luck";
-		Format(stDesc, sizeof(st_perk), "%t", "AcidVomitDescriptionPanel");
-	}
-	else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
-	{
-		st_perk = "Boomer: Dead Wreckening";
-		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
-	}
-	else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
-	{
-		st_perk = "Boomer: Motion Sickness";
-		Format(stDesc, sizeof(st_perk), "%t", "MotionSicknessDescriptionPanel");
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk), "Boomer: %t", "NotSet");
-		stDesc = "";
-	}
-
-	if (g_bInfBoomer_enable)
-	{
-		menu.DrawItem(st_perk);
-		menu.DrawText(stDesc);
-	}
-
-	InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
-	if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
-	{
-		st_perk = "Smoker: Tongue Twister";
-		Format(stDesc, sizeof(st_perk), "%t", "TongueTwisterDescriptionPanel");
-	}
-	else if (smokerPerk == InfectedSmokerPerk_Squeezer && g_bSqueezer_enable)
-	{
-		st_perk = "Smoker: Squeezer";
-		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest(g_flSqueezer_dmgmult*100), "BonusDamageText" );
-	}
-	else if (smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bDrag_enable)
-	{
-		st_perk = "Smoker: Drag and Drop";
-		Format(stDesc, sizeof(st_perk), "%t", "DragAndDropDescriptionPanel");
-	}
-	else if (smokerPerk == InfectedSmokerPerk_SmokeIt && g_bSmokeIt_enable)
-	{
-		st_perk = "Smoker: Smoke IT!";
-		Format(stDesc, sizeof(st_perk), "%t", "SmokeItDescriptionPanel");
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk), "Smoker: %t", "NotSet");
-		stDesc = "";
-	}
+	Format(buffer, sizeof(buffer), "%t:", "MapPerksPanel");
+	menu.SetTitle(buffer);
 
 	if (g_bInfSmoker_enable)
 	{
-		menu.DrawItem(st_perk);
+		InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
+		if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSmokerTongueTwister");
+			Format(stDesc, sizeof(stDesc), "%t", "TongueTwisterDescriptionPanel");
+		}
+		else if (smokerPerk == InfectedSmokerPerk_Squeezer && g_bSqueezer_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSmokerSqueezer");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t", RoundToNearest(g_flSqueezer_dmgmult*100), "BonusDamageText");
+		}
+		else if (smokerPerk == InfectedSmokerPerk_DragAndDrop && g_bDrag_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSmokerDragAndDrop");
+			Format(stDesc, sizeof(stDesc), "%t", "DragAndDropDescriptionPanel");
+		}
+		else if (smokerPerk == InfectedSmokerPerk_SmokeIt && g_bSmokeIt_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSmokerSmokeIt");
+			Format(stDesc, sizeof(stDesc), "%t", "SmokeItDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedSmokerTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
+	}
+	
+	if (g_bInfBoomer_enable)
+	{
+		InfectedBoomerPerkType boomerPerk = g_ipInf[iCid].boomerPerk;
+		if (boomerPerk == InfectedBoomerPerk_BarfBagged && g_iBarf_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedBoomerBarfBagged");
+			Format(stDesc, sizeof(stDesc), "%t", "BarfBaggedDescriptionPanel");
+		}
+		else if (boomerPerk == InfectedBoomerPerk_BlindLuck && g_iBlind_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedBoomerBlindLuck");
+			Format(stDesc, sizeof(stDesc), "%t", "AcidVomitDescriptionPanel");
+		}
+		else if (boomerPerk == InfectedBoomerPerk_DeadWreckening && g_bDead_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedBoomerDeadWreckening");
+			Format(stDesc, sizeof(stDesc), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
+		}
+		else if (boomerPerk == InfectedBoomerPerk_MotionSickness && g_bMotion_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedBoomerMotionSickness");
+			Format(stDesc, sizeof(stDesc), "%t", "MotionSicknessDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedBoomerTitle", stPerk);
+		menu.DrawItem(buffer);
 		menu.DrawText(stDesc);
 	}
 
-	InfectedHunterPerkType hunterPerk = g_ipInf[iCid].hunterPerk;
-	if (hunterPerk == InfectedHunterPerk_BodySlam && g_bBody_enable)
-	{
-		st_perk = "Hunter: Body Slam";
-		Format(stDesc, sizeof(st_perk), "%i %t", g_iBody_minbound, "BodySlamDescriptionPanel");
-	}
-	else if (hunterPerk == InfectedHunterPerk_EfficientKiller && g_bEfficient_enable)
-	{
-		st_perk = "Hunter: Efficient Killer";
-		Format(stDesc, sizeof(st_perk),"+%i%% %t", RoundToNearest(g_flEfficient_dmgmult*100), "BonusDamageText" );
-	}
-	else if (hunterPerk == InfectedHunterPerk_Grasshopper && g_bGrass_enable)
-	{
-		st_perk = "Hunter: Grasshopper";
-		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "GrasshopperDescriptionPanel", RoundToNearest( (g_flGrass_rate - 1) * 100 ) );
-	}
-	else if (hunterPerk == InfectedHunterPerk_SpeedDemon && g_bSpeedDemon_enable)
-	{
-		st_perk = "Hunter: Speed Demon";
-		Format(stDesc, sizeof(st_perk), "+%i%% %t +%i%% %t", RoundToNearest(g_flSpeedDemon_dmgmult*100), "OldSchoolDescriptionPanel", RoundToNearest( (g_flSpeedDemon_rate - 1) * 100 ), "SpeedDemonDescriptionPanel");
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk), "Hunter: %t", "NotSet");
-		stDesc = "";
-	}
 	if (g_bInfHunter_enable)
 	{
-		menu.DrawItem(st_perk);
+		InfectedHunterPerkType hunterPerk = g_ipInf[iCid].hunterPerk;
+		if (hunterPerk == InfectedHunterPerk_BodySlam && g_bBody_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedHunterBodySlam");
+			Format(stDesc, sizeof(stDesc), "%i %t", g_iBody_minbound, "BodySlamDescriptionPanel");
+		}
+		else if (hunterPerk == InfectedHunterPerk_EfficientKiller && g_bEfficient_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedHunterEfficientKiller");
+			Format(stDesc, sizeof(stDesc),"+%i%% %t", RoundToNearest(g_flEfficient_dmgmult*100), "BonusDamageText");
+		}
+		else if (hunterPerk == InfectedHunterPerk_Grasshopper && g_bGrass_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedHunterGrasshopper");
+			Format(stDesc, sizeof(stDesc), "%t: +%i%%", "GrasshopperDescriptionPanel", RoundToNearest( (g_flGrass_rate - 1) * 100 ) );
+		}
+		else if (hunterPerk == InfectedHunterPerk_SpeedDemon && g_bSpeedDemon_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedHunterSpeedDemon");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t +%i%% %t", RoundToNearest(g_flSpeedDemon_dmgmult*100), "OldSchoolDescriptionPanel", RoundToNearest( (g_flSpeedDemon_rate - 1) * 100 ), "SpeedDemonDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedHunterTitle", stPerk);
+		menu.DrawItem(buffer);
 		menu.DrawText(stDesc);
-	}
-
-	InfectedJockeyPerkType jockeyPerk = g_ipInf[iCid].jockeyPerk;
-	if (jockeyPerk == InfectedJockeyPerk_Wind && g_bWind_enable)
-	{
-		st_perk = "Jockey: Ride Like the Wind";
-		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "RideLikeTheWindDescriptionPanel", RoundToNearest( (g_flWind_rate - 1) * 100 ) );
-	}
-	else if (jockeyPerk == InfectedJockeyPerk_Cavalier && g_bCavalier_enable)
-	{
-		st_perk = "Jockey: Cavalier";
-		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest( g_flCavalier_hpmult * 100 ), "UnbreakableHint" );
-	}
-	else if (jockeyPerk == InfectedJockeyPerk_Frogger && g_bFrogger_enable)
-	{
-		st_perk = "Jockey: Frogger";
-		Format(stDesc, sizeof(st_perk), "+%i%% %t +%i%% %t", RoundToNearest( (g_flFrogger_rate - 1) * 100 ), "FroggerDescriptionPanel", RoundToNearest(g_flFrogger_dmgmult*100), "BonusDamageText" );
-	}
-	else if (jockeyPerk == InfectedJockeyPerk_Ghost && g_bGhost_enable)
-	{
-		st_perk = "Jockey: Ghost Rider";
-		Format(stDesc, sizeof(st_perk), "%i%% %t", RoundToNearest( (1 - (g_iGhost_alpha/255.0)) *100 ), "GhostRiderDescriptionPanel" );
-	}
-	else
-	{
-		Format(st_perk, 128,"Jockey: %t", "NotSet");
-		stDesc = "";
-	}
-
-	if (g_bInfJockey_enable && g_bIsL4D2)
-	{
-		menu.DrawItem(st_perk);
-		menu.DrawText(stDesc);
-	}
-
-	InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
-	if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
-	{
-		st_perk = "Spitter: Twin Spitfire";
-		Format(stDesc, sizeof(st_perk), "%t", "TwinSpitfireDescriptionPanel" );
-	}
-	else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
-	{
-		st_perk = "Spitter: Mega Adhesive";
-		Format(stDesc, sizeof(st_perk), "%t", "MegaAdhesiveDescriptionPanel" );
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk), "Spitter: %t", "NotSet");
-		stDesc = "";
 	}
 
 	if (g_bInfSpitter_enable && g_bIsL4D2)
 	{
-		menu.DrawItem(st_perk);
+		InfectedSpitterPerkType spitterPerk = g_ipInf[iCid].spitterPerk;
+		if (spitterPerk == InfectedSpitterPerk_TwinSpitfire && g_bTwinSF_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSpitterTwinSpitfire");
+			Format(stDesc, sizeof(stDesc), "%t", "TwinSpitfireDescriptionPanel");
+		}
+		else if (spitterPerk == InfectedSpitterPerk_MegaAdhesive && g_bMegaAd_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedSpitterMegaAdhesive");
+			Format(stDesc, sizeof(stDesc), "%t: %i%%", "MegaAdhesiveDescriptionPanel", RoundToNearest( 100 - (g_flMegaAd_slow) * 100 ) );
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedSpitterTitle", stPerk);
+		menu.DrawItem(buffer);
 		menu.DrawText(stDesc);
 	}
 
-	InfectedChargerPerkType chargerPerk = g_ipInf[iCid].chargerPerk;
-	if (chargerPerk == InfectedChargerPerk_Scatter && g_bScatter_enable)
+	if (g_bInfJockey_enable && g_bIsL4D2)
 	{
-		st_perk = "Charger: Scattering Ram";
-		Format(stDesc, sizeof(st_perk), "%t", "ScatteringRamDescriptionPanel" );
+		InfectedJockeyPerkType jockeyPerk = g_ipInf[iCid].jockeyPerk;
+		if (jockeyPerk == InfectedJockeyPerk_Wind && g_bWind_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedJockeyWind");
+			Format(stDesc, sizeof(stDesc), "%t: +%i%%", "RideLikeTheWindDescriptionPanel", RoundToNearest( (g_flWind_rate - 1) * 100 ) );
+		}
+		else if (jockeyPerk == InfectedJockeyPerk_Cavalier && g_bCavalier_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedJockeyCavalier");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t", RoundToNearest( g_flCavalier_hpmult * 100 ), "UnbreakableHint");
+		}
+		else if (jockeyPerk == InfectedJockeyPerk_Frogger && g_bFrogger_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedJockeyFrogger");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t +%i%% %t", RoundToNearest( (g_flFrogger_rate - 1) * 100 ), "FroggerDescriptionPanel", RoundToNearest(g_flFrogger_dmgmult*100), "BonusDamageText");
+		}
+		else if (jockeyPerk == InfectedJockeyPerk_Ghost && g_bGhost_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedJockeyGhost");
+			Format(stDesc, sizeof(stDesc), "%i%% %t", RoundToNearest( (1 - (g_iGhost_alpha/255.0)) *100 ), "GhostRiderDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedJockeyTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
 	}
-	else if (chargerPerk == InfectedChargerPerk_Bullet && g_bBullet_enable)
-	{
-		st_perk = "Charger: Speeding Bullet";
-		Format(stDesc, sizeof(st_perk), "%t: +%i%%", "SpeedingBulletDescriptionPanel", RoundToNearest(g_flBullet_rate*100 - 100) );
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk),"Charger: %t", "NotSet");
-		stDesc = "";
-	}
+
 	if (g_bInfCharger_enable && g_bIsL4D2)
 	{
-		menu.DrawItem(st_perk);
-		menu.DrawText(stDesc);
-	}
+		InfectedChargerPerkType chargerPerk = g_ipInf[iCid].chargerPerk;
+		if (chargerPerk == InfectedChargerPerk_Scatter && g_bScatter_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedChargerScatter");
+			Format(stDesc, sizeof(stDesc), "%t", "ScatteringRamDescriptionPanel");
+		}
+		else if (chargerPerk == InfectedChargerPerk_Bullet && g_bBullet_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedChargerBullet");
+			Format(stDesc, sizeof(stDesc), "%t: +%i%%", "SpeedingBulletDescriptionPanel", RoundToNearest(g_flBullet_rate*100 - 100) );
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
 
-	InfectedTankPerkType tankPerk = g_ipInf[iCid].tankPerk;
-	if (tankPerk == InfectedTankPerk_AdrenalGlands && g_bAdrenal_enable)
-	{
-		st_perk = "Tank: Adrenal Glands";
-		Format(stDesc, sizeof(st_perk), "%t", "AdrenalGlandsDescriptionPanelShort");
-	}
-	else if (tankPerk == InfectedTankPerk_Juggernaut && g_bJuggernaut_enable)
-	{
-		st_perk = "Tank: Juggernaut";
-		Format(stDesc, sizeof(st_perk), "+%i %t", g_iJuggernaut_hp, "UnbreakableHint");
-	}
-	else if (tankPerk == InfectedTankPerk_MetabolicBoost && g_bMetabolic_enable)
-	{
-		st_perk = "Tank: Metabolic Boost";
-		Format(stDesc, sizeof(st_perk), "+%i%% %t", RoundToNearest((g_flMetabolic_speedmult-1)*100), "SpeedDemonDescriptionPanel");
-	}
-	else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
-	{
-		st_perk = "Tank: Storm Caller";
-		Format(stDesc, sizeof(st_perk), "%t", "StormCallerDescriptionPanel");
-	}
-	else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_iDouble_enable)
-	{
-		st_perk = "Tank: Double the Trouble";
-		Format(stDesc, sizeof(st_perk),"%t", "DoubleTroubleDescriptionPanel");
-	}
-	else
-	{
-		Format(st_perk, sizeof(st_perk), "Tank: %t", "NotSet");
-		stDesc = "";
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedChargerTitle", stPerk);
+		menu.DrawItem(buffer);
+		menu.DrawText(stDesc);
 	}
 
 	if (g_bInfTank_enable)
 	{
-		menu.DrawItem(st_perk);
+		InfectedTankPerkType tankPerk = g_ipInf[iCid].tankPerk;
+		if (tankPerk == InfectedTankPerk_AdrenalGlands && g_bAdrenal_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedTankAdrenalGlands");
+			Format(stDesc, sizeof(stDesc), "%t", "AdrenalGlandsDescriptionPanelShort");
+		}
+		else if (tankPerk == InfectedTankPerk_Juggernaut && g_bJuggernaut_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedTankJuggernaut");
+			Format(stDesc, sizeof(stDesc), "+%i %t", g_iJuggernaut_hp, "UnbreakableHint");
+		}
+		else if (tankPerk == InfectedTankPerk_MetabolicBoost && g_bMetabolic_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedTankMetabolicBoost");
+			Format(stDesc, sizeof(stDesc), "+%i%% %t", RoundToNearest((g_flMetabolic_speedmult-1)*100), "SpeedDemonDescriptionPanel");
+		}
+		else if (tankPerk == InfectedTankPerk_Stormcaller && g_bStorm_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedTankStormcaller");
+			Format(stDesc, sizeof(stDesc), "%t", "StormCallerDescriptionPanel");
+		}
+		else if (tankPerk == InfectedTankPerk_DoubleTrouble && g_iDouble_enable)
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "PerkMenuInfectedTankDoubleTrouble");
+			Format(stDesc, sizeof(stDesc), "%t", "DoubleTroubleDescriptionPanel");
+		}
+		else
+		{
+			Format(stPerk, sizeof(stPerk), "%t", "NotSet");
+			stDesc = "";
+		}
+
+		Format(buffer, sizeof(buffer), "%t: %s", "PerkMenuInfectedTankTitle", stPerk);
+		menu.DrawItem(buffer);
 		menu.DrawText(stDesc);
 	}
 
@@ -8167,11 +8224,13 @@ Panel Menu_ShowChoices_Inf(int iCid)
 //build menu for Sur1 Perks
 Panel Menu_Sur1Perk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Survivor: Primary");
+
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuSurvivorFirstPerkTitle");
+	menu.SetTitle(buffer);
 
 	SurvivorFirstPerkType perkType = g_spSur[client].firstPerk;
 
@@ -8182,13 +8241,13 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorFirstPerk_StoppingPower ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_StoppingPower ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Stopping Power %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorFirstPerkStoppingPower", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest(g_flStopping_dmgmult*100), "BonusDamageText");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -8198,22 +8257,22 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorFirstPerk_DoubleTap ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_DoubleTap ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Double Tap %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorFirstPerkDoubleTap", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t +%i%%", "DoubleTapDescriptionPanel", RoundToNearest(100 * ((1/g_flDT_rate)-1) ) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t +%i%%", "DoubleTapDescriptionPanel", RoundToNearest(100 * ((1/g_flDT_rate)-1) ) );
+		menu.DrawText(buffer);
 
 		if (g_flDT_rate_reload < 1.0)
 		{
-			Format(st_display, sizeof(st_display), "%t +%i%%", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flDT_rate_reload)-1) ) );
-			menu.DrawText(st_display);
+			Format(buffer, sizeof(buffer), "%t +%i%%", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flDT_rate_reload)-1) ) );
+			menu.DrawText(buffer);
 		}
 
-		Format(st_display, sizeof(st_display), "%t", "DoubleTapRestrictionWarning");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "DoubleTapRestrictionWarning");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 3
@@ -8223,13 +8282,13 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorFirstPerk_SleightOfHand ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_SleightOfHand ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Sleight of Hand %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorFirstPerkSleightOfHand", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t +%i%%", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t +%i%%", "SleighOfHandDescriptionPanel", RoundToNearest(100 * ((1/g_flSoH_rate)-1) ) );
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 4
@@ -8239,14 +8298,14 @@ Panel Menu_Sur1Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorFirstPerk_Pyrotechnician ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorFirstPerk_Pyrotechnician ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Pyrotechnician %s", st_current);
-		menu.DrawItem(st_display);
-		Format(st_display, sizeof(st_display), "%t", "PyroDescriptionText1");
-		menu.DrawText(st_display);
-		Format(st_display, sizeof(st_display), "%t", "PyroDescriptionText2");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorFirstPerkPyrotechnician", st_current);
+		menu.DrawItem(buffer);
+		Format(buffer, sizeof(buffer), "%t", "PyroDescriptionText1");
+		menu.DrawText(buffer);
+		Format(buffer, sizeof(buffer), "%t", "PyroDescriptionText2");
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -8277,11 +8336,12 @@ int Menu_ChooseSur1Perk(Menu menu, MenuAction action, int client, int param2)
 //build menu for Sur2 Perks
 Panel Menu_Sur2Perk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Survivor: Secondary");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuSurvivorSecondPerkTitle");
+	menu.SetTitle(buffer);
 
 	SurvivorSecondPerkType perkType = g_spSur[client].secondPerk;
 
@@ -8292,13 +8352,13 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorSecondPerk_Unbreakable ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_Unbreakable ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Unbreakable %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorSecondPerkUnbreakable", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i %t", g_iUnbreak_hp, "UnbreakableHint" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i %t", g_iUnbreak_hp, "UnbreakableHint");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -8308,13 +8368,13 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorSecondPerk_Spirit ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_Spirit ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Spirit %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorSecondPerkSpirit", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t", "SpiritDescriptionText" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "SpiritDescriptionText");
+		menu.DrawText(buffer);
 
 		int iTime = g_iSpirit_cd;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -8322,8 +8382,8 @@ Panel Menu_Sur2Perk(int client)
 		else if (g_L4D_GameMode == GameMode_Survival)
 			iTime=g_iSpirit_cd_sur;
 
-		Format(st_display, sizeof(st_display), "+%i %t: %i min", g_iSpirit_buff, "SpritDescriptionText2", iTime/60);
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i %t: %i min", g_iSpirit_buff, "SpritDescriptionText2", iTime/60);
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 3
@@ -8333,10 +8393,10 @@ Panel Menu_Sur2Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorSecondPerk_HelpingHand ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorSecondPerk_HelpingHand ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Helping Hand %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorSecondPerkHelpingHand", st_current);
+		menu.DrawItem(buffer);
 
 		int iBuff = g_iHelpHand_buff;
 		if (g_L4D_GameMode == GameMode_Versus)
@@ -8344,13 +8404,13 @@ Panel Menu_Sur2Perk(int client)
 
 		if (g_bHelpHand_convar)
 		{
-			Format(st_display, sizeof(st_display), "%t +%i", "HelpingHandDescriptionPanel2", iBuff);
-			menu.DrawText(st_display);
+			Format(buffer, sizeof(buffer), "%t +%i", "HelpingHandDescriptionPanel2", iBuff);
+			menu.DrawText(buffer);
 		}
 		else
 		{
-			Format(st_display, sizeof(st_display), "%t +%i", "HelpingHandDescriptionPanel", iBuff);
-			menu.DrawText(st_display);
+			Format(buffer, sizeof(buffer), "%t +%i", "HelpingHandDescriptionPanel", iBuff);
+			menu.DrawText(buffer);
 		}
 
 		//set name for perk 4, Martial Artist
@@ -8360,18 +8420,18 @@ Panel Menu_Sur2Perk(int client)
 		}
 		else
 		{
-			st_current = (perkType == SurvivorSecondPerk_MartialArtist ? "(CURRENT)" : "");
+			st_current = (perkType == SurvivorSecondPerk_MartialArtist ? "(*)" : "");
 
-			Format(st_display, sizeof(st_display), "Martial Artist %s", st_current);
-			menu.DrawItem(st_display);
+			Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorSecondPerkMartialArtist", st_current);
+			menu.DrawItem(buffer);
 
-			Format(st_display, sizeof(st_display),"%t", "MartialArtistDescriptionPanel1");
-			menu.DrawText(st_display);
+			Format(buffer, sizeof(buffer),"%t", "MartialArtistDescriptionPanel1");
+			menu.DrawText(buffer);
 
 			if (g_iMA_maxpenalty < 6)
 			{
-				Format(st_display, sizeof(st_display), "%t", "MartialArtistDescriptionPanel2");
-				menu.DrawText(st_display);
+				Format(buffer, sizeof(buffer), "%t", "MartialArtistDescriptionPanel2");
+				menu.DrawText(buffer);
 			}
 		}
 	}
@@ -8403,11 +8463,12 @@ int Menu_ChooseSur2Perk(Menu menu, MenuAction action, int client, int param2)
 //build menu for Sur3 Perks
 Panel Menu_Sur3Perk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Survivor: Tertiary");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuSurvivorThirdPerkTitle");
+	menu.SetTitle(buffer);
 
 	SurvivorThirdPerkType perkType = g_spSur[client].thirdPerk;
 
@@ -8418,13 +8479,13 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorThirdPerk_PackRat ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_PackRat ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Pack Rat %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkPackRat", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t +%i%%", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100));
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t +%i%%", "PackRatDescriptionPanel", RoundToNearest(g_flPack_ammomult*100));
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -8434,18 +8495,18 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorThirdPerk_ChemReliant ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_ChemReliant ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Chem Reliant %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkChemReliant", st_current);
+		menu.DrawItem(buffer);
 
 		if (g_iChem_buff > 0)
 		{
-			Format(st_display, sizeof(st_display), "%t (+%i)", "ChemReliantDescriptionText", g_iChem_buff);
-			menu.DrawText(st_display);
+			Format(buffer, sizeof(buffer), "%t (+%i)", "ChemReliantDescriptionText", g_iChem_buff);
+			menu.DrawText(buffer);
 		}
-		Format(st_display, sizeof(st_display), "%t", "ChemReliantDescriptionText2");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "ChemReliantDescriptionText2");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 3
@@ -8455,16 +8516,16 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorThirdPerk_HardToKill ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_HardToKill ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Hard to Kill %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkHardToKill", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t", "HardToKillDescriptionText");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "HardToKillDescriptionText");
+		menu.DrawText(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest(100*g_flHard_hpmult), "HardToKillDescriptionText2" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest(100*g_flHard_hpmult), "HardToKillDescriptionText2");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 4
@@ -8474,13 +8535,13 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorThirdPerk_ExtremeConditioning ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_ExtremeConditioning ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Extreme Conditioning %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkExtremeConditioning", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "MartialArtistDescriptionPanelCoop", RoundToNearest(100*g_flExtreme_rate-100) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "MartialArtistDescriptionPanelCoop", RoundToNearest(100*g_flExtreme_rate-100) );
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 5
@@ -8490,13 +8551,13 @@ Panel Menu_Sur3Perk(int client)
 	}
 	else
 	{
-		st_current = (perkType == SurvivorThirdPerk_LittleLeaguer ? "(CURRENT)" : "");
+		st_current = (perkType == SurvivorThirdPerk_LittleLeaguer ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Little Leaguer %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkLittleLeaguer", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t", "LittleLeaguerDescriptionPanel");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "LittleLeaguerDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -8520,6 +8581,110 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 	return 0;
 }
 
+//=============================
+//	MARK: - SMOKER Choice
+//=============================
+
+Panel Menu_InfSmokerPerk(int client)
+{
+	char buffer[128];
+	char st_current[10];
+
+	Panel menu = CreatePanel();
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedSmokerTitle");
+	menu.SetTitle(buffer);
+
+	InfectedSmokerPerkType perkType = g_ipInf[client].smokerPerk;
+
+	//set name for perk 1
+	if (!g_bTongue_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedSmokerPerk_TongueTwister ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSmokerTongueTwister", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel1", RoundToNearest(100*(g_flTongue_speedmult-1)) );
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel2", RoundToNearest(100*(g_flTongue_rangemult-1)) );
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel3", RoundToNearest(100*(g_flTongue_pullmult-1)) );
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 2
+	if (!g_bSqueezer_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedSmokerPerk_Squeezer ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSmokerSqueezer", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "SqueezerDescriptionText", RoundToNearest(g_flSqueezer_dmgmult*100) );
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 3
+	if (!g_bDrag_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedSmokerPerk_DragAndDrop ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSmokerDragAndDrop", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t", "DragAndDropDescriptionPanel");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 4
+	if (!g_bSmokeIt_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedSmokerPerk_SmokeIt ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSmokerSmokeIt", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t", "SmokeItDescriptionPanel");
+		menu.DrawText(buffer);
+	}
+
+	return menu;
+}
+
+int Menu_ChooseInfSmokerPerk(Menu menu, MenuAction action, int client, int param2)
+{
+	if (menu != INVALID_HANDLE) CloseHandle(menu);
+	if (action == MenuAction_Select)
+	{
+		if (1 <= param2 <= PM_InfectedSmokerPerkTypeToInt(InfectedSmokerPerk_Count)) {
+			g_ipInf[client].smokerPerk = PM_IntToInfectedSmokerPerkType(param2);
+		}
+	}
+
+	if (IsClientInGame(client))
+		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
+
+	return 0;
+}
+
 
 //=============================
 //	MARK: - BOOMER Choice
@@ -8527,11 +8692,12 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 
 Panel Menu_InfBoomerPerk(int client)
 {
-	char st_display[128];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Boomer");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedBoomerTitle");
+	menu.SetTitle(buffer);
 
 	InfectedBoomerPerkType perkType = g_ipInf[client].boomerPerk;
 
@@ -8542,13 +8708,13 @@ Panel Menu_InfBoomerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedBoomerPerk_BarfBagged ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_BarfBagged ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Barf Bagged %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedBoomerBarfBagged", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t", "BarfBaggedDescriptionPanel");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "BarfBaggedDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -8558,13 +8724,13 @@ Panel Menu_InfBoomerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedBoomerPerk_BlindLuck ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_BlindLuck ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Blind Luck %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedBoomerBlindLuck", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t: %i%%", "AcidVomitDescriptionPanel", RoundToNearest(100 - g_flBlind_cdmult*100));
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t: %i%%", "AcidVomitDescriptionPanel", RoundToNearest(100 - g_flBlind_cdmult*100));
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 3
@@ -8574,13 +8740,13 @@ Panel Menu_InfBoomerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedBoomerPerk_DeadWreckening ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_DeadWreckening ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Dead Wreckening %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedBoomerDeadWreckening", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
+		menu.DrawText(buffer);
 		menu.DrawText("survivors are vomited upon");
 	}
 
@@ -8591,13 +8757,13 @@ Panel Menu_InfBoomerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedBoomerPerk_MotionSickness ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedBoomerPerk_MotionSickness ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Motion Sickness %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedBoomerMotionSickness", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t", "MotionSicknessDescriptionPanel");
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t", "MotionSicknessDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -8620,242 +8786,17 @@ int Menu_ChooseInfBoomerPerk(Menu menu, MenuAction action, int client, int param
 }
 
 //=============================
-//	MARK: - TANK Choice
-//=============================
-
-Panel Menu_InfTankPerk(int client)
-{
-	char st_display[MAXPLAYERS+1];
-	char st_current[10];
-
-	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Tank");
-
-	InfectedTankPerkType perkType = g_ipInf[client].tankPerk;
-
-	//set name for perk 1
-	if (!g_bAdrenal_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedTankPerk_AdrenalGlands ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Adrenal Glands %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "AdrenalGlandsDescriptionPanel1", RoundToNearest(100 * ((1/g_flAdrenal_punchcdmult)-1) ) );
-		menu.DrawText(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "AdrenalGlandsDescriptionPanel2", RoundToNearest(100 - 100*g_flAdrenal_throwcdmult ) );
-		menu.DrawText(st_display);
-
-		Format(st_display, sizeof(st_display), "%t", "AdrenalGlandsDescriptionPanel3" );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 2
-	if (!g_bJuggernaut_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedTankPerk_Juggernaut ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Juggernaut %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "+%i %t", g_iJuggernaut_hp, "UnbreakableHint");
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 3
-	if (!g_bMetabolic_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedTankPerk_MetabolicBoost ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Metabolic Boost %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest((g_flMetabolic_speedmult-1)*100), "SpeedDemonDescriptionPanel");
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 4
-	if (!g_bStorm_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedTankPerk_Stormcaller ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Storm Caller %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t", "StormCallerDescriptionPanel");
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 5
-	if (!g_iDouble_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedTankPerk_DoubleTrouble ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Double the Trouble %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t", "DoubleTroubleDescriptionPanel");
-		menu.DrawText(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: -%i%%", "DoubleTroubleDescriptionPanel2", RoundToNearest(100 - g_flDouble_hpmult*100));
-		menu.DrawText(st_display);
-	}
-
-	return menu;
-}
-
-int Menu_ChooseInfTankPerk(Menu menu, MenuAction action, int client, int param2)
-{
-	if (menu != INVALID_HANDLE) CloseHandle(menu);
-
-	if (action == MenuAction_Select)
-	{
-		if (1 <= param2 <= PM_InfectedTankPerkTypeToInt(InfectedTankPerk_Count)) {
-			g_ipInf[client].tankPerk = PM_IntToInfectedTankPerkType(param2);
-		}
-	}
-
-	if (IsClientInGame(client))
-		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
-
-	return 0;
-}
-
-//=============================
-//	MARK: - SMOKER Choice
-//=============================
-
-Panel Menu_InfSmokerPerk(int client)
-{
-	char st_display[MAXPLAYERS+1];
-	char st_current[10];
-
-	Panel menu = CreatePanel();
-	SetPanelTitle(menu, "tPoncho's Perkmod - Smoker");
-
-	InfectedSmokerPerkType perkType = g_ipInf[client].smokerPerk;
-
-	//set name for perk 1
-	if (!g_bTongue_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedSmokerPerk_TongueTwister ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Tongue Twister %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "TongueTwisterDescriptionPanel1", RoundToNearest(100*(g_flTongue_speedmult-1)) );
-		menu.DrawText(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "TongueTwisterDescriptionPanel2", RoundToNearest(100*(g_flTongue_rangemult-1)) );
-		menu.DrawText(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "TongueTwisterDescriptionPanel3", RoundToNearest(100*(g_flTongue_pullmult-1)) );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 2
-	if (!g_bSqueezer_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedSmokerPerk_Squeezer ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Squeezer %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "SqueezerDescriptionText", RoundToNearest(g_flSqueezer_dmgmult*100) );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 3
-	if (!g_bDrag_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedSmokerPerk_DragAndDrop ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Drag and Drop %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t", "DragAndDropDescriptionPanel" );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 4
-	if (!g_bSmokeIt_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedSmokerPerk_SmokeIt ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Olj's Smoke IT! %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t", "SmokeItDescriptionPanel" );
-		menu.DrawText(st_display);
-	}
-
-	return menu;
-}
-
-int Menu_ChooseInfSmokerPerk(Menu menu, MenuAction action, int client, int param2)
-{
-	if (menu != INVALID_HANDLE) CloseHandle(menu);
-	if (action == MenuAction_Select)
-	{
-		if (1 <= param2 <= PM_InfectedSmokerPerkTypeToInt(InfectedSmokerPerk_Count)) {
-			g_ipInf[client].smokerPerk = PM_IntToInfectedSmokerPerkType(param2);
-		}
-	}
-
-	if (IsClientInGame(client))
-		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
-
-	return 0;
-}
-
-//=============================
 //	MARK: - HUNTER Choice
 //=============================
 
 Panel Menu_InfHunterPerk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Hunter");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedHunterTitle");
+	menu.SetTitle(buffer);
 
 	InfectedHunterPerkType perkType = g_ipInf[client].hunterPerk;
 
@@ -8866,13 +8807,13 @@ Panel Menu_InfHunterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedHunterPerk_BodySlam ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_BodySlam ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Body Slam %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedHunterBodySlam", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t %i", "BodySlamDescriptionPanel", g_iBody_minbound);
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t %i", "BodySlamDescriptionPanel", g_iBody_minbound);
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -8882,13 +8823,13 @@ Panel Menu_InfHunterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedHunterPerk_EfficientKiller ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_EfficientKiller ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Efficient Killer %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedHunterEfficientKiller", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest(g_flEfficient_dmgmult*100), "BonusDamageText" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest(g_flEfficient_dmgmult*100), "BonusDamageText");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 3
@@ -8898,13 +8839,13 @@ Panel Menu_InfHunterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedHunterPerk_Grasshopper ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_Grasshopper ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Grasshopper %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedHunterGrasshopper", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "GrasshopperDescriptionPanel", RoundToNearest( (g_flGrass_rate - 1) * 100 ) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "GrasshopperDescriptionPanel", RoundToNearest( (g_flGrass_rate - 1) * 100 ) );
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 4
@@ -8914,13 +8855,13 @@ Panel Menu_InfHunterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedHunterPerk_SpeedDemon ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedHunterPerk_SpeedDemon ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Speed Demon %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedHunterSpeedDemon", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i%% %t +%i%% %t", RoundToNearest(g_flSpeedDemon_dmgmult*100), "OldSchoolDescriptionPanel", RoundToNearest( (g_flSpeedDemon_rate - 1) * 100 ), "SpeedDemonDescriptionPanel" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i%% %t +%i%% %t", RoundToNearest(g_flSpeedDemon_dmgmult*100), "OldSchoolDescriptionPanel", RoundToNearest( (g_flSpeedDemon_rate - 1) * 100 ), "SpeedDemonDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -8944,114 +8885,17 @@ int Menu_ChooseInfHunterPerk(Menu menu, MenuAction action, int client, int param
 }
 
 //=============================
-//	MARK: - JOCKEY Choice
-//=============================
-
-Panel Menu_InfJockeyPerk(int client)
-{
-	char st_display[MAXPLAYERS+1];
-	char st_current[10];
-
-	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Jockey");
-
-	InfectedJockeyPerkType perkType = g_ipInf[client].jockeyPerk;
-
-	//set name for perk 1
-	if (!g_bWind_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedJockeyPerk_Wind ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Ride Like the Wind %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "RideLikeTheWindDescriptionPanel", RoundToNearest( (g_flWind_rate - 1) * 100 ) );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 2
-	if (!g_bCavalier_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedJockeyPerk_Cavalier ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Cavalier %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest( g_flCavalier_hpmult * 100 ), "UnbreakableHint" );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 3
-	if (!g_bFrogger_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedJockeyPerk_Frogger ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Frogger %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "+%i%% %t +%i%% %t", RoundToNearest( (g_flFrogger_rate - 1) * 100 ), "FroggerDescriptionPanel", RoundToNearest(g_flFrogger_dmgmult*100), "BonusDamageText" );
-		menu.DrawText(st_display);
-	}
-
-	//set name for perk 4
-	if (!g_bGhost_enable)
-	{
-		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
-	}
-	else
-	{
-		st_current = (perkType == InfectedJockeyPerk_Ghost ? "(CURRENT)" : "");
-
-		Format(st_display, sizeof(st_display), "Ghost Rider %s", st_current);
-		menu.DrawItem(st_display);
-
-		Format(st_display, sizeof(st_display), "%i%% %t", RoundToNearest( (1 - (g_iGhost_alpha/255.0)) *100 ), "GhostRiderDescriptionPanel" );
-		menu.DrawText(st_display);
-	}
-
-	return menu;
-}
-
-int Menu_ChooseInfJockeyPerk(Menu menu, MenuAction action, int client, int param2)
-{
-	if (menu != INVALID_HANDLE) CloseHandle(menu);
-
-	if (action == MenuAction_Select)
-	{
-		if (1 <= param2 <= PM_InfectedJockeyPerkTypeToInt(InfectedJockeyPerk_Count)) {
-			g_ipInf[client].jockeyPerk = PM_IntToInfectedJockeyPerkType(param2);
-		}
-	}
-
-	if (IsClientInGame(client))
-		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
-
-	return 0;
-}
-
-//=============================
 //	MARK: - SPITTER Choice
 //=============================
 
 Panel Menu_InfSpitterPerk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Spitter");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedSpitterTitle");
+	menu.SetTitle(buffer);
 
 	InfectedSpitterPerkType perkType = g_ipInf[client].spitterPerk;
 
@@ -9062,13 +8906,13 @@ Panel Menu_InfSpitterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedSpitterPerk_TwinSpitfire ? "(CURRENT)": "");
+		st_current = (perkType == InfectedSpitterPerk_TwinSpitfire ? "(*)": "");
 
-		Format(st_display, sizeof(st_display), "Twin Spitfire %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSpitterTwinSpitfire", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display),  "%t", "TwinSpitfireDescriptionPanel" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer),  "%t", "TwinSpitfireDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -9078,13 +8922,13 @@ Panel Menu_InfSpitterPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedSpitterPerk_MegaAdhesive ? "(CURRENT)": "");
+		st_current = (perkType == InfectedSpitterPerk_MegaAdhesive ? "(*)": "");
 
-		Format(st_display, sizeof(st_display), "Mega Adhesive %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSpitterMegaAdhesive", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display),  "%t: %i%%", "MegaAdhesiveDescriptionPanel", RoundToNearest( 100 - (g_flMegaAd_slow) * 100 ) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer),  "%t: %i%%", "MegaAdhesiveDescriptionPanel", RoundToNearest( 100 - (g_flMegaAd_slow) * 100 ) );
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -9108,16 +8952,116 @@ int Menu_ChooseInfSpitterPerk(Menu menu, MenuAction action, int client, int para
 }
 
 //=============================
+//	MARK: - JOCKEY Choice
+//=============================
+
+Panel Menu_InfJockeyPerk(int client)
+{
+	char buffer[128];
+	char st_current[10];
+
+	Panel menu = CreatePanel();
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedJockeyTitle");
+	menu.SetTitle(buffer);
+
+	InfectedJockeyPerkType perkType = g_ipInf[client].jockeyPerk;
+
+	//set name for perk 1
+	if (!g_bWind_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedJockeyPerk_Wind ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedJockeyWind", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "RideLikeTheWindDescriptionPanel", RoundToNearest( (g_flWind_rate - 1) * 100 ) );
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 2
+	if (!g_bCavalier_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedJockeyPerk_Cavalier ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedJockeyCavalier", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest( g_flCavalier_hpmult * 100 ), "UnbreakableHint");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 3
+	if (!g_bFrogger_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedJockeyPerk_Frogger ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedJockeyFrogger", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "+%i%% %t +%i%% %t", RoundToNearest( (g_flFrogger_rate - 1) * 100 ), "FroggerDescriptionPanel", RoundToNearest(g_flFrogger_dmgmult*100), "BonusDamageText");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 4
+	if (!g_bGhost_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedJockeyPerk_Ghost ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedJockeyGhost", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%i%% %t", RoundToNearest( (1 - (g_iGhost_alpha/255.0)) *100 ), "GhostRiderDescriptionPanel");
+		menu.DrawText(buffer);
+	}
+
+	return menu;
+}
+
+int Menu_ChooseInfJockeyPerk(Menu menu, MenuAction action, int client, int param2)
+{
+	if (menu != INVALID_HANDLE) CloseHandle(menu);
+
+	if (action == MenuAction_Select)
+	{
+		if (1 <= param2 <= PM_InfectedJockeyPerkTypeToInt(InfectedJockeyPerk_Count)) {
+			g_ipInf[client].jockeyPerk = PM_IntToInfectedJockeyPerkType(param2);
+		}
+	}
+
+	if (IsClientInGame(client))
+		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
+
+	return 0;
+}
+
+//=============================
 //	MARK: - CHARGER Choice
 //=============================
 
 Panel Menu_InfChargerPerk(int client)
 {
-	char st_display[MAXPLAYERS+1];
+	char buffer[128];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
-	menu.SetTitle("tPoncho's Perkmod - Charger");
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedChargerTitle");
+	menu.SetTitle(buffer);
 
 	InfectedChargerPerkType perkType = g_ipInf[client].chargerPerk;
 
@@ -9128,13 +9072,13 @@ Panel Menu_InfChargerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedChargerPerk_Scatter ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedChargerPerk_Scatter ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Scattering Ram %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedChargerScatter", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "+%i%% %t", RoundToNearest(g_flScatter_hpmult*100), "ScatteringRamDescriptionPanel" );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest(g_flScatter_hpmult*100), "ScatteringRamDescriptionPanel");
+		menu.DrawText(buffer);
 	}
 
 	//set name for perk 2
@@ -9144,13 +9088,13 @@ Panel Menu_InfChargerPerk(int client)
 	}
 	else
 	{
-		st_current = (perkType == InfectedChargerPerk_Bullet ? "(CURRENT)" : "");
+		st_current = (perkType == InfectedChargerPerk_Bullet ? "(*)" : "");
 
-		Format(st_display, sizeof(st_display), "Speeding Bullet %s", st_current);
-		menu.DrawItem(st_display);
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedChargerBullet", st_current);
+		menu.DrawItem(buffer);
 
-		Format(st_display, sizeof(st_display), "%t: +%i%%", "SpeedingBulletDescriptionPanel", RoundToNearest(g_flBullet_rate*100 - 100) );
-		menu.DrawText(st_display);
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "SpeedingBulletDescriptionPanel", RoundToNearest(g_flBullet_rate*100 - 100) );
+		menu.DrawText(buffer);
 	}
 
 	return menu;
@@ -9164,6 +9108,130 @@ int Menu_ChooseInfChargerPerk(Menu menu, MenuAction action, int client, int para
 	{
 		if (1 <= param2 <= PM_InfectedChargerPerkTypeToInt(InfectedChargerPerk_Count)) {
 			g_ipInf[client].chargerPerk = PM_IntToInfectedChargerPerkType(param2);
+		}
+	}
+
+	if (IsClientInGame(client))
+		SendPanelToClient(Menu_Top_Inf(client), client, Menu_ChooseSubMenu_Inf, MENU_TIME_FOREVER);
+
+	return 0;
+}
+
+//=============================
+//	MARK: - TANK Choice
+//=============================
+
+Panel Menu_InfTankPerk(int client)
+{
+	char buffer[128];
+	char st_current[10];
+
+	Panel menu = CreatePanel();
+	Format(buffer, sizeof(buffer), "Perkmod • %t", "PerkMenuInfectedTankTitle");
+	menu.SetTitle(buffer);
+
+	InfectedTankPerkType perkType = g_ipInf[client].tankPerk;
+
+	//set name for perk 1
+	if (!g_bAdrenal_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedTankPerk_AdrenalGlands ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankAdrenalGlands", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "AdrenalGlandsDescriptionPanel1", RoundToNearest(100 * ((1/g_flAdrenal_punchcdmult)-1) ) );
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "AdrenalGlandsDescriptionPanel2", RoundToNearest(100 - 100*g_flAdrenal_throwcdmult ) );
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "%t", "AdrenalGlandsDescriptionPanel3");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 2
+	if (!g_bJuggernaut_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedTankPerk_Juggernaut ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankJuggernaut", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "+%i %t", g_iJuggernaut_hp, "UnbreakableHint");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 3
+	if (!g_bMetabolic_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedTankPerk_MetabolicBoost ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankMetabolicBoost", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest((g_flMetabolic_speedmult-1)*100), "SpeedDemonDescriptionPanel");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 4
+	if (!g_bStorm_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedTankPerk_Stormcaller ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankStormcaller", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t", "StormCallerDescriptionPanel");
+		menu.DrawText(buffer);
+	}
+
+	//set name for perk 5
+	if (!g_iDouble_enable)
+	{
+		menu.DrawItem("disabled", ITEMDRAW_NOTEXT);
+	}
+	else
+	{
+		st_current = (perkType == InfectedTankPerk_DoubleTrouble ? "(*)" : "");
+
+		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankDoubleTrouble", st_current);
+		menu.DrawItem(buffer);
+
+		Format(buffer, sizeof(buffer), "%t", "DoubleTroubleDescriptionPanel");
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "%t: -%i%%", "DoubleTroubleDescriptionPanel2", RoundToNearest(100 - g_flDouble_hpmult*100));
+		menu.DrawText(buffer);
+	}
+
+	return menu;
+}
+
+int Menu_ChooseInfTankPerk(Menu menu, MenuAction action, int client, int param2)
+{
+	if (menu != INVALID_HANDLE) CloseHandle(menu);
+
+	if (action == MenuAction_Select)
+	{
+		if (1 <= param2 <= PM_InfectedTankPerkTypeToInt(InfectedTankPerk_Count)) {
+			g_ipInf[client].tankPerk = PM_IntToInfectedTankPerkType(param2);
 		}
 	}
 
