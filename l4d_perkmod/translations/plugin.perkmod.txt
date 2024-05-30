@@ -416,7 +416,7 @@
 		"de"	"Dead Wreckening"
 		"it"	"Dead Wreckening"
 		"da"	"Dead Wreckening"
-		"ru"	"Смертельные мертвецы"
+		"ru"	"Гнойные раны"
 		"fr"	"Dead Wreckening"
 	}
 
@@ -600,35 +600,14 @@
 		"fr"	"Double the Trouble"
 	}
 
-
 	"DoneNagPanel1"
 	{
 		"en"	"In order for your perks to work"
 		"de"	"Damit die Staerken wirken"
 		"it"	"Affinchи i tuoi bonus funzionino"
 		"da"	"For at dine perks skal virke"
-		"ru"	"Чтобы ваши перки работали,"
+		"ru"	"Подтвердить выбор - 'ГОТОВО'"
 		"fr"	"Pour utiliser des perks"
-	}
-
-	"DoneNagPanel2"
-	{
-		"en"	"you MUST hit 'done'"
-		"de"	"musst du 'FERTIG' druecken"
-		"it"	"DEVI selezionare fine"
-		"da"	"SKAL du trykke 'FЖRDIG'"
-		"ru"	"вы ДОЛЖНЫ нажать 'ГОТОВО'"
-		"fr"	"on doit selectionner 'FINI'"
-	}
-
-	"DoneNagPanel3"
-	{
-		"en"	"DONE"
-		"de"	"FERTIG"
-		"it"	"FINE"
-		"da"	"FЖRDIG"
-		"ru"	"ГОТОВО"
-		"fr"	"FINI"
 	}
 
 	"ConfirmNagPanel1"
@@ -717,7 +696,7 @@
 		"de"	"Nicht ausgewaehlt"
 		"it"	"Non definito"
 		"da"	"Ikke sat"
-		"ru"	"Не установлен"
+		"ru"	"Не задано"
 		"fr"	"Pas fixe"
 	}
 
@@ -729,6 +708,16 @@
 		"da"	"BEKRЖFT"
 		"ru"	"ПОДТВЕРДИТЬ"
 		"fr"	"CONFIRMER"
+	}
+
+	"PerkMenuDoneText"
+	{
+		"en"	"DONE"
+		"de"	"FERTIG"
+		"it"	"FINE"
+		"da"	"FЖRDIG"
+		"ru"	"ГОТОВО"
+		"fr"	"FINI"
 	}
 
 	"PerkMenuCancelText"
@@ -749,7 +738,7 @@
 		"de"	"Extraschaden"
 		"it"	"Danno extra"
 		"da"	"Ekstra skade"
-		"ru"	"Бонусные повреждения"
+		"ru"	"Бонусный урон"
 		"fr"	"plus degats"
 	}
 
@@ -779,7 +768,7 @@
 		"de"	"Zusaetzliches Leben"
 		"it"	"Salute extra"
 		"da"	"Ekstra helbred"
-		"ru"	"Бонусное здоровье"
+		"ru"	"Бонусное HP"
 		"fr"	"plus sante"
 	}
 
@@ -839,7 +828,7 @@
 		"de"	"gab zusaetzliches Health beim Aufhelfen an"
 		"it"	"ha dato salute extra temporanea a"
 		"da"	"gav ekstra midlertidigt helbred til"
-		"ru"	"дал бонусное временное здоровье"
+		"ru"	"дал бонусное временное HP"
 		"fr"	"vous avez donne plus de sante temporaire a"
 	}
 
@@ -849,7 +838,7 @@
 		"de"	"gab dir zusaetzliches Health beim Aufhelfen!"
 		"it"	"ti ha dato salute extra temporanea!"
 		"da"	"gav dig ekstra midlertidigt helbred!"
-		"ru"	"дал вам бонусное временное здоровье"
+		"ru"	"дал вам бонусное временное HP"
 		"fr"	"a vous donne plus de sante temporaire!"
 	}
 
@@ -919,7 +908,7 @@
 		"de"	"schneller feuern"
 		"it"	"maggior velocitа di fuoco"
 		"da"	"Skyd hurtigere"
-		"ru"	"Стрелять быстрее"
+		"ru"	"Скорость стрельбы"
 		"fr"	"tirer plus vite"
 	}
 
@@ -929,7 +918,7 @@
 		"de"	"schneller Nachladen"
 		"it"	"ricarica piщ velocem"
 		"da"	"genlad hurtigere"
-		"ru"	"Перезаряжать быстрее"
+		"ru"	"Скорость перезарядки"
 		"fr"	"recharger plus vite"
 	}
 
@@ -979,7 +968,7 @@
 		"de"	"mehr Leben wenn am Boden"
 		"it"	"piщ salute quando si и a terra"
 		"da"	"mere helbred ved incap"
-		"ru"	"Больше HP когда вы лежите"
+		"ru"	"больше HP когда вы лежите"
 		"fr"	"plus de sante quand on tombe"
 	}
 
@@ -995,11 +984,11 @@
 
 	"DeadWreckeningDescriptionPanel"
 	{
-		"en"	"vomit called zombies do more damage"
+		"en"	"Called zombie additional damage"
 		"de"	"Schleim-gerufene Zombies schlagen haerter"
 		"it"	"gli zombie richiamati dal vomito fanno piщ danno"
 		"da"	"Zombier tilkaldt ved opkast gшr mere skade"
-		"ru"	"привлеченная орда наносит больше урона"
+		"ru"	"Урон от орды толстяка"
 		"fr"	"vomi-appele zombies font plus de degats"
 	}
 
@@ -1009,7 +998,7 @@
 		"de"	"schneller laufen, im Lauf Kotzen"
 		"it"	"corsa piщ veloce, corsa mentre si vomita"
 		"da"	"lшb hurtigere, lшb mens du kaster op"
-		"ru"	"Более быстрый бег, бег когда блюешь"
+		"ru"	"Быстрый бег, бег когда блюешь"
 		"fr"	"courir plus vite, courir pendant de vomissement"
 	}
 
@@ -1115,22 +1104,23 @@
 
 	"SpiritDescriptionText"
 	{
-		"en"	"When a teammate goes down you will self-revive"
-		"de"	"Wenn ein Kamerad umfaellt, stehst du wieder auf"
-		"it"	"Quando un compagno cade a terra, ti rialzerai da solo"
-		"da"	"Nеr en holdkammerat gеr ned vil du selv-genoplive"
-		"ru"	"Если напарник падает вы можете встать, если вы сами лежите."
-		"fr"	"Quand un ami tombe vous vous relancerez"
+		"#format"	"{1:i}"
+		"en"	"Self-revive When a teammate goes down (CD: {1} min)"
+		"de"	"Self-revive When a teammate goes down (CD: {1} min"
+		"it"	"Self-revive When a teammate goes down (CD: {1} min"
+		"da"	"Self-revive When a teammate goes down (CD: {1} min"
+		"ru"	"Вы поднимитесь, если напарник упадет (КД: {1} мин.)"
+		"fr"	"Self-revive When a teammate goes down (CD: {1} min"
 	}
 
 	"SpritDescriptionText2"
 	{
-		"en"	"bonus health buffer, cooldown"
-		"de"	"Bonus Health, Aufladezeit"
-		"it"	"salute extra temporanea, si ricarica nel tempo"
-		"da"	"ekstra helbred, cooldown"
-		"ru"	"бонусное временное HP, кулдаун."
-		"fr"	"plus de sante temporaire, temps de recharge"
+		"en"	"bonus health buffer"
+		"de"	"Bonus Health"
+		"it"	"salute extra temporanea"
+		"da"	"ekstra helbred"
+		"ru"	"бонусное временное HP"
+		"fr"	"plus de sante temporaire"
 	}
 
 	"ChemReliantDescriptionText"
@@ -1149,28 +1139,19 @@
 		"de"	"und beginnst die Runde mit Pillen"
 		"it"	"e cominci il round con le pillole"
 		"da"	"og du starter runden med ekstra piller"
-		"ru"	"и вы начинаете раунд с таблетками."
+		"ru"	"Вы начинаете раунд с таблетками."
 		"fr"	"et vous commencez la ronde avec des pilules"
 	}
 
 	"HardToKillDescriptionText"
 	{
-		"en"	"When you are incapped you have"
-		"de"	"Wenn du umkippst, hast du"
-		"it"	"Quando sei a terra, hai"
-		"da"	"Nеr du er incapped har du"
-		"ru"	"Когда вы лежите, у вас"
-		"fr"	"Quand vous tombez vous avez"
-	}
-
-	"HardToKillDescriptionText2"
-	{
-		"en"	"more health"
-		"de"	"mehr Lebenspunkte"
-		"it"	"piщ salute"
-		"da"	"mere helbred"
-		"ru"	"больше здоровья"
-		"fr"	"plus sante"
+		"#format"	"{1:i}"
+		"en"	"+{1}%% HP when you are incapped"
+		"de"	"+{1}%% HP when you are incapped"
+		"it"	"+{1}%% HP when you are incapped"
+		"da"	"+{1}%% HP when you are incapped"
+		"ru"	"+{1}%% HP когда вы лежите"
+		"fr"	"+{1}%% HP when you are incapped"
 	}
 
 	"SqueezerDescriptionText"
@@ -1248,7 +1229,7 @@
 	{
 		"en"	"revive others faster, give bonus health buffer"
 		"it"	"Revitalizzare gli altri ti darà un bonus in salute."
-		"ru"	"Вы поднимаете других быстрее и даёте им бонусный буфер здоровья"
+		"ru"	"Быстрее поднимаете своих и даёте им бонусный буфер HP"
 		"fr"	"donner l'aide plus vite et plus de sante temporaire"
 		"de"	""
 		"da"	""
@@ -1276,25 +1257,16 @@
 
 	"TongueTwisterDescriptionPanel1"
 	{
-		"en"	"tongue shoots faster"
-		"it"	"La lingua viene sparata più velocemente."
-		"ru"	"Язык летает быстрее"
-		"de"	""
-		"da"	""
-		"fr"	"la langue vole plus vite"
+		"#format"	"{1:i}, {2:i}"
+		"en"	"Tongue speed: +{1}%%; Tongue length: +{2}%%"
+		"it"	"Tongue speed: +{1}%%; Tongue length: +{2}%%"
+		"ru"	"Скорость языка: +{1}%%; Длина языка: +{2}%%"
+		"de"	"Tongue speed: +{1}%%; Tongue length: +{2}%%"
+		"da"	"Tongue speed: +{1}%%; Tongue length: +{2}%%"
+		"fr"	"Tongue speed: +{1}%%; Tongue length: +{2}%%"
 	}
 
 	"TongueTwisterDescriptionPanel2"
-	{
-		"en"	"tongue range is extended"
-		"it"	"Il raggio della lingua è stato esteso."
-		"ru"	"Длина языка увеличена"
-		"de"	""
-		"da"	""
-		"fr"	"la langue est plus longue"
-	}
-
-	"TongueTwisterDescriptionPanel3"
 	{
 		"en"	"tongue pulls faster"
 		"it"	"La lingua attrae più velocemente."
@@ -1308,7 +1280,7 @@
 	{
 		"en"	"much shorter cooldown and manual release with MELEE button"
 		"it"	"Ricarica più breve e rilascio manuale con il tasto di MELEE."
-		"ru"	"Очень быстрая перезарядка, можно отпустить схваченного правой кнопкой"
+		"ru"	"Быстрая перезарядка, можно отпустить схваченного (MELEE)"
 		"de"	""
 		"da"	""
 		"fr"	"recharge tres vite et pouvez libérer manuellement avec MELEE"
@@ -1336,25 +1308,16 @@
 
 	"AdrenalGlandsDescriptionPanel1"
 	{
-		"en"	"punch faster"
-		"it"	"Sferra pugni più velocemente."
-		"ru"	"Бить быстрее"
-		"de"	""
-		"da"	""
-		"fr"	"poincon plus rapidement"
+		"#format"	"{1:i},{2:i}"
+		"en"	"Punch speed: +{1}%%; Throw speed: +{2}%%"
+		"it"	"Punch speed: +{1}%%; Throw speed: +{2}%%"
+		"ru"	"Скорость атаки: +{1}%%; Скорость броска: +{2}%%"
+		"de"	"Punch speed: +{1}%%; Throw speed: +{2}%%"
+		"da"	"Punch speed: +{1}%%; Throw speed: +{2}%%"
+		"fr"	"Punch speed: +{1}%%; Throw speed: +{2}%%"
 	}
 
 	"AdrenalGlandsDescriptionPanel2"
-	{
-		"en"	"throw rocks faster"
-		"it"	"Lancia rocce più velocemente."
-		"ru"	"Кидать камни быстрее"
-		"de"	""
-		"da"	""
-		"fr"	"jet roches plus rapidement"
-	}
-
-	"AdrenalGlandsDescriptionPanel3"
 	{
 		"en"	"cannot become frustrated"
 		"it"	"Non puoi diventare frustrato."
@@ -1376,9 +1339,9 @@
 
 	"DoubleTroubleDescriptionPanel2"
 	{
-		"en"	"reduced health for both"
+		"en"	"Reduced health for both"
 		"it"	"Vita ridotta per entrambi."
-		"ru"	"здоровье уменьшено у обоих"
+		"ru"	"Здоровье уменьшено у обоих"
 		"de"	""
 		"da"	""
 		"fr"	"moins de sante pour tous les tanks"
@@ -1418,7 +1381,7 @@
 	{
 		"en"	"spit twice in a row"
 		"it"	"Sputa due volte di fila."
-		"ru"	"плевать дважды за раз"
+		"ru"	"Плевать дважды за раз"
 		"de"	""
 		"da"	""
 		"fr"	"crache deux fois"
@@ -1428,7 +1391,7 @@
 	{
 		"en"	"bonus health and knock survivors farther away"
 		"it"	"Bonus vita e trascina i survivor knock più lontano."
-		"ru"	"Бонусное здоровье, выжившие отлетают дальше"
+		"ru"	"Бонусное HP, выжившие отлетают дальше"
 		"de"	""
 		"da"	""
 		"fr"	"plus sante et coup les survivants plus loin"
@@ -1438,7 +1401,7 @@
 	{
 		"en"	"charge faster"
 		"it"	"Carica più velocemente."
-		"ru"	"Атаковать быстрее"
+		"ru"	"Скорость рывка"
 		"de"	""
 		"da"	""
 		"fr"	"charge plus vite"
@@ -1458,7 +1421,7 @@
 	{
 		"en"	"slows survivors"
 		"it"	"Rallenta i survivors."
-		"ru"	"Замедляет выживших на"
+		"ru"	"Замедление выживших"
 		"de"	""
 		"da"	""
 		"fr"	"ralentir les survivants"

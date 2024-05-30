@@ -1964,7 +1964,7 @@ Action Timer_ShowTopMenu(Handle timer, any iCid)
 	if (IsServerProcessing() == false || IsClientInGame(iCid) == false || IsFakeClient(iCid) || g_bIsLoading)
 		return Plugin_Stop;
 
-	if (GetConVarInt(g_hMenuAutoShow_enable) == 0)
+	if (g_hMenuAutoShow_enable.IntValue == 0)
 		return Plugin_Stop;
 
 	#if defined PM_DEBUG
@@ -7319,7 +7319,7 @@ Action MenuOpen_OnSay(int iCid, int args)
 Panel Menu_Initial(int iCid)
 {
 	Panel menu = CreatePanel();
-	char stPanel[128];
+	char stPanel[75];
 
 	menu.SetTitle("tPoncho's Perkmod");
 
@@ -7435,17 +7435,18 @@ int Menu_ChooseInit_Inf(Handle topmenu, MenuAction action, int client, int param
 //build top menu
 Panel Menu_Top(int iCid)
 {
-	char menuTitle[30];
-	char menuDescription[75];
-	char notSetText[25];
+	char buffer[75];
 
-	Format(menuTitle, sizeof(menuTitle), "%t", "MainMenuSurvivorTitle");
-	Format(menuDescription, sizeof(menuDescription), "%t", "MainMenuSurvivorDescription");
+	char notSetText[25];
 	Format(notSetText, sizeof(notSetText), "%t", "NotSet");
 	
 	Panel menu = CreatePanel();
-	menu.SetTitle(menuTitle);
-	menu.DrawText(menuDescription);
+
+	Format(buffer, sizeof(buffer), "%t", "MainMenuSurvivorTitle");
+	menu.SetTitle(buffer);
+
+	Format(buffer, sizeof(buffer), "%t", "MainMenuSurvivorDescription");
+	menu.DrawText(buffer);
 
 	char st_perk[50];
 	char st_display[75];
@@ -7513,9 +7514,7 @@ Panel Menu_Top(int iCid)
 
 	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel1");
 	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel2");
-	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel3");
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuDoneText");
 	menu.DrawItem(st_display);
 
 	return menu;
@@ -7557,20 +7556,21 @@ int Menu_ChooseSubMenu(Menu topmenu, MenuAction action, int client, int param2)
 //build top menu, infected
 Panel Menu_Top_Inf(int iCid)
 {
-	char menuTitle[30];
-	char menuDescription[75];
+	char buffer[75];
 	char notSetText[25];
 
-	Format(menuTitle, sizeof(menuTitle), "%t", "MainMenuInfectedTitle");
-	Format(menuDescription, sizeof(menuDescription), "%t", "MainMenuInfectedDescription");
 	Format(notSetText, sizeof(notSetText), "%t", "NotSet");
 
 	Panel menu = CreatePanel();
-	menu.SetTitle(menuTitle);
-	menu.DrawText(menuDescription);
 
-	char st_perk[32];
-	char st_display[75];
+	Format(buffer, sizeof(buffer), "%t", "MainMenuInfectedTitle");
+	menu.SetTitle(buffer);
+
+	Format(buffer, sizeof(buffer), "%t", "MainMenuInfectedDescription");
+	menu.DrawText(buffer);
+
+	char st_perk[40];
+	char st_display[90];
 
 	InfectedSmokerPerkType smokerPerk = g_ipInf[iCid].smokerPerk;
 	if (smokerPerk == InfectedSmokerPerk_TongueTwister && g_bTongue_enable)
@@ -7698,9 +7698,7 @@ Panel Menu_Top_Inf(int iCid)
 
 	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel1");
 	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel2");
-	menu.DrawText(st_display);
-	Format(st_display, sizeof(st_display), "%t", "DoneNagPanel3");
+	Format(st_display, sizeof(st_display), "%t", "PerkMenuDoneText");
 	menu.DrawItem(st_display);
 
 	return menu;
@@ -7743,7 +7741,7 @@ int Menu_ChooseSubMenu_Inf(Menu topmenu, MenuAction action, int client, int para
 //menu for confirming perk choices
 Panel Menu_Confirm(int iCid)
 {
-	char panel[128];
+	char panel[75];
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel1");
 
 	Panel menu = CreatePanel();
@@ -7755,7 +7753,7 @@ Panel Menu_Confirm(int iCid)
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel3");
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "PerkMenuConfirmText");
-	menu.DrawText(panel);
+	menu.DrawItem(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel4");
 	menu.DrawText(panel);
 	Format(panel, sizeof(panel), "%t", "ConfirmNagPanel5");
@@ -7844,9 +7842,9 @@ int Menu_DoNothing(Menu topmenu, MenuAction action, int param1, int param2)
 //shows perk choices
 Panel Menu_ShowChoices(int iCid)
 {	
-	char buffer[128];
-	char stPerk[128];
-	char stDesc[128];
+	char buffer[75];
+	char stPerk[75];
+	char stDesc[75];
 
 	Panel menu = CreatePanel();
 	menu.SetTitle("Perkmod");
@@ -7982,9 +7980,9 @@ Panel Menu_ShowChoices(int iCid)
 //shows perk choices, infected
 Panel Menu_ShowChoices_Inf(int iCid)
 {
-	char buffer[128];
-	char stPerk[128];
-	char stDesc[128];
+	char buffer[75];
+	char stPerk[75];
+	char stDesc[75];
 	
 	Panel menu = CreatePanel();
 
@@ -8224,7 +8222,7 @@ Panel Menu_ShowChoices_Inf(int iCid)
 //build menu for Sur1 Perks
 Panel Menu_Sur1Perk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8336,7 +8334,7 @@ int Menu_ChooseSur1Perk(Menu menu, MenuAction action, int client, int param2)
 //build menu for Sur2 Perks
 Panel Menu_Sur2Perk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8373,16 +8371,16 @@ Panel Menu_Sur2Perk(int client)
 		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorSecondPerkSpirit", st_current);
 		menu.DrawItem(buffer);
 
-		Format(buffer, sizeof(buffer), "%t", "SpiritDescriptionText");
-		menu.DrawText(buffer);
-
 		int iTime = g_iSpirit_cd;
 		if (g_L4D_GameMode == GameMode_Versus)
 			iTime=g_iSpirit_cd_vs;
 		else if (g_L4D_GameMode == GameMode_Survival)
 			iTime=g_iSpirit_cd_sur;
 
-		Format(buffer, sizeof(buffer), "+%i %t: %i min", g_iSpirit_buff, "SpritDescriptionText2", iTime/60);
+		Format(buffer, sizeof(buffer), "%t", "SpiritDescriptionText", iTime / 60);
+		menu.DrawText(buffer);
+
+		Format(buffer, sizeof(buffer), "+%i %t", g_iSpirit_buff, "SpritDescriptionText2");
 		menu.DrawText(buffer);
 	}
 
@@ -8463,7 +8461,7 @@ int Menu_ChooseSur2Perk(Menu menu, MenuAction action, int client, int param2)
 //build menu for Sur3 Perks
 Panel Menu_Sur3Perk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8521,10 +8519,7 @@ Panel Menu_Sur3Perk(int client)
 		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuSurvivorThirdPerkHardToKill", st_current);
 		menu.DrawItem(buffer);
 
-		Format(buffer, sizeof(buffer), "%t", "HardToKillDescriptionText");
-		menu.DrawText(buffer);
-
-		Format(buffer, sizeof(buffer), "+%i%% %t", RoundToNearest(100*g_flHard_hpmult), "HardToKillDescriptionText2");
+		Format(buffer, sizeof(buffer), "%t", "HardToKillDescriptionText", RoundToNearest(100*g_flHard_hpmult));
 		menu.DrawText(buffer);
 	}
 
@@ -8587,7 +8582,7 @@ int Menu_ChooseSur3Perk(Menu menu, MenuAction action, int client, int param2)
 
 Panel Menu_InfSmokerPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8608,13 +8603,13 @@ Panel Menu_InfSmokerPerk(int client)
 		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedSmokerTongueTwister", st_current);
 		menu.DrawItem(buffer);
 
-		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel1", RoundToNearest(100*(g_flTongue_speedmult-1)) );
+		Format(buffer, sizeof(buffer), "%t", "TongueTwisterDescriptionPanel1", 
+				RoundToNearest(100*(g_flTongue_speedmult-1)),
+				RoundToNearest(100*(g_flTongue_rangemult-1))
+			);
 		menu.DrawText(buffer);
 
-		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel2", RoundToNearest(100*(g_flTongue_rangemult-1)) );
-		menu.DrawText(buffer);
-
-		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel3", RoundToNearest(100*(g_flTongue_pullmult-1)) );
+		Format(buffer, sizeof(buffer), "%t: +%i%%", "TongueTwisterDescriptionPanel2", RoundToNearest(100*(g_flTongue_pullmult-1)) );
 		menu.DrawText(buffer);
 	}
 
@@ -8692,7 +8687,7 @@ int Menu_ChooseInfSmokerPerk(Menu menu, MenuAction action, int client, int param
 
 Panel Menu_InfBoomerPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8747,7 +8742,6 @@ Panel Menu_InfBoomerPerk(int client)
 
 		Format(buffer, sizeof(buffer), "%t: +%i%%", "DeadWreckeningDescriptionPanel", RoundToNearest(100*g_flDead_dmgmult));
 		menu.DrawText(buffer);
-		menu.DrawText("survivors are vomited upon");
 	}
 
 	//set name for perk 4
@@ -8791,7 +8785,7 @@ int Menu_ChooseInfBoomerPerk(Menu menu, MenuAction action, int client, int param
 
 Panel Menu_InfHunterPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8890,7 +8884,7 @@ int Menu_ChooseInfHunterPerk(Menu menu, MenuAction action, int client, int param
 
 Panel Menu_InfSpitterPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -8957,7 +8951,7 @@ int Menu_ChooseInfSpitterPerk(Menu menu, MenuAction action, int client, int para
 
 Panel Menu_InfJockeyPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -9056,7 +9050,7 @@ int Menu_ChooseInfJockeyPerk(Menu menu, MenuAction action, int client, int param
 
 Panel Menu_InfChargerPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -9123,7 +9117,7 @@ int Menu_ChooseInfChargerPerk(Menu menu, MenuAction action, int client, int para
 
 Panel Menu_InfTankPerk(int client)
 {
-	char buffer[128];
+	char buffer[75];
 	char st_current[10];
 
 	Panel menu = CreatePanel();
@@ -9144,13 +9138,13 @@ Panel Menu_InfTankPerk(int client)
 		Format(buffer, sizeof(buffer), "%t %s", "PerkMenuInfectedTankAdrenalGlands", st_current);
 		menu.DrawItem(buffer);
 
-		Format(buffer, sizeof(buffer), "%t: +%i%%", "AdrenalGlandsDescriptionPanel1", RoundToNearest(100 * ((1/g_flAdrenal_punchcdmult)-1) ) );
+		Format(buffer, sizeof(buffer), "%t", "AdrenalGlandsDescriptionPanel1", 
+				RoundToNearest(100 * ((1/g_flAdrenal_punchcdmult)-1)),
+				RoundToNearest(100 - 100*g_flAdrenal_throwcdmult)
+				);
 		menu.DrawText(buffer);
 
-		Format(buffer, sizeof(buffer), "%t: +%i%%", "AdrenalGlandsDescriptionPanel2", RoundToNearest(100 - 100*g_flAdrenal_throwcdmult ) );
-		menu.DrawText(buffer);
-
-		Format(buffer, sizeof(buffer), "%t", "AdrenalGlandsDescriptionPanel3");
+		Format(buffer, sizeof(buffer), "%t", "AdrenalGlandsDescriptionPanel2");
 		menu.DrawText(buffer);
 	}
 
